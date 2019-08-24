@@ -22,13 +22,11 @@
 	<meta name="apple-mobile-web-app-capable" content="yes" /> <!-- apple devices fullscreen -->
 	<meta name="apple-touch-fullscreen" content="yes"/>
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-	<meta name="keywords" content="{if empty($_W['page']['keywords'])}{if IMS_FAMILY != 'x'}微擎,微信,微信公众平台,w7.cc{/if}{else}{$_W['page']['keywords']}{/if}" />
-	<meta name="description" content="{if empty($_W['page']['description'])}{if IMS_FAMILY != 'x'}公众平台自助引擎（www.w7.cc），简称微擎，微擎是一款免费开源的微信公众平台管理系统，是国内最完善移动网站及移动互联网技术解决方案。{/if}{else}{$_W['page']['description']}{/if}" />
+	<meta name="keywords" content="{if empty($_W['page']['keywords'])}{if IMS_FAMILY != 'x'}微擎,微信,微信公众平台,we7.cc{/if}{else}{$_W['page']['keywords']}{/if}" />
+	<meta name="description" content="{if empty($_W['page']['description'])}{if IMS_FAMILY != 'x'}公众平台自助引擎（www.we7.cc），简称微擎，微擎是一款免费开源的微信公众平台管理系统，是国内最完善移动网站及移动互联网技术解决方案。{/if}{else}{$_W['page']['description']}{/if}" />
 	<link rel="shortcut icon" href="{$_W['siteroot']}{$_W['config']['upload']['attachdir']}/{if !empty($_W['setting']['copyright']['icon'])}{$_W['setting']['copyright']['icon']}{else}images/global/wechat.jpg{/if}" />
 	<script src="https://res.wx.qq.com/open/js/jweixin-1.3.2.js"></script>
-	{if $_W['container'] == 'baidu'}
-	<script src="https://xiongzhang.baidu.com/sdk/c.js?appid={$_W['account']['jssdkconfig']['appId']}&timestamp={$_W['account']['jssdkconfig']['timestamp']}&nonce_str={$_W['account']['jssdkconfig']['nonceStr']}&signature={$_W['account']['jssdkconfig']['signature']}&url={$_W['account']['jssdkconfig']['url']}"></script>
-	{/if}
+	<script src="https://xiongzhang.baidu.com/sdk/c.js?appid={$_W['account']['xz_jssdkconfig']['appId']}&timestamp={$_W['account']['xz_jssdkconfig']['timestamp']}&nonce_str={$_W['account']['xz_jssdkconfig']['nonceStr']}&signature={$_W['account']['xz_jssdkconfig']['signature']}&url={$_W['account']['xz_jssdkconfig']['url']}"></script>
 	<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/util.js"></script>
 	<script src="{$_W['siteroot']}app/resource/js/require.js"></script>
 	<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js?v=20160906"></script>
@@ -99,12 +97,3 @@
 </head>
 <body>
 <div class="container container-fill">
-{if $_W['container'] !== 'wechat' && ($_GPC['c'] == 'mc' || $_GPC['c'] == 'activity')}
-<header class="mui-bar mui-bar-nav">
-	<button class="mui-btn mui-btn-link mui-btn-nav mui-pull-left mui-action-back">
-		<span class="mui-icon mui-icon-left-nav"></span>
-		返回
-	</button>
-	<h1 class="mui-title">{if !empty($title)}{$title}{elseif !empty($_W['page']['title'])}{$_W['page']['title']}{/if}</h1>
-</header>
-{/if}

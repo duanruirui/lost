@@ -2,7 +2,7 @@
 <link href="./resource/css/app.css" rel="stylesheet">
 {template 'mc/common'}
 {if $do == 'uc'}
-<div id="ng_userCenterApp" class="site-box">
+<div id="ng_userCenterApp">
 {php echo tpl_ueditor('')}
 <form action="" method="post" class="form-horizontal">
 	<input type="hidden" name="multiid" value="{$multiid}" />
@@ -118,8 +118,8 @@
 			<div class="app-footer"><div we7-pagelength></div></div>
 		</div>
 	</div>
-	<nav class="navbar navbar-default navbar-uc" role="navigation">
-		<div class=" text-center we7-margin-vertical-sm">
+	<nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+		<div class="container text-center we7-margin-vertical-sm">
 			<div class="js-editor-submit-div">
 				<button type="button" class="btn btn-primary btn-submit js-editor-submit single-submit">上架</button>
 			</div>
@@ -566,8 +566,8 @@
 					</div>
 				</div>
 			</div>
-			<nav class="navbar navbar-default navbar-uc" role="navigation">
-				<div class=" text-center we7-margin-vertical-sm">
+			<nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+				<div class="container text-center we7-margin-vertical-sm">
 					<a class="btn btn-primary js-editor-submit btn-submit" href="javascript:;">保存</a>
 				</div>
 			</nav>

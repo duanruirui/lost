@@ -1,4 +1,5 @@
 {template 'common/header'}
+<div class="we7-page-title">木马查杀</div>
 <ul class="we7-page-tab">
 	<li {if $do != 'display' && $do != 'view'}class="active"{/if}><a href="{php echo url('system/scan');}">木马查杀</a></li>
 	<li {if $do == 'display'}class="active"{/if}><a href="{php echo url('system/scan', array('do' => 'display'));}">查杀报告</a></li>

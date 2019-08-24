@@ -12,18 +12,18 @@
 		</tr>
 		<tr>
 			<td class="table-label">头像</td>
-			<td><img ng-src="{{other.headimgsrc}}" class="account-img" /></td>
-			<td class="text-right"><div class="link-group"><a href="javascript:;" ng-click="changeImage('headimgsrc','{$uniacid}')">修改</a></div></td>
+			<td><img ng-src="{{other.headimgsrc}}" width="75px" height="75px" /></td>
+			<td><div class="link-group"><a href="javascript:;" ng-click="changeImage('headimgsrc','{$uniacid}')">修改</a></div></td>
 		</tr>
 		<tr>
 			<td class="table-label">熊掌号名称</td>
 			<td ng-bind="account.name"></td>
-			<td class="text-right"><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#name" ng-click="editInfo('name', account.name)">修改</a></div></td>
+			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#name" ng-click="editInfo('name', account.name)">修改</a></div></td>
 		</tr>
 		<tr>
 			<td class="table-label">熊掌号ID</td>
 			<td ng-bind="account.original"></td>
-			<td class="text-right"><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#original" ng-click="editInfo('original', account.original)">修改</a></div></td>
+			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#original" ng-click="editInfo('original', account.original)">修改</a></div></td>
 		</tr>
 		<tr>
 			<td class="table-label">类型</td>
@@ -32,13 +32,13 @@
 			<td ng-if="account.level == 3">企业</td>
 			<td ng-if="account.level == 4">政府</td>
 			<td ng-if="account.level == 5">其他组织</td>
-			<td class="text-right"><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#level" ng-click="editInfo('level', account.level)">修改</a></div></td>
+			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#level" ng-click="editInfo('level', account.level)">修改</a></div></td>
 		</tr>
 		<tr>
 			<td class="table-label">接入方式</td>
 			<td ng-if="account.type == 9">普通接入</td>
 			<td ng-if="account.type == 10">授权接入</td>
-			<td class="text-right" ng-if="authstate && authurl">
+			<td ng-if="authstate && authurl">
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#jointype" ng-click="editInfo('type', account.type)">修改</a>
 				</div>
@@ -46,53 +46,31 @@
 		</tr>
 		
 		<tr>
+			<td class="table-label">月访问总次数</td>
+			<td ng-if="account.highest_visit"><span ng-bind="account.highest_visit"></span><span class="color-gray"> 次 / 月</span></td>
+			<td ng-if="!account.highest_visit">不限次数</span></td>
+			<td>
+				{if user_is_founder($_W['uid'])}
+				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#visit" ng-click="editInfo('highest_visit', account.highest_visit)">修改</a></div>
+				{/if}
+			</td>
+		</tr>
+		
+		<tr>
 			<td class="table-label">到期时间</td>
 			<td><span ng-bind="account.end"></span><span class="color-gray"></span></td>
-			<td class="text-right">
+			<td>
 				<div class="link-group" ng-if="founder || owner">
 					<a href="javascript:;" data-toggle="modal" data-target="#endtype" ng-click="editInfo('endtype', account.endtype)">修改</a>
+					
+					{if $account['endtime'] > 0}
+					<a href="{php echo url('site/entry/goodsbuyer', array('direct' => 1, 'm' => 'store', 'type' => STORE_TYPE_ACCOUNT_RENEW))}">续费</a>
+					{/if}
 					
 				</div>
 			</td>
 		</tr>
-		<tr>
-			<td class="table-label">本地附件空间</td>
-			<td>
-				<span ng-if="account.attachment_limit != -1">{{account.attachment_limit}}M</span>
-				<span ng-if="account.attachment_limit == -1">不限</span>
-			</td>
-			<td class="text-right">
-				<div class="link-group" ng-if="founder || owner">
-					<a href="javascript:;" data-toggle="modal" data-target="#attachment_limit" ng-click="editInfo('attachment_limit', account.attachment_limit)">修改</a>
-				</div>
-			</td>
-		</tr>
-		<tr>
-			<td class="table-label">已用附件空间</td>
-			<td><span ng-bind="account.attachment_size"></span><span>M</span></td>
-			<td></td>
-		</tr>
 	</table>
-	<div class="modal fade" id="attachment_limit" tabindex="-1" role="dialog" aria-hidden="true">
-		<div class="we7-modal-dialog modal-dialog we7-form">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-					<div class="modal-title">修改熊掌号附件空间大小</div>
-				</div>
-				<div class="modal-body">
-					<div class="form-group">
-						<input type="number" ng-model="middleAccount.attachment_limit" class="form-control"/>
-						<span class="help-block">请输入单位为 M 的内存值，设置为 -1 时不限空间。</span>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="httpChange('attachment_limit')">确定</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-				</div>
-			</div>
-		</div>
-	</div>
 	<!-- 修改熊行号名称 -->
 	<div class="modal fade" id="name" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="we7-modal-dialog modal-dialog we7-form">
@@ -124,7 +102,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" ng-model="middleAccount.original" class="form-control" placeholder="熊掌号原始ID" />
+						<input type="text" ng-model="middleAccount.original" class="form-control" placeholder="公众号原始ID" />
 						<span class="help-block"></span>
 					</div>
 				</div>
@@ -193,7 +171,7 @@
 				<div class="modal-body">
 					<div class="form-group" ng-if="middleAccount.endtype == 1 || founder">
 						<input id="endtype-1" type="radio" name="endtype" value="2" ng-model="middleAccount.endtype" ng-checked="middleAccount.endtype == 2"><label for="endtype-1">设置期限</label>
-						<input id="endtype-2" type="radio" name="endtype" value="1" ng-model="middleAccount.endtype" ng-checked="middleAccount.endtype == 1"><label for="endtype-2" class="hidden">永久</label>
+						<input id="endtype-2" type="radio" name="endtype" value="1" ng-model="middleAccount.endtype" ng-checked="middleAccount.endtype == 1"><label for="endtype-2">永久</label>
 					</div>
 					<div class="form-group" ng-show="middleAccount.endtype == 2">
 						{php echo tpl_form_field_date('endtime', $account['endtime']);}
@@ -207,20 +185,41 @@
 		</div>
 	</div>
 	
+	<div class="modal fade" id="visit" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="we7-modal-dialog modal-dialog we7-form">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<div class="modal-title">修改访问总次数（单位：月）</div>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<input type="number" step="1" ng-model="middleAccount.highest_visit" class="form-control" placeholder="每月访问总次数" />
+						<span class="help-block">设置为0，表示无任何限制</span>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="httpChange('highest_visit')">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
 
 	<!-- 修改熊掌号 appid appsecret-->
-	<table class="table we7-table table-hover table-form">
+	<table class="table we7-table table-hover table-form wechat-menu">
 		<col width="140px " />
 		<col />
 		<col width="100px" />
 		<tr><th class="text-left" colspan="3">自定义菜单通讯设置</th></tr>
 		<tr>
-			<td class="table-label">ClientId</td>
+			<td class="table-label">AppId</td>
 			<td ng-bind="account.key"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#key"  ng-click="editInfo('key', account.key)">修改</a></div></td>
 		</tr>
 		<tr>
-			<td class="table-label">ClientSecret</td>
+			<td class="table-label">AppSecret</td>
 			<td ng-bind="account.secret"></td>
 			<td><div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#secret"  ng-click="editInfo('secret', account.secret)">修改</a></div></td>
 		</tr>
@@ -234,7 +233,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" ng-model="middleAccount.key" class="form-control" placeholder="熊掌号AppId" />
+						<input type="text" ng-model="middleAccount.key" class="form-control" placeholder="公众号AppId" />
 						<span class="help-block"></span>
 					</div>
 				</div>
@@ -254,7 +253,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" ng-model="middleAccount.secret" class="form-control" placeholder="熊掌号AppSecret" />
+						<input type="text" ng-model="middleAccount.secret" class="form-control" placeholder="公众号AppSecret" />
 						<span class="help-block"></span>
 					</div>
 				</div>
@@ -267,7 +266,7 @@
 	</div>
 
 	<!-- 服务器配置-->
-	<table class="table we7-table">
+	<table class="table wechat-communication">
 		<col width="160px" />
 		<col />
 		<col width="230px"/>
@@ -317,8 +316,8 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" id="newtoken" class="form-control" placeholder="请填写新的熊掌号消息校验Token" />
-						<span class="help-block">与熊掌号接入设置值一致，必须为英文或者数字，长度为3到32个字符. 请妥善保管, Token 泄露将可能被窃取或篡改平台的操作数据.</span>
+						<input type="text" id="newtoken" class="form-control" placeholder="请填写新的公众号消息校验Token" />
+						<span class="help-block">与公众平台接入设置值一致，必须为英文或者数字，长度为3到32个字符. 请妥善保管, Token 泄露将可能被窃取或篡改平台的操作数据.</span>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -337,8 +336,8 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<input type="text" id="newencodingaeskey" class="form-control" placeholder="请填写新的熊掌号消息加解密Key" />
-						<span class="help-block">与熊掌号接入设置值一致，必须为英文或者数字，长度为43个字符. 请妥善保管, EncodingAESKey 泄露将可能被窃取或篡改平台的操作数据.</span>
+						<input type="text" id="newencodingaeskey" class="form-control" placeholder="请填写新的公众号消息加解密Key" />
+						<span class="help-block">与公众平台接入设置值一致，必须为英文或者数字，长度为43个字符. 请妥善保管, EncodingAESKey 泄露将可能被窃取或篡改平台的操作数据.</span>
 					</div>
 				</div>
 				<div class="modal-footer">

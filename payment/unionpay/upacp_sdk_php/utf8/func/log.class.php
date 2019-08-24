@@ -1,18 +1,12 @@
 <?php 
 	class PhpLog
 	{
-		const DEBUG = 1;// Most Verbose
-		const INFO = 2;// ...
-		const WARN = 3;// ...
-		const ERROR = 4;// ...
-		const FATAL = 5;// Least Verbose
-		const OFF = 6;// Nothing at all.
-		 
+		const DEBUG = 1;		const INFO = 2;		const WARN = 3;		const ERROR = 4;		const FATAL = 5;		const OFF = 6;		 
 		const LOG_OPEN = 1;
 		const OPEN_FAILED = 2;
 		const LOG_CLOSED = 3;
 		 
-		/* Public members: Not so much of an example of encapsulation, but that's okay. */
+		
 		public $Log_Status = PhpLog::LOG_CLOSED;
 		public $DateFormat= "Y-m-d G:i:s";
 		public $MessageQueue;
@@ -23,32 +17,19 @@
 		 
 		private $file_handle;
 		
-		/**
-		 * AUTHOR:	gu_yongkang
-		 * DATA:	20110322
-		 * Enter description here ...
-		 * @param $filepath
-		 * 文件存储的路径
-		 * @param $timezone
-		 * 时间格式，此处设置为"PRC"（中国）
-		 * @param $priority
-		 * 设置运行级别
-		 */
+		
 		 
 		public function __construct( $filepath, $timezone, $priority )
 		{
 			if ( $priority == PhpLog::OFF ) return;
 			 
-			$this->filename = date('Y-m-d', time()) . '.log';	//默认为以时间＋.log的文件文件
-			$this->log_file = $this->createPath($filepath, $this->filename);
+			$this->filename = date('Y-m-d', time()) . '.log';				$this->log_file = $this->createPath($filepath, $this->filename);
 			$this->MessageQueue = array();
 			$this->priority = $priority;
 			date_default_timezone_set($timezone);
 			 
-			if ( !file_exists($filepath) )	//判断文件路径是否存在
-			{
-				if(!empty($filepath))	//判断路径是否为空
-				{
+			if ( !file_exists($filepath) )				{
+				if(!empty($filepath))					{
 					if(!($this->_createDir($filepath)))
 					{
 						die("创建目录失败!");
@@ -81,21 +62,13 @@
 			fclose( $this->file_handle );
 		}
 		
-		/**
-	     *作用:创建目录
-	     *输入:要创建的目录
-	     *输出:true | false
-	     */
+		
 		private  function _createDir($dir)
 		{
 			return is_dir($dir) or (self::_createDir(dirname($dir)) and mkdir($dir, 0777));
 		}
 		
-		/**
-	     *作用:构建路径
-	     *输入:文件的路径,要写入的文件名
-	     *输出:构建好的路径字串
-	     */
+		
 		private function createPath($dir, $filename)
 		{
 			if (empty($dir)) 
@@ -110,10 +83,7 @@
 		 
 		public function LogInfo($line)
 		{
-			/**
-			 * AUTHOR : gu_yongkang
-			 * 增加打印函数和文件名的功能
-			 */
+			
 			$sAarray = array();
 			$sAarray = debug_backtrace();
 			$sGetFilePath = $sAarray[0]["file"];
@@ -126,10 +96,7 @@
 		 
 		public function LogDebug($line)
 		{
-			/**
-			 * AUTHOR : gu_yongkang
-			 * 增加打印函数和文件名的功能
-			 */
+			
 			$sAarray = array();
 			$sAarray = debug_backtrace();
 			$sGetFilePath = $sAarray[0]["file"];
@@ -142,10 +109,7 @@
 		 
 		public function LogWarn($line)
 		{
-			/**
-			 * AUTHOR : gu_yongkang
-			 * 增加打印函数和文件名的功能
-			 */
+			
 			$sAarray = array();
 			$sAarray = debug_backtrace();
 			$sGetFilePath = $sAarray[0]["file"];
@@ -158,10 +122,7 @@
 		 
 		public function LogError($line)
 		{
-			/**
-			 * AUTHOR : gu_yongkang
-			 * 增加打印函数和文件名的功能
-			 */
+			
 			$sAarray = array();
 			$sAarray = debug_backtrace();
 			$sGetFilePath = $sAarray[0]["file"];
@@ -174,10 +135,7 @@
 		 
 		public function LogFatal($line)
 		{
-			/**
-			 * AUTHOR : gu_yongkang
-			 * 增加打印函数和文件名的功能
-			 */
+			
 			$sAarray = array();
 			$sAarray = debug_backtrace();
 			$sGetFilePath = $sAarray[0]["file"];
@@ -188,18 +146,7 @@
 			unset($sGetFileLine);
 		}
 
-		/**
-		 * Author ： gu_yongkang
-		 * Enter description here ...
-		 * @param unknown_type $line
-		 * content 内容
-		 * @param unknown_type $priority
-		 * 打印级别
-		 * @param unknown_type $sFile
-		 * 调用打印日志的文件名
-		 * @param unknown_type $iLine
-		 * 打印文件的位置（行数）
-		 */
+		
 		public function Log($line, $priority, $sFile, $iLine)
 		{
 			if ($iLine > 0)
@@ -213,10 +160,7 @@
 			}
 			else 
 			{
-				/**
-				 * AUTHOR : gu_yongkang
-				 * 增加打印函数和文件名的功能
-				 */
+				
 				$sAarray = array();
 				$sAarray = debug_backtrace();
 				$sGetFilePath = $sAarray[0]["file"];
@@ -231,8 +175,7 @@
 				}
 			}
 		}
-		 // 支持输入多个参数
-		public function WriteFreeFormLine( $line )
+		 		public function WriteFreeFormLine( $line )
 		{
 			if ( $this->Log_Status == PhpLog::LOG_OPEN && $this->priority != PhpLog::OFF )
 			{

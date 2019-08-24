@@ -23,7 +23,16 @@
 	<tr ng-repeat="menu in homeMenu">
 		<td class="title">{$menu['title']}</td>
 		<td><i class="{$menu['icon']}"></i></td>
-		<td><a href="javascript:;" class="js-clip" data-url="{$menu['url']}">{$menu['url']}</a></td>
+		<td><a href="javascript:;" class="url" data-url="{$menu['url']}">{$menu['url']}</a></td>
+		<script>
+			$('.url').each(function() {
+				util.clip(this, $('.url').data('url'));
+			});
+			$('.url').click(function() {
+				util.clip(this, $(this).data('url'));
+			});
+
+		</script>
 		<td class="edit">
 			<a href="{php echo url('site/multi')}">跳转至“微官网”设置</a>
 		</td>

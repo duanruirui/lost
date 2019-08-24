@@ -1,8 +1,7 @@
 <?php
 /**
- * 语音回复模块
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -36,8 +35,7 @@ class MusicModule extends WeModule {
 			return '必须填写有效的回复内容.';
 		}
 		foreach($this->replies as &$r) {
-			//音频标题和链接不能为空(两种链接至少有一种)
-			if(trim($r['title']) == '' || (trim($r['url']) == '' && trim($r['hqurl']) == '')) {
+						if(trim($r['title']) == '' || (trim($r['url']) == '' && trim($r['hqurl']) == '')) {
 				return '必须填写有效的回复内容.';
 			}
 			$r['description'] = htmlspecialchars_decode($r['description']);

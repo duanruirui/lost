@@ -1,31 +1,21 @@
 <?php
-// 初始化日志
-$log = new PhpLog ( SDK_LOG_FILE_PATH, "PRC", SDK_LOG_LEVEL );
 /**
- * 数组 排序后转化为字体串
- *
- * @param array $params        	
- * @return string
- */
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ */$log = new PhpLog ( SDK_LOG_FILE_PATH, "PRC", SDK_LOG_LEVEL );
+
 function coverParamsToString($params) {
 	$sign_str = '';
-	// 排序
-	ksort ( $params );
+		ksort ( $params );
 	foreach ( $params as $key => $val ) {
 		if ($key == 'signature') {
 			continue;
 		}
 		$sign_str .= sprintf ( "%s=%s&", $key, $val );
-		// $sign_str .= $key . '=' . $val . '&';
-	}
+			}
 	return substr ( $sign_str, 0, strlen ( $sign_str ) - 1 );
 }
-/**
- * 字符串转换为 数组
- *
- * @param unknown_type $str        	
- * @return multitype:unknown
- */
+
 function coverStringToArray($str) {
 	$result = array ();
 
@@ -44,15 +34,9 @@ function coverStringToArray($str) {
 	}
 	return $result;
 }
-/**
- * 处理返回报文 解码客户信息 , 如果编码为utf-8 则转为utf-8
- *
- * @param unknown_type $params        	
- */
+
 function deal_params(&$params) {
-	/**
-	 * 解码 customerInfo
-	 */
+	
 	if (! empty ( $params ['customerInfo'] )) {
 		$params ['customerInfo'] = base64_decode ( $params ['customerInfo'] );
 	}
@@ -64,11 +48,7 @@ function deal_params(&$params) {
 	}
 }
 
-/**
- * 压缩文件 对应java deflate
- *
- * @param unknown_type $params        	
- */
+
 function deflate_file(&$params) {
 	global $log;
 	foreach ( $_FILES as $file ) {
@@ -87,11 +67,7 @@ function deflate_file(&$params) {
 	}
 }
 
-/**
- * 处理报文中的文件
- *
- * @param unknown_type $params        	
- */
+
 function deal_file($params) {
 	global $log;
 	if (isset ( $params ['fileContent'] )) {
@@ -101,8 +77,7 @@ function deal_file($params) {
 		if (empty ( $fileContent )) {
 			$log->LogInfo ( '文件内容为空' );
 		} else {
-			// 文件内容 解压缩
-			$content = gzuncompress ( base64_decode ( $fileContent ) );
+						$content = gzuncompress ( base64_decode ( $fileContent ) );
 			$root = SDK_FILE_DOWN_PATH;
 			$filePath = null;
 			if (empty ( $params ['fileName'] )) {
@@ -123,13 +98,7 @@ function deal_file($params) {
 	}
 }
 
-/**
- * 构造自动提交表单
- *
- * @param unknown_type $params        	
- * @param unknown_type $action        	
- * @return string
- */
+
 function create_html($params, $action) {
 	$encodeType = isset ( $params ['encoding'] ) ? $params ['encoding'] : 'UTF-8';
 	$html = <<<eot

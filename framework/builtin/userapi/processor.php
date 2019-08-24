@@ -1,8 +1,7 @@
 <?php
 /**
- * 调用第三方数据接口处理类
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -34,19 +33,7 @@ class UserapiModuleProcessor extends WeModuleProcessor {
 		sort($signkey, SORT_STRING);
 		$sign['signature'] = sha1(implode($signkey));
 		$item['apiurl'] .= http_build_query($sign, '', '&');
-/*		if($this->message['type'] == 'text') {
-			$body = $GLOBALS["HTTP_RAW_POST_DATA"];
-		} else {
-			$body = "<xml>" . PHP_EOL .
-					"<ToUserName><![CDATA[{$this->message['to']}]]></ToUserName>" . PHP_EOL .
-					"<FromUserName><![CDATA[{$this->message['from']}]]></FromUserName>" . PHP_EOL .
-					"<CreateTime>{$this->message['time']}</CreateTime>" . PHP_EOL .
-					"<MsgType><![CDATA[text]]></MsgType>" . PHP_EOL .
-					"<Content><![CDATA[{$this->message['content']}]]></Content>" . PHP_EOL .
-					"<MsgId>".TIMESTAMP."</MsgId>" . PHP_EOL .
-					"</xml>";
-		}
-*/
+
 		$body = "<xml>" . PHP_EOL .
 			"<ToUserName><![CDATA[{$this->message['to']}]]></ToUserName>" . PHP_EOL .
 			"<FromUserName><![CDATA[{$this->message['from']}]]></FromUserName>" . PHP_EOL .
@@ -147,7 +134,7 @@ class UserapiModuleProcessor extends WeModuleProcessor {
 		}
 		if ($item['cachetime'] > 0) {
 			$key = md5($item['id'].$this->message['from']);
-			$cache = table('userapi_cache')->where('key', $key)->get();
+			$cache = pdo_fetch("SELECT * FROM " . tablename('userapi_cache') . " WHERE `key` = '$key' LIMIT 1");
 			if (!empty($cache) && TIMESTAMP - $cache['lastupdate'] <= $item['cachetime']) {
 				return iunserializer($cache['content']);
 			}

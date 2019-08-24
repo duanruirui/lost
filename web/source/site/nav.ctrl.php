@@ -1,7 +1,7 @@
 <?php
 /**
- * 微站导航管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,25 +10,24 @@ load()->model('module');
 $dos = array('home', 'profile', 'homemenu_display', 'homemenu_post', 'homemenu_del', 'homemenu_switch');
 $do = in_array($do, $dos) ? $do : 'home';
 
-$system_modules = module_system();
+$system_modules = system_modules();
 if (!in_array($_GPC['m'], $system_modules)) {
 	permission_check_account_user('', true, 'nav');
 }
 $modulename = $_GPC['m'];
 
-//微官网首页导航菜单：homemenu_display、homemenu_post、homemenu_del、homemenu_switch(切换开关状态)
 if ($do == 'homemenu_display') {
 	$multiid = intval($_GPC['multiid']);
 	$navs = pdo_getall('site_nav', array('uniacid' => $_W['uniacid'], 'position' => '1', 'multiid' => $multiid), array(), '', array('displayorder DESC', 'id ASC'));
 	$navigations = array();
 	if (!empty($navs)) {
 		foreach ($navs as $nav) {
-			/*处理icon图片链接*/
+			
 			if (is_serialized($nav['css'])) {
 				$nav['css'] = iunserializer($nav['css']);
-				if (empty($nav['css']['icon']['icon'])) {
-					$nav['css']['icon']['icon'] = 'fa fa-external-link';
-				}
+			}
+			if (empty($nav['css']['icon']['icon'])) {
+				$nav['css']['icon']['icon'] = 'fa fa-external-link';
 			}
 			$navigations[] = array(
 				'id' => $nav['id'],
@@ -74,26 +73,25 @@ if ($do == 'homemenu_post') {
 		'uniacid' => $_W['uniacid'],
 		'multiid' => $multiid,
 		'section' => $section_num,
-		'name' => safe_gpc_string($post['name']),
-		'description' => safe_gpc_string($post['description']),
+		'name' => trim($post['name']),
+		'description' => trim($post['description']),
 		'displayorder' => intval($post['displayorder']),
 		'url' => $url,
 		'status' => intval($post['status']),
 		'position' => 1
 	);
-	//获取icon的类型 1:系统内置图标 2:自定义上传图标
-	$icontype = safe_gpc_string($post['icontype']);
+		$icontype = $post['icontype'];
 	if ($icontype == 1) {
 		$data['icon'] = '';
 		$data['css'] = serialize(array(
 				'icon' => array(
-					'font-size' => intval($post['css']['icon']['width']),
-					'color' => safe_gpc_string($post['css']['icon']['color']),
-					'width' => intval($post['css']['icon']['width']),
-					'icon' => empty($post['css']['icon']['icon']) ? 'fa fa-external-link' : safe_gpc_string($post['css']['icon']['icon']),
+					'font-size' => $post['css']['icon']['width'],
+					'color' => $post['css']['icon']['color'],
+					'width' => $post['css']['icon']['width'],
+					'icon' => empty($post['css']['icon']['icon']) ? 'fa fa-external-link' : $post['css']['icon']['icon'],
 				),
 				'name' => array(
-					'color' => safe_gpc_string($post['css']['icon']['color']),
+					'color' => $post['css']['icon']['color'],
 				),
 			)
 		);
@@ -104,7 +102,7 @@ if ($do == 'homemenu_post') {
 	if (empty($post['id'])) {
 		pdo_insert('site_nav', $data);
 	} else {
-		pdo_update('site_nav', $data, array('id' => $post['id'], 'uniacid' => $_W['uniacid']));
+		pdo_update('site_nav', $data, array('id' => $post['id']));
 	}
 	iajax(0, '更新成功！', '');
 }
@@ -113,15 +111,13 @@ if ($do == 'homemenu_del') {
 	$id = intval($_GPC['id']);
 	$nav_exist = pdo_get('site_nav', array('id' => $id, 'uniacid' => $_W['uniacid']));
 	if (empty($nav_exist)) {
-		//本公众号不存在该导航
-		iajax(-1, '本公众号不存在该导航！', '');
+				iajax(-1, '本公众号不存在该导航！', '');
 	} else {
 		$nav_del = pdo_delete('site_nav', array('id' => $id));
 		if (!empty($nav_del)) {
 			iajax(0, '删除成功！', '');
 		} else {
-			//删除失败
-			iajax(1, '删除失败！', '');
+						iajax(1, '删除失败！', '');
 		}
 	}
 	exit;
@@ -134,7 +130,7 @@ if ($do == 'homemenu_switch') {
 		iajax(-1, '本公众号不存在该导航');
 	} else {
 		$status = $nav_exist['status'] == 1 ? 0 : 1;
-		$nav_update = pdo_update('site_nav', array('status' => $status), array('id' => $id, 'uniacid' => $_W['uniacid']));
+		$nav_update = pdo_update('site_nav', array('status' => $status), array('id' => $id));
 		if (!empty($nav_update)) {
 			iajax(0, '更新成功！', '');
 		} else {
@@ -143,7 +139,6 @@ if ($do == 'homemenu_switch') {
 	}
 }
 
-//首页导航
 if ($do == 'home' || $do == 'profile') {
 	$modules = uni_modules();
 	$bindings = array();

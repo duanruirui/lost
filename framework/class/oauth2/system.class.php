@@ -1,7 +1,7 @@
 <?php
 /**
- * 系统用户登录
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 class System extends OAuth2Client {
@@ -9,7 +9,6 @@ class System extends OAuth2Client {
 
 	public function __construct($ak, $sk) {
 		parent::__construct($ak, $sk);
-		$this->stateParam['from'] = 'system';
 	}
 
 	public function showLoginUrl($calback_url = '') {
@@ -19,11 +18,10 @@ class System extends OAuth2Client {
 	public function user() {
 		global $_GPC, $_W;
 		$username = trim($_GPC['username']);
-		$refused_login_limit = $_W['setting']['copyright']['refused_login_limit'];
-		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP - $refused_login_limit * 60));
-		$failed = pdo_get('users_failed_login', array('username' => $username));
+		pdo_delete('users_failed_login', array('lastupdate <' => TIMESTAMP-300));
+		$failed = pdo_get('users_failed_login', array('username' => $username, 'ip' => CLIENT_IP));
 		if ($failed['count'] >= 5) {
-			return error('-1', "输入密码错误次数超过5次，请在{$refused_login_limit}分钟后再登录");
+			return error('-1', '输入密码错误次数超过5次，请在5分钟后再登录');
 		}
 		if (!empty($_W['setting']['copyright']['verifycode'])) {
 			$verify = trim($_GPC['verify']);
@@ -40,7 +38,6 @@ class System extends OAuth2Client {
 		}
 		$member['username'] = $username;
 		$member['password'] = $_GPC['password'];
-		$member['type'] = $this->user_type;
 		if (empty($member['password'])) {
 			return error('-1', '请输入密码');
 		}
@@ -106,7 +103,8 @@ class System extends OAuth2Client {
 	}
 
 	public function systemFields() {
-		return table('core_profile_fields')->getAvailableAndShowableFields();
+		$user_table = table('users');
+		return $user_table->userProfileFields();
 	}
 
 	public function login() {
@@ -118,10 +116,6 @@ class System extends OAuth2Client {
 	}
 
 	public function unbind() {
-		return true;
-	}
-
-	public function isbind() {
 		return true;
 	}
 }

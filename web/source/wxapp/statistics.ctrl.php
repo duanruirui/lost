@@ -1,20 +1,18 @@
 <?php
 /**
- * 小程序统计
  * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
+load()->model('wxapp');
 load()->model('statistics');
 
 $dos = array('display', 'get_visit_api');
 $do = in_array($do, $dos) ? $do : 'display';
 
-permission_check_account_user('statistics_visit_wxapp');
-
 if ($do == 'display') {
-	//昨日指标
-	miniapp_update_daily_visittrend();
+		wxapp_update_daily_visittrend();
 	$yesterday = date('Ymd', strtotime('-1 days'));
 	$yesterday_stat = pdo_get('wxapp_general_analysis', array('uniacid' => $_W['uniacid'], 'type' => '2', 'ref_date' => $yesterday));
 	if (empty($yesterday_stat)) {
@@ -83,7 +81,7 @@ if ($do == 'get_visit_api') {
 			continue;
 		}
 		if (empty($result[$date])) {
-			$date_visit = miniapp_insert_date_visit_trend($date);
+			$date_visit = wxapp_insert_date_visit_trend($date);
 			$data_y[$key] = empty($date_visit[$divide_type]) ? 0 : $date_visit[$divide_type];
 		} else {
 			$data_y[$key] = $result[$date][$divide_type];

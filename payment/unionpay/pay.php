@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 define('IN_MOBILE', true);
 require '../../framework/bootstrap.inc.php';
@@ -32,8 +32,7 @@ if (!empty($_POST) && verify($_POST) && $_POST['respMsg'] == 'success') {
 		$record['status'] = 1;
 		$record['tag'] = iserializer($log['tag']);
 		pdo_update('core_paylog', $record, array('plid' => $log['plid']));
-		//核销code码
-		if($log['is_usecard'] == 1 && $log['card_type'] == 1 &&  !empty($log['encrypt_code']) && $log['acid']) {
+				if($log['is_usecard'] == 1 && $log['card_type'] == 1 &&  !empty($log['encrypt_code']) && $log['acid']) {
 			load()->classs('coupon');
 			$acc = new coupon($log['acid']);
 			$codearr['encrypt_code'] = $log['encrypt_code'];
@@ -70,8 +69,7 @@ if (!empty($_POST) && verify($_POST) && $_POST['respMsg'] == 'success') {
 			$ret['user'] = $log['openid'];
 			$ret['fee'] = $log['fee'];
 			$ret['tag'] = $log['tag'];
-			//支付成功后新增是否使用优惠券信息【需要模块去处理】
-			$ret['is_usecard'] = $log['is_usecard'];
+						$ret['is_usecard'] = $log['is_usecard'];
 			$ret['card_fee'] = $log['card_fee'];
 			$ret['card_id'] = $log['card_id'];
 			$site->$method($ret);

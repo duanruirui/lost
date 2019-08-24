@@ -1,10 +1,14 @@
 {template 'common/header'}
+<div class="we7-page-title">
+    参数设置
+</div>
 <ul class="we7-page-tab">
-    {loop $active_sub_permission $active_menu}
-    {if permission_check_account_user($active_menu['permission_name'], false, 'wxapp')}
-    <li {if $action == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}version_id={$_GPC['version_id']}">{$active_menu['title']}</a></li>
-    {/if}
-    {/loop}
+    <li {if $action == 'payment'} class="active"{/if}>
+        <a href="{php echo url('wxapp/payment', array('version_id' => $version_id))}">支付参数</a>
+    </li>
+    <li {if $action == 'refund'} class="active"{/if}>
+        <a href="{php echo url('wxapp/refund', array('version_id' => $version_id))}">退款配置</a>
+    </li>
 </ul>
 <div class="js-profile-payment" ng-controller="PaymentCtrl" ng-cloak>
     <table class="table we7-table table-hover table-form">
@@ -75,11 +79,11 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="" class="control-label col-sm-2">微信支付密钥</label>
+                                    <label for="" class="control-label col-sm-2">微信支付秘钥</label>
                                     <div class="form-controls col-sm-10">
                                         <div class="input-group">
                                             <input type="text" name="" ng-model="paysetting.wechat.signkey" class="form-control" placeholder="">
-                                            <a href="javascript:;" class="input-group-addon" ng-click="tokenGen('wechat.signkey')">生成新的密钥</a>
+                                            <a href="javascript:;" class="input-group-addon" ng-click="tokenGen('wechat.signkey')">生成新的秘钥</a>
                                         </div>
 										<span class="help-block">
 											财付通商户权限密钥

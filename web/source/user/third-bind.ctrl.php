@@ -1,7 +1,7 @@
 <?php
 /**
- * 绑定用户信息
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('user');
@@ -10,9 +10,10 @@ $dos = array('display', 'validate_mobile', 'bind_mobile', 'bind_oauth');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if (in_array($do, array('validate_mobile', 'bind_mobile'))) {
-	$user_profile = table('users_profile')->getByUid($_W['uid']);
+	$user_table = table('users');
+	$user_profile = $user_table->userProfile($_W['uid']);
 	$mobile = safe_gpc_string($_GPC['mobile']);
-	$mobile_exists = table('users_bind')->getByTypeAndBindsign(USER_REGISTER_TYPE_MOBILE, $mobile);
+	$module_exists = $user_table->userBindInfo($mobile, 3);
 	if (empty($mobile)) {
 		iajax(-1, '手机号不能为空');
 	}
@@ -44,19 +45,10 @@ if ($do == 'display') {
 	$support_bind_urls = user_support_urls();
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
-	if (!empty($_W['user']['type']) && $_W['user']['type'] == USER_TYPE_CLERK) {
-		$_W['setting']['copyright']['bind'] = empty($_W['setting']['copyright']['clerk']['bind']) ? '' : $_W['setting']['copyright']['clerk']['bind'];
-	}
 }
 
 if ($do == 'bind_oauth') {
 	$uid = intval($_GPC['uid']);
-	$openid = safe_gpc_string($_GPC['openid']);
-	$register_type = intval($_GPC['register_type']);
-
-	if (empty($uid) || empty($openid) || !in_array($register_type, array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT))) {
-		itoast('参数错误!', url('user/login'), '');
-	}
 
 	$user_info = user_single($uid);
 	if ($user_info['is_bind']) {
@@ -64,12 +56,20 @@ if ($do == 'bind_oauth') {
 	}
 
 	if ($_W['ispost']) {
-		$member['username'] = safe_gpc_string($_GPC['username']);
-		$member['password'] = safe_gpc_string($_GPC['password']);
-		$member['repassword'] = safe_gpc_string($_GPC['repassword']);
+		$member['username'] = trim($_GPC['username']);
+		$member['password'] = trim($_GPC['password']);
+		$member['repassword'] = trim($_GPC['repassword']);
 		$member['is_bind'] = 1;
 
-		if (empty($member['username']) || empty($member['password']) || empty($member['repassword'])) {
+		$profile['nickname'] = safe_gpc_string($_GPC['nickname']);
+		$profile['realname'] = safe_gpc_string($_GPC['realname']);
+
+		$user = array(
+			'member' => $member,
+			'profile' => $profile,
+		);
+
+		if (empty($member['username']) || empty($member['password']) || empty($member['repassword']) || empty($profile['nickname']) || empty($profile['realname'])) {
 			itoast('请填写完整信息！',  referer(), '');
 		}
 
@@ -94,14 +94,19 @@ if ($do == 'bind_oauth') {
 			itoast('非常抱歉，此用户名已经被注册，你需要更换注册名称！', referer(), '');
 		}
 
+		if(!empty($_W['setting']['register']['code'])) {
+			if (!checkcaptcha($_GPC['imagecode'])) {
+				itoast('你输入的验证码不正确, 请重新输入.', referer(), '');
+			}
+		}
+
 		$member['salt'] = random(8);
 		$member['password'] = user_hash($member['password'], $member['salt']);
-		$result = pdo_update('users', $member, array('uid' => $uid, 'openid' => $openid, 'register_type' => $register_type));
+		pdo_update('users_profile', $profile, array('uid' => $uid));
+		$result = pdo_update('users', $member, array('uid' => $uid));
 		
 		if ($result) {
 			itoast('注册绑定成功!', url('user/login'), '');
-		} else {
-			itoast('注册绑定失败, 请联系管理员解决!', url('user/login'), '');
 		}
 	} else {
 		template('user/bind-oauth');

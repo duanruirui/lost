@@ -1,7 +1,7 @@
 <?php
 /**
- * PC - 数据同步
  * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -26,7 +26,7 @@ if ($do == 'module_link_uniacid') {
 		if (!empty($account_module)) {
 			$settings = (array)iunserializer($account_module['settings']);
 			$settings['link_uniacid'] = $uniacid;
-			pdo_update('uni_account_modules', array('settings' => iserializer($settings)), array('id' => $account_module['id'], 'uniacid' => $_W['uniacid']));
+			pdo_update('uni_account_modules', array('settings' => iserializer($settings)), array('id' => $account_module['id']));
 		} else {
 			$settings = array('link_uniacid' => $uniacid);
 			$data = array(
@@ -43,8 +43,7 @@ if ($do == 'module_link_uniacid') {
 	}
 
 	$modules = uni_modules();
-	//1.过滤不支持关联的模块,2.获取已关联模块的uniacid信息,3.获取被关联模块的uniacid信息
-	foreach ($modules as $key => $value) {
+		foreach ($modules as $key => $value) {
 		if ($value[MODULE_SUPPORT_WXAPP_NAME] == MODULE_NONSUPPORT_WXAPP && $value[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_NONSUPPORT_ACCOUNT || !empty($value['issystem'])) {
 			unset($modules[$key]);
 			continue;
@@ -77,7 +76,7 @@ if ($do == 'module_unlink_uniacid') {
 		} else {
 			unset($settings['link_uniacid']);
 			$data = empty($settings) ? '' : iserializer($settings);
-			$result = pdo_update('uni_account_modules', array('settings' => $data), array('id' => $account_module['id'], 'uniacid' => $_W['uniacid']));
+			$result = pdo_update('uni_account_modules', array('settings' => $data), array('id' => $account_module['id']));
 		}
 	}
 	if ($result) {
@@ -101,8 +100,7 @@ if ($do == 'search_link_account') {
 	if (!in_array($account_type, array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_OFFCIAL_NORMAL))) {
 		iajax(0, array());
 	}
-	//该模块是否有其他关联
-	$have_link_uniacid = array();
+		$have_link_uniacid = array();
 	$link_uniacid_info = module_link_uniacid_info($module_name);
 	if (!empty($link_uniacid_info)) {
 		foreach ($link_uniacid_info as $info) {
@@ -111,8 +109,7 @@ if ($do == 'search_link_account') {
 			}
 		}
 	}
-	//查找可关联的公众号或小程序，并删除已关联的
-	if ($account_type == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
+		if ($account_type == ACCOUNT_TYPE_OFFCIAL_NORMAL) {
 		$account_normal_list = uni_search_link_account($module_name, ACCOUNT_TYPE_OFFCIAL_NORMAL);
 		$account_auth_list = uni_search_link_account($module_name, ACCOUNT_TYPE_OFFCIAL_AUTH);
 		$account_list = array_merge($account_normal_list, $account_auth_list);

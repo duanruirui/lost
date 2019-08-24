@@ -1,13 +1,11 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 微信个性化菜单接口：语言
- * @return 	array
- */
+
 function menu_languages() {
 	$languages = array(
 		array('ch'=>'简体中文', 'en'=>'zh_CN'),
@@ -35,11 +33,7 @@ function menu_languages() {
 	return $languages;
 }
 
-/**
- * 获取当前公众号下某一条自定义菜单数据
- * @param int $id
- * @return array()
- */
+
 function menu_get($id) {
 	global $_W;
 	$id = intval($id);
@@ -54,22 +48,17 @@ function menu_get($id) {
 	}
 }
 
-/*
- * 获取公众号当前生效的默认菜单
- * @return array()
- */
+
 function menu_default() {
 	$result = array();
 	$result = table('menu')->accountDefaultMenuInfo();
 	return $result;
 }
 
-/**
- * 接口获取默认菜单并更新本地数据库
- */
+
 function menu_update_currentself() {
 	global $_W;
-	$account_api = WeAccount::createByUniacid();
+	$account_api = WeAccount::create();
 	$default_menu_info = $account_api->menuCurrentQuery();
 	if (is_error($default_menu_info)) {
 		return error(-1, $default_menu_info['message']);
@@ -95,9 +84,7 @@ function menu_update_currentself() {
 		}
 		unset($button);
 	}
-	if (!empty($default_menu)) {
-		ksort($default_menu);
-	}
+	ksort($default_menu);
 	$wechat_menu_data = base64_encode(iserializer($default_menu));
 	$all_default_menus = table('menu')->searchAccountMenuList(MENU_CURRENTSELF);
 	if (!empty($all_default_menus)) {
@@ -149,12 +136,10 @@ function menu_update_currentself() {
 	return true;
 }
 
-/**
- * 接口获取个性化菜单并更新本地数据库
- */
+
 function menu_update_conditional() {
 	global $_W;
-	$account_api = WeAccount::createByUniacid();
+	$account_api = WeAccount::create();
 	$conditional_menu_info = $account_api->menuQuery();
 	if (is_error($conditional_menu_info)) {
 		return error(-1, $conditional_menu_info['message']);
@@ -190,10 +175,7 @@ function menu_update_conditional() {
 	return true;
 }
 
-/**
- * 删除自定义菜单
- * @param int $id
- */
+
 function menu_delete($id) {
 	global $_W;
 	$menu_info = menu_get($id);
@@ -205,7 +187,7 @@ function menu_delete($id) {
 		return error(0, '删除菜单成功！');
 	}
 	if ($menu_info['type'] == MENU_CONDITIONAL && $menu_info['menuid'] > 0 && $menu_info['status'] != STATUS_OFF) {
-		$account_api = WeAccount::createByUniacid();
+		$account_api = WeAccount::create($_W['acid']);
 		$result = $account_api->menuDelete($menu_info['menuid']);
 		if (is_error($result)) {
 			return error(-1, $result['message']);
@@ -215,10 +197,7 @@ function menu_delete($id) {
 	return true;
 }
 
-/**
- * 推送/关闭自定义菜单
- * @param int $id
- */
+
 function menu_push($id) {
 	global $_W;
 	$menu_info = menu_get($id);
@@ -232,7 +211,7 @@ function menu_push($id) {
 		}
 		$is_conditional = (!empty($post['matchrule']) && $menu_info['type'] == MENU_CONDITIONAL) ? true : false;
 
-		$account_api = WeAccount::createByUniacid();
+		$account_api = WeAccount::create();
 		$menu = $account_api->menuBuild($post, $is_conditional);
 		$result = $account_api->menuCreate($menu);
 		if (is_error($result)) {
@@ -242,8 +221,7 @@ function menu_push($id) {
 			pdo_update('uni_account_menus', array('status' => '1'), array('id' => $menu_info['id']));
 			pdo_update('uni_account_menus', array('status' => '0'), array('id !=' => $menu_info['id'], 'uniacid' => $_W['uniacid'], 'type' => MENU_CURRENTSELF));
 		} elseif ($menu_info['type'] == MENU_CONDITIONAL) {
-			// 将$menu中 tag_id 再转为 group_id
-			if ($post['matchrule']['group_id'] != -1) {
+						if ($post['matchrule']['group_id'] != -1) {
 				$menu['matchrule']['groupid'] = $menu['matchrule']['tag_id'];
 				unset($menu['matchrule']['tag_id']);
 			}
@@ -251,9 +229,8 @@ function menu_push($id) {
 		}
 		return true;
 	}
-	//只有个性化菜单才有关闭交互（默认菜单有且只有一个未开启状态，已在推送创建菜单中处理）
-	if ($menu_info['status'] == STATUS_ON && $menu_info['type'] == MENU_CONDITIONAL && $menu_info['menuid'] > 0) {
-		$account_api = WeAccount::createByUniacid();
+		if ($menu_info['status'] == STATUS_ON && $menu_info['type'] == MENU_CONDITIONAL && $menu_info['menuid'] > 0) {
+		$account_api = WeAccount::create();
 		$result = $account_api->menuDelete($menu_info['menuid']);
 		if (is_error($result)) {
 			return error(-1, $result['message']);

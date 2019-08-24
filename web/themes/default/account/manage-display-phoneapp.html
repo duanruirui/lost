@@ -1,13 +1,13 @@
 {template 'common/header'}
 <div class="we7-page-title">APP管理</div>
 <ul class="we7-page-tab">
-	<li class="active"><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}">APP列表</a></li>
+	<li class="active"><a href="{url 'account/manage'}">APP列表</a></li>
 	
-
-	
-		{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
+		{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
 		<li><a href="{php echo url ('account/recycle', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}">APP回收站</a></li>
 		{/if}
+	
+
 	
 
 </ul>
@@ -31,13 +31,13 @@
 	</form>
 
 	
-
-	
-		{if !empty($account_info['phoneapp_limit']) || $_W['isfounder'] && !user_is_vice_founder()}
+		{if !empty($account_info['phoneapp_limit']) && (!empty($account_info['founder_phoneapp_limit']) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()}
 		<div class="pull-right">
 			<a href="{url 'phoneapp/manage/create_display'}" class="btn btn-primary we7-padding-horizontal">添加APP</a>
 		</div>
 		{/if}
+	
+
 	
 
 </div>
@@ -73,7 +73,7 @@
 	</tr>
 	<tr>
 		<th colspan="2" class="text-left">帐号</th>
-		<th>平台过期时间</th>
+		<th>有效期</th>
 		<th>短信数(条)</th>
 		<th class="text-right">操作</th>
 	</tr>
@@ -109,10 +109,10 @@
 				<a href="{{links.postVersion}}&do=display&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">版本管理</a>
 				<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">可用应用模板/模块</a>
 				
-				
 				{if $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER}
-				<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-show="list.role == 'owner' || list.role == 'founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
+				<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}&account_type={{list.type}}" ng-show="list.role == 'owner' || list.role == 'founder' || list.role == 'vice_founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
 				{/if}
+				
 				
 			</div>
 			{/if}

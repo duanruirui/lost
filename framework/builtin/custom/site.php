@@ -1,8 +1,7 @@
 <?php
 /**
- * 多客服模块
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -45,7 +44,7 @@ class CustomModuleSite extends WeModuleSite {
 			}
 			if($acid > 0 && !empty($starttime) && !empty($endtime)) {
 				$pindex = max(1, intval($_GPC['page']));
-				$acc = WeAccount::createByUniacid();
+				$acc = WeAccount::create($acid);
 				$params = array('openid' => trim($user['openid']), 'starttime' => $starttime, 'endtime' => $endtime, 'pageindex' => $pindex, 'pagesize' => 50);
 				$logs = $acc->fetchChatLog($params);
 				$next = 1;

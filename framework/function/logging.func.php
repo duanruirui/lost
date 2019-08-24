@@ -1,8 +1,7 @@
 <?php
 /**
- * 日志
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,14 +9,7 @@ define('LOGGING_ERROR', 'error');
 define('LOGGING_TRACE', 'trace');
 define('LOGGING_WARNING', 'warning');
 define('LOGGING_INFO', 'info');
-/**
- * 记录运行日志
- * @param string|array $log 日志内容
- * @param string $type 日志类型
- * @param string $filename 日志文件名称
- * @param boolean $includePost 是否记录POST信息
- * @return array|boolean
- */
+
 function logging_run($log, $type = 'trace', $filename = 'run') {
 	global $_W;
 	$filename = IA_ROOT . '/data/logs/' . $filename . '_' . date('Ymd') . '.log';

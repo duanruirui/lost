@@ -1,50 +1,26 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/framework/model/extension.mod.php : v fc9f77cc82f2 : 2015/08/31 07:00:43 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 根据XML解析结果获取模块信息
- * @param array $manifest XML文件解析结果
- * @return array
- */
+
 function ext_module_convert($manifest) {
 	if (!empty($manifest['platform']['supports'])) {
 		$app_support = in_array('app', $manifest['platform']['supports']) ? MODULE_SUPPORT_ACCOUNT : MODULE_NONSUPPORT_ACCOUNT;
 		$wxapp_support = in_array('wxapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WXAPP : MODULE_NONSUPPORT_WXAPP;
 		$welcome_support = in_array('system_welcome', $manifest['platform']['supports']) ? MODULE_SUPPORT_SYSTEMWELCOME : MODULE_NONSUPPORT_SYSTEMWELCOME;
 		$webapp_support = in_array('webapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WEBAPP : MODULE_NOSUPPORT_WEBAPP;
-		$xzapp_support = in_array('xzapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_XZAPP : MODULE_NOSUPPORT_XZAPP;
-		$aliapp_support = in_array('aliapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_ALIAPP : MODULE_NOSUPPORT_ALIAPP;
-		$baiduapp_support = in_array('baiduapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_BAIDUAPP : MODULE_NOSUPPORT_BAIDUAPP;
-		$toutiaoapp_support = in_array('toutiaoapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_TOUTIAOAPP : MODULE_NOSUPPORT_TOUTIAOAPP;
 		$android_support = in_array('android', $manifest['platform']['supports']) ? MODULE_SUPPORT_ANDROID : MODULE_NOSUPPORT_ANDROID;
 		$ios_support = in_array('ios', $manifest['platform']['supports']) ? MODULE_SUPPORT_IOS : MODULE_NOSUPPORT_IOS;
 		$phoneapp_support = ($android_support == MODULE_SUPPORT_ANDROID || $ios_support == MODULE_SUPPORT_IOS) ? MODULE_SUPPORT_PHONEAPP : MODULE_NOSUPPORT_PHONEAPP;
-		if ($app_support == MODULE_NONSUPPORT_ACCOUNT
-			&& $wxapp_support == MODULE_NONSUPPORT_WXAPP
-			&& $welcome_support == MODULE_NONSUPPORT_SYSTEMWELCOME
-			&& $webapp_support == MODULE_NOSUPPORT_WEBAPP
-			&& $xzapp_support == MODULE_NOSUPPORT_XZAPP
-			&& $aliapp_support == MODULE_NOSUPPORT_ALIAPP
-			&& $baiduapp_support == MODULE_NOSUPPORT_BAIDUAPP
-			&& $toutiaoapp_support == MODULE_NOSUPPORT_TOUTIAOAPP
-			&& $phoneapp_support == MODULE_NOSUPPORT_PHONEAPP
-		) {
+		if ($app_support == MODULE_NONSUPPORT_ACCOUNT && $wxapp_support == MODULE_NONSUPPORT_WXAPP && $welcome_support == MODULE_NONSUPPORT_SYSTEMWELCOME && $webapp_support == MODULE_NOSUPPORT_WEBAPP && $phoneapp_support == MODULE_NOSUPPORT_PHONEAPP) {
 			$app_support = MODULE_SUPPORT_ACCOUNT;
 		}
 	} else {
 		$app_support = MODULE_SUPPORT_ACCOUNT;
 		$wxapp_support = MODULE_NONSUPPORT_WXAPP;
-		$welcome_support = MODULE_NONSUPPORT_SYSTEMWELCOME;
-		$webapp_support = MODULE_NOSUPPORT_WEBAPP;
-		$xzapp_support = MODULE_NOSUPPORT_XZAPP;
-		$aliapp_support = MODULE_NOSUPPORT_ALIAPP;
-		$baiduapp_support = MODULE_NOSUPPORT_BAIDUAPP;
-		$toutiaoapp_support = MODULE_NOSUPPORT_TOUTIAOAPP;
-		$phoneapp_support = MODULE_NOSUPPORT_PHONEAPP;
 	}
 	return array(
 		'name' => $manifest['application']['identifie'],
@@ -74,10 +50,6 @@ function ext_module_convert($manifest) {
 		'wxapp_support' => $wxapp_support,
 		'webapp_support' => $webapp_support,
 		'phoneapp_support' => $phoneapp_support,
-		'xzapp_support' => $xzapp_support,
-		'aliapp_support' => $aliapp_support,
-		'baiduapp_support' => $baiduapp_support,
-		'toutiaoapp_support' => $toutiaoapp_support,
 		'welcome_support' => $welcome_support,
 		'shortcut' => $manifest['bindings']['shortcut'],
 		'function' => $manifest['bindings']['function'],
@@ -86,11 +58,7 @@ function ext_module_convert($manifest) {
 	);
 }
 
-/**
- * 将模块XML配置文件解析为数组
- * @param string $xml XML文件内容
- * @return array
- */
+
 function ext_module_manifest_parse($xml) {
 	if (!strexists($xml, '<manifest')) {
 		$xml = base64_decode($xml);
@@ -100,8 +68,7 @@ function ext_module_manifest_parse($xml) {
 	}
 	$dom = new DOMDocument();
 	$dom->loadXML($xml);
-	// 0.51xml
-	$root = $dom->getElementsByTagName('manifest')->item(0);
+		$root = $dom->getElementsByTagName('manifest')->item(0);
 	if (empty($root)) {
 		return array();
 	}
@@ -146,8 +113,7 @@ function ext_module_manifest_parse($xml) {
 			'supports' => array(),
 			'oauth_type' => OAUTH_TYPE_BASE,
 		);
-		//订阅信息
-		$subscribes = $platform->getElementsByTagName('subscribes')->item(0);
+				$subscribes = $platform->getElementsByTagName('subscribes')->item(0);
 		if (!empty($subscribes)) {
 			$messages = $subscribes->getElementsByTagName('message');
 			for ($i = 0; $i < $messages->length; $i++) {
@@ -157,8 +123,7 @@ function ext_module_manifest_parse($xml) {
 				}
 			}
 		}
-		//直接处理消息
-		$handles = $platform->getElementsByTagName('handles')->item(0);
+				$handles = $platform->getElementsByTagName('handles')->item(0);
 		if (!empty($handles)) {
 			$messages = $handles->getElementsByTagName('message');
 			for ($i = 0; $i < $messages->length; $i++) {
@@ -168,13 +133,11 @@ function ext_module_manifest_parse($xml) {
 				}
 			}
 		}
-		//是否嵌入规则
-		$rule = $platform->getElementsByTagName('rule')->item(0);
+				$rule = $platform->getElementsByTagName('rule')->item(0);
 		if (!empty($rule) && $rule->getAttribute('embed') == 'true') {
 			$manifest['platform']['isrulefields'] = true;
 		}
-		//是否嵌入卡券
-		$card = $platform->getElementsByTagName('card')->item(0);
+				$card = $platform->getElementsByTagName('card')->item(0);
 		if (!empty($card) && $card->getAttribute('embed') == 'true') {
 			$manifest['platform']['iscard'] = true;
 		}
@@ -192,8 +155,7 @@ function ext_module_manifest_parse($xml) {
 				}
 			}
 		}
-		//模块扩展插件
-		$plugins = $platform->getElementsByTagName('plugins')->item(0);
+				$plugins = $platform->getElementsByTagName('plugins')->item(0);
 		if (!empty($plugins)) {
 			$plugin_list = $plugins->getElementsByTagName('item');
 			for ($i = 0; $i < $plugin_list->length; $i++) {
@@ -211,8 +173,7 @@ function ext_module_manifest_parse($xml) {
 			}
 		}
 	}
-	//模块注册菜单
-	$bindings = $root->getElementsByTagName('bindings')->item(0);
+		$bindings = $root->getElementsByTagName('bindings')->item(0);
 	if (!empty($bindings)) {
 		$points = ext_module_bindings();
 		if (!empty($points)) {
@@ -224,8 +185,7 @@ function ext_module_manifest_parse($xml) {
 			}
 		}
 	}
-	//权限
-	$permissions = $root->getElementsByTagName('permissions')->item(0);
+		$permissions = $root->getElementsByTagName('permissions')->item(0);
 	if (!empty($permissions)) {
 		$manifest['permissions'] = array();
 		$items = $permissions->getElementsByTagName('entry');
@@ -243,11 +203,7 @@ function ext_module_manifest_parse($xml) {
 	return $manifest;
 }
 
-/**
- * 根据模块名称读取其配置信息
- * @param string $modulename 模块名称
- * @return array
- */
+
 function ext_module_manifest($modulename) {
 	$root = IA_ROOT . '/addons/' . $modulename;
 	$filename = $root . '/manifest.xml';
@@ -256,7 +212,7 @@ function ext_module_manifest($modulename) {
 	}
 	$xml = file_get_contents($filename);
 	$xml = ext_module_manifest_parse($xml);
-
+	
 	if (!empty($xml)) {
 		$xml['application']['logo'] = tomedia($root . '/icon.jpg');
 		if (file_exists($root . '/preview-custom.jpg')) {
@@ -271,11 +227,7 @@ function ext_module_manifest($modulename) {
 	return $xml;
 }
 
-/**
- * 获取模块菜单信息
- * @param $elm XML节点对象
- * @return array
- */
+
 function _ext_module_manifest_entries($elm) {
 	$ret = array();
 	if (!empty($elm)) {
@@ -287,30 +239,21 @@ function _ext_module_manifest_entries($elm) {
 		for ($i = 0; $i < $entries->length; $i++) {
 			$entry = $entries->item($i);
 			$direct = $entry->getAttribute('direct');
-			$is_multilevel_menu = $entry->getAttribute('multilevel');
 			$row = array(
 				'title' => $entry->getAttribute('title'),
 				'do' => $entry->getAttribute('do'),
 				'direct' => !empty($direct) && $direct != 'false' ? true : false,
-				'state' => $entry->getAttribute('state'),
-				'icon' => $entry->getAttribute('icon'),
-				'displayorder' => $entry->getAttribute('displayorder'),
-				'multilevel' => !empty($is_multilevel_menu) && $is_multilevel_menu == 'true' ? true : false,
-				'parent' => $entry->getAttribute('parent'),
+				'state' => $entry->getAttribute('state')
 			);
 			if (!empty($row['title']) && !empty($row['do'])) {
-				$ret[$row['do']] = $row;
+				$ret[] = $row;
 			}
 		}
 	}
 	return $ret;
 }
 
-/**
- * 模块更新检测
- * @param string $modulename 模块名称
- * @return boolean 是否需要更新
- */
+
 function ext_module_checkupdate($modulename) {
 	$manifest = ext_module_manifest($modulename);
 	if (!empty($manifest) && is_array($manifest)) {
@@ -327,10 +270,7 @@ function ext_module_checkupdate($modulename) {
 	}
 }
 
-/**
- * 获取模块入口类型
- * @return array
- */
+
 function ext_module_bindings() {
 	static $bindings = array(
 		'cover' => array(
@@ -392,24 +332,18 @@ function ext_module_bindings() {
 	return $bindings;
 }
 
-/**
- * 模块信息删除
- * @param string $modulename 模块名称
- * @param boolean $isCleanRule 是否删除相关规则
- * @return void
- */
-function ext_module_clean($modulename, $is_clean_rule = false) {
 
+function ext_module_clean($modulename, $is_clean_rule = false) {
+	
 	pdo_delete('core_queue', array('module' => $modulename));
 
 	table('modules')->deleteByName($modulename);
 	table('modules_bindings')->deleteByName($modulename);
-	pdo_delete('modules_plugin', array('main_module' => $modulename));
 
 	if ($is_clean_rule) {
 		pdo_delete('rule', array('module' => $modulename));
 		pdo_delete('rule_keyword', array('module' => $modulename));
-
+		
 		$cover_list = pdo_getall('cover_reply', array('module' => $modulename), array('rid'), 'rid');
 		if (!empty($cover_list)) {
 			$rids = array_keys($cover_list);
@@ -421,38 +355,12 @@ function ext_module_clean($modulename, $is_clean_rule = false) {
 
 	pdo_delete('site_nav', array('module' => $modulename));
 	pdo_delete('uni_account_modules', array('module' => $modulename));
-	pdo_delete('users_permission', array('type' => $modulename));
-
-	//删除掉回收站数据
-	table('modules_recycle')->deleteByName($modulename);
-	//去除应用权限组中包含该模块的信息
-	$uni_group = pdo_getall('uni_group');
-	if (!empty($uni_group)) {
-		foreach ($uni_group as $group) {
-			$update = false;
-			$modules = (array)iunserializer($group['modules']);
-			if (!empty($modules)) {
-				foreach ($modules as $type => $value) {
-					if (!empty($value) && in_array($modulename, $value)) {
-						$modules[$type] = array_diff($modules[$type], array($modulename));
-						$update = true;
-					}
-				}
-				if ($update) {
-					pdo_update('uni_group', array('modules' => iserializer($modules)), array('id' => $group['id']));
-				}
-			}
-		}
-	}
+	
+		table('modules_recycle')->deleteByName($modulename);
 	return true;
 }
 
-/**
- * 获取微站模板配置信息
- * @param string $tpl 微站模板名称
- * @param boolean $cloud 是否从云服务读取配置信息(缺少配置文件情况下)
- * @return array
- */
+
 function ext_template_manifest($tpl, $cloud = true) {
 	$filename = IA_ROOT . '/app/themes/' . $tpl . '/manifest.xml';
 	if (!file_exists($filename)) {
@@ -469,11 +377,7 @@ function ext_template_manifest($tpl, $cloud = true) {
 	return $manifest;
 }
 
-/**
- * 将模板XML配置文件解析为数组
- * @param $xml 模板XML文件内容
- * @return array
- */
+
 function ext_template_manifest_parse($xml) {
 	$xml = str_replace(array('&'), array('&amp;'), $xml);
 	$xml = @isimplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA);
@@ -501,10 +405,7 @@ function ext_template_manifest_parse($xml) {
 	return $manifest;
 }
 
-/**
- * 获取微站模板行业分类
- * @return array
- */
+
 function ext_template_type() {
 	static $types = array(
 		'often' => array(
@@ -556,12 +457,7 @@ function ext_template_type() {
 }
 
 
-/**
- * 清除模块目录脚本文件
- * @param string $modulename 模块名称
- * @param array $manifest 配置XML文件信息
- * @return void
- */
+
 function ext_module_script_clean($modulename, $manifest) {
 	$moduleDir = IA_ROOT . '/addons/' . $modulename . '/';
 	$manifest['install'] = trim($manifest['install']);
@@ -587,10 +483,7 @@ function ext_module_script_clean($modulename, $manifest) {
 	}
 }
 
-/**
- * 模块订阅消息类型
- * @return multitype:string
- */
+
 function ext_module_msg_types() {
 	$mtypes = array();
 	$mtypes['text'] = '文本消息(重要)';
@@ -613,11 +506,7 @@ function ext_module_msg_types() {
 	return $mtypes;
 }
 
-/**
- * 检查模块订阅消息是否成功
- * @param $modulename string 模块标识;
- * @return array();
- */
+
 function ext_check_module_subscribe($modulename) {
 	global $_W, $_GPC;
 	if (empty($modulename)) {
@@ -640,12 +529,7 @@ function ext_check_module_subscribe($modulename) {
 	return $module_subscribe_success;
 }
 
-/**
- * 检查模块配置项
- * @param $module_name string 模块标识;
- * @param $manifest array() 模块配置项;
- * @return array();
- */
+
 function ext_manifest_check($module_name, $manifest) {
 	if(is_string($manifest)) {
 		return error(1, '模块配置项定义错误, 具体错误内容为: <br />' . $manifest);
@@ -683,8 +567,7 @@ function ext_manifest_check($module_name, $manifest) {
 			}
 		}
 	}
-	//模块权限检测
-	if(is_array($manifest['permissions']) && !empty($manifest['permissions'])) {
+		if(is_array($manifest['permissions']) && !empty($manifest['permissions'])) {
 		foreach($manifest['permissions'] as $permission) {
 			if(trim($permission['title']) == ''  || !preg_match('/^[a-z\d_]+$/i', $permission['permission'])) {
 				return error(1, "名称为： {$permission['title']} 的权限标识格式不正确,请检查标识名称或标识格式是否正确");
@@ -699,20 +582,16 @@ function ext_manifest_check($module_name, $manifest) {
 
 function ext_file_check($module_name, $manifest) {
 	$module_path = IA_ROOT . '/addons/' . $module_name . '/';
-	if (empty($manifest['platform']['main_module']) &&
-		!file_exists($module_path . 'processor.php') &&
-		!file_exists($module_path . 'module.php') &&
+	if (empty($manifest['platform']['main_module']) && 
+		!file_exists($module_path . 'processor.php') && 
+		!file_exists($module_path . 'module.php') && 
 		!file_exists($module_path . 'site.php')) {
 		return error(1, '模块缺失文件，请检查模块文件中site.php, processor.php, module.php, receiver.php 文件是否存在！');
 	}
 	return true;
 }
 
-/**
- *  卸载模块
- * @param string $module_name 模块标识
- * @param bool $is_clean_rule 是否删除相关的统计数据和回复规则
- */
+
 function ext_module_uninstall($modulename, $is_clean_rule = false) {
 	global $_W;
 	$modulename = trim($modulename);
@@ -726,16 +605,13 @@ function ext_module_uninstall($modulename, $is_clean_rule = false) {
 	if (!empty($module['issystem'])) {
 		return error(1, '系统模块不能卸载！');
 	}
-
+	
 	ext_module_clean($modulename, $is_clean_rule);
 	ext_execute_uninstall_script($modulename);
 	return true;
 }
 
-/**
- *  执行模块的卸载脚本
- * @param string $module_name 模块标识
- */
+
 function ext_execute_uninstall_script($module_name) {
 	global $_W;
 	load()->model('cloud');
@@ -786,8 +662,7 @@ function ext_module_run_script($manifest, $scripttype) {
 	}
 
 	if (defined('ONLINE_MODULE')) {
-		// 如果模块来自应用商城，删除对应文件
-		ext_module_script_clean($modulename, $manifest);
+				ext_module_script_clean($modulename, $manifest);
 	}
 	return true;
 }

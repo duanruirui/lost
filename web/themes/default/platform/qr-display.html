@@ -1,10 +1,8 @@
 {template 'common/header'}
+	<div class="we7-page-title">二维码管理</div>
 	<ul class="we7-page-tab">
-		{loop $active_sub_permission $active_menu}
-		{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-		<li {if $do == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
-		{/if}
-		{/loop}
+		<li><a href="{php echo url('platform/qr/list');}">二维码列表</a></li>
+		<li class="active"><a href="{php echo url('platform/qr/display');}">二维码扫描统计</a></li>
 	</ul>
 	<div class="we7-padding-bottom clearfix">
 		<form action="./index.php" method="get" role="form">

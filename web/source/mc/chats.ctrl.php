@@ -1,7 +1,7 @@
 <?php
 /**
- * 粉丝聊天功能
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -16,10 +16,14 @@ $do = in_array($do , $dos) ? $do : 'chats';
 permission_check_account_user('mc_fans');
 
 if ($do == 'chats') {
-	$account_api = WeAccount::createByUniacid();
-	$supports = $account_api->getMaterialSupport();
-	$show_chast_content = $supports['chats'];
 
+	if (in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))) {
+		$show_chast_content =array('basic'=> false,'news'=> false,'image'=> false,'music'=> true,'voice'=> false,'video'=> true);
+	} else {
+		$show_chast_content =array('basic'=> false,'news'=> false,'image'=> false,'music'=> false,'voice'=> false,'video'=> false);
+	}
+
+	$_W['page']['title'] = '粉丝聊天';
 	$openid = addslashes($_GPC['openid']);
 	$fans_info = mc_fansinfo($openid);
 	if (!empty($fans_info['uid'])) {
@@ -34,13 +38,12 @@ if ($do == 'send') {
 	$send = $content_formate['send'];
 	$content = $content_formate['content'];
 
-	$account_api = WeAccount::createByUniacid();
+	$account_api = WeAccount::create($_W['acid']);
 	$result = $account_api->sendCustomNotice($send);
 	if (is_error($result)) {
 		iajax(-1, $result['message']);
 	} else {
-		//生成上下文
-		$account = account_fetch($_W['acid']);
+				$account = account_fetch($_W['acid']);
 		$message['from'] = $_W['openid'] = $send['touser'];
 		$message['to'] = $account['original'];
 		if(!empty($message['to'])) {
@@ -55,8 +58,7 @@ if ($do == 'send') {
 			$material = pdo_getcolumn('wechat_attachment', array('uniacid' => $_W['uniacid'], 'media_id' => $content['mediaid']), 'id');
 			$content = $content['thumb'];
 		}
-		//保存消息记录
-		pdo_insert('mc_chats_record',array(
+				pdo_insert('mc_chats_record',array(
 			'uniacid' => $_W['uniacid'],
 			'acid' => $acid,
 			'flag' => 1,

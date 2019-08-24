@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/payment/baifubao/pay.php : v 34f72bf40b9a : 2015/07/28 03:11:13 : RenChao $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 define('IN_MOBILE', true);
 require '../../framework/bootstrap.inc.php';
@@ -74,7 +74,7 @@ $params = array (
 	'return_url' => $_W['siteroot'] . 'notify.php',
 	'page_url' => $_W['siteroot'] . 'pay.php',
 	'pay_type' => '2',
-	'bank_no' => '201', /*招商银行*/
+	'bank_no' => '201', 
 	'expire_time' => date('YmdHis', strtotime('+15 day')),
 	'input_charset' => sp_conf::BFB_INTERFACE_ENCODING,
 	'version' => sp_conf::BFB_INTERFACE_VERSION,

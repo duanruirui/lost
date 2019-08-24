@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,8 +10,8 @@ load()->model('card');
 load()->model('module');
 
 permission_check_account_user('mc_member');
-$creditnames = uni_setting_load('creditnames');
-$creditnames = $creditnames['creditnames'];
+$creditnames = uni_setting_load('creditnames')['creditnames'];
+$_W['page']['title'] = '会员交易-会员管理';
 $dos = array('consume', 'user', 'modal', 'credit', 'card', 'cardsn', 'tpl', 'cardconsume');
 $do = in_array($do, $dos) ? $do : 'tpl';
 
@@ -246,7 +246,6 @@ if($do == 'consume') {
 }
 
 if($do == 'credit') {
-	$uid = intval($_GPC['uid']);
 	$type = trim($_GPC['type']);
 	$num = floatval($_GPC['num']);
 	$names = array('credit1' => $creditnames['credit1']['title'], 'credit2' => $creditnames['credit2']['title']);
@@ -258,7 +257,7 @@ if($do == 'credit') {
 	if(is_error($status)) {
 		exit($status['message']);
 	}
-	if($type == 'credit1') {
+		if($type == 'credit1') {
 		mc_group_update($uid);
 	}
 	$openid = pdo_fetchcolumn('SELECT openid FROM ' . tablename('mc_mapping_fans') . ' WHERE acid = :acid AND uid = :uid', array(':acid' => $_W['acid'], ':uid' => $uid));

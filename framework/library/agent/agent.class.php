@@ -12,7 +12,6 @@ class Agent
 	const BROWSER_TYPE_IPAD    = 2;
 	const BROWSER_TYPE_IPOD	   = 3;
 	const BROWSER_TYPE_ANDROID = 4;
-	const BROWSER_TYPE_XZAPP   = 5;
 	const BROWSER_TYPE_UNKNOWN = -1;
 	
 	// 系统类型
@@ -52,10 +51,7 @@ class Agent
 	public static function browserType($agent = '')
 	{
 		$agent = self::getAgent($agent);
-		if (stripos($agent, 'baiduboxapp') !== false) {
-			return self::BROWSER_TYPE_XZAPP;
-		}
-
+	
 		if (stripos($agent, 'iphone') !== false) {
 			return self::BROWSER_TYPE_IPHONE;
 		}
@@ -169,7 +165,7 @@ class Agent
 			$clientkeywords = array('nokia', 'sony', 'ericsson', 'mot', 'samsung', 'htc', 'sgh', 'lg', 'sharp',
 				'sie-', 'philips', 'panasonic', 'alcatel', 'lenovo', 'iphone', 'ipod', 'blackberry', 'meizu', 
 				'android', 'netfront', 'symbian', 'ucweb', 'windowsce', 'palm', 'operamini', 'operamobi', 'openwave', 
-				'nexusone', 'cldc', 'midp', 'wap', 'mobile', 'WindowsWechat');
+				'nexusone', 'cldc', 'midp', 'wap', 'mobile');
 			// 从HTTP_USER_AGENT中查找手机浏览器的关键字
 			if (preg_match("/(" . implode('|', $clientkeywords) . ")/i", strtolower($_SERVER['HTTP_USER_AGENT']))) {
 				return true;
@@ -187,7 +183,7 @@ class Agent
 	
 	public static function getAgent($agent = '')
 	{
-		$agent = empty($agent) ? (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') : $agent;
+		$agent = empty($agent) ? $_SERVER['HTTP_USER_AGENT'] : $agent;
 		return $agent;
 	}
 }

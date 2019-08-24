@@ -1,7 +1,7 @@
 <?php
 /**
- * 素材管理列表页
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('material');
@@ -13,6 +13,8 @@ load()->func('file');
 $dos = array('display', 'sync', 'delete', 'send');
 $do = in_array($do, $dos) ? $do : 'display';
 
+$_W['page']['title'] = '永久素材-' . $_W['account']['type_name'] . '素材';
+
 if ($do == 'send') {
 	$group = intval($_GPC['group']);
 	$type = trim($_GPC['type']);
@@ -22,7 +24,7 @@ if ($do == 'send') {
 		iajax(1, '素材不存在', '');
 	}
 	$group = $group > 0 ? $group : -1;
-	$account_api = WeAccount::createByUniacid();
+	$account_api = WeAccount::create();
 	$result = $account_api->fansSendAll($group, $type, $media['media_id']);
 	if (is_error($result)) {
 		iajax(1, $result['message'], '');
@@ -58,9 +60,7 @@ if ($do == 'send') {
 }
 
 if ($do == 'display') {
-	$type = trim($_GPC['type']);
-	$type = in_array($type, array('news', 'image', 'voice', 'video')) ? $type : 'news';
-	permission_check_account_user('platform_material_' . $type);
+	$type = in_array(trim($_GPC['type']), array('news', 'image', 'voice', 'video')) ? trim($_GPC['type']) : 'news';
 	$server = in_array(trim($_GPC['server']), array(MATERIAL_LOCAL, MATERIAL_WEXIN)) ? trim($_GPC['server']) : '';
 	$group = mc_fans_groups(true);
 	$page_index = max(1, intval($_GPC['page']));
@@ -80,8 +80,7 @@ if ($do == 'display') {
 }
 
 if ($do == 'delete') {
-	if(isset($_GPC['uniacid'])) { //如果强制指定了uniacid
-		$requniacid = intval($_GPC['uniacid']);
+	if(isset($_GPC['uniacid'])) { 		$requniacid = intval($_GPC['uniacid']);
 		attachment_reset_uniacid($requniacid);
 	}
 
@@ -95,8 +94,7 @@ if ($do == 'delete') {
 	if ($type == 'news'){
 		$result = material_news_delete($material_id);
 	} else {
-		//TODO 非图文素材整合后去掉server判断
-		$result = material_delete($material_id, $server);
+				$result = material_delete($material_id, $server);
 	}
 	if (is_error($result)){
 		iajax('-1', $result['message']);
@@ -105,7 +103,7 @@ if ($do == 'delete') {
 }
 
 if ($do == 'sync') {
-	$account_api = WeAccount::createByUniacid();
+	$account_api = WeAccount::create($_W['acid']);
 	$pageindex = max(1, $_GPC['pageindex']);
 	$type = empty($_GPC['type']) ? 'news' : $_GPC['type'];
 	$news_list = $account_api->batchGetMaterial($type, ($pageindex - 1) * 20);
@@ -129,7 +127,7 @@ if ($do == 'sync') {
 			$original_newsid = array();
 		}
 		$original_newsid = array_filter($original_newsid, function($item){
-			return is_numeric($item);
+			return is_int($item);
 		});
 	}
 	$delete_id = array_diff($original_newsid, $wechat_existid);

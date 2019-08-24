@@ -16,6 +16,13 @@
 		<div class="ext-apply-item {if $module['shortcut']}apply-show{/if}" >
 			<img src="{$module['logo']}" class="apply-img {if !$module['enabled']}gray{/if}" />
 			<h2 class="apply-title">{$module['title']}</h2>
+			<span class="color-green">
+				{if $module['enabled']}
+					启用
+				{else}
+					禁用
+				{/if}
+			</span>
 			<div class="mask">
 
 				<a href="{url 'home/welcome/ext'  array('m' => $module['name'])}" class="entry" target="_blank">

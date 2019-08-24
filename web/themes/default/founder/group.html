@@ -22,6 +22,7 @@
 	<col width="100px"/>
 	<col width="120px"/>
 	<col width="120px"/>
+	<col width="120px"/>
 	<col width="100px"/>
 	<col/>
 	<tr>
@@ -29,9 +30,15 @@
 		<th>有限期</th>
 		<th>可创建公众号</th>
 		<th>可创建小程序</th>
+		<th>可创建PC</th>
+		<th>可创建APP</th>
+		<th>可创建熊掌号</th>
 		<th>应用权限套餐</th>
 		<th>可用应用</th>
 		<th>可用小程序应用</th>
+		<th>可用PC应用</th>
+		<th>可用APP应用</th>
+		<th>可用熊掌号应用</th>
 		<th class="text-right">操作</th>
 	</tr>
 	<tr ng-repeat="list in lists">
@@ -39,6 +46,9 @@
 		<td><span ng-if="list.timelimit != 0" ng-bind="list.timelimit+'天'"></span><span ng-if="list.timelimit == 0">永久有效</span></td>
 		<td><span ng-if="list.maxaccount == 0">无权限</span><span ng-if="list.maxaccount != 0" ng-bind="list.maxaccount"></span></td>
 		<td><span ng-if="list.maxwxapp == 0">无权限</span><span ng-if="list.maxwxapp != 0" ng-bind="list.maxwxapp"></span></td>
+		<td><span ng-if="list.maxwebapp == 0">无权限</span><span ng-if="list.maxwebapp != 0" ng-bind="list.maxwebapp"></span></td>
+		<td><span ng-if="list.maxphoneapp == 0">无权限</span><span ng-if="list.maxphoneapp != 0" ng-bind="list.maxphoneapp"></span></td>
+		<td><span ng-if="list.maxxzapp == 0">无权限</span><span ng-if="list.maxxzapp != 0" ng-bind="list.maxxzapp"></span></td>
 		<td>
 			<span ng-if="list.module_nums == -1">全部</span>
 			<span ng-if="list.package != 'N;'" class="color-default" ng-bind="list.packages"></span>
@@ -53,6 +63,18 @@
 			<span ng-if="list.wxapp_nums != -1" ng-bind="list.wxapp_nums"></span>
 		</td>
 		<td>
+			<span ng-if="list.webapp_nums == -1">全部</span>
+			<span ng-if="list.webapp_nums != -1" ng-bind="list.webapp_nums"></span>
+		</td>
+		<td>
+			<span ng-if="list.phoneapp_nums == -1">全部</span>
+			<span ng-if="list.phoneapp_nums != -1" ng-bind="list.phoneapp_nums"></span>
+		</td>
+		<td>
+			<span ng-if="list.xzapp_nums == -1">全部</span>
+			<span ng-if="list.xzapp_nums != -1" ng-bind="list.xzapp_nums"></span>
+		</td>
+		<td>
 			<div class="link-group">
 				<a href="javascript:;" ng-click="editGroup(list.id)">编辑</a>
 				<a href="javascript:;" ng-click="delGroup(list.id)" class="del">删除</a>
@@ -60,6 +82,9 @@
 		</td>
 	</tr>
 </table>
+<div class="pull-right">
+	{$pager}
+</div>
 <script>
 	angular.module('userGroup').value('config', {
 		lists: {php echo !empty($lists) ? json_encode($lists) : 'null'},

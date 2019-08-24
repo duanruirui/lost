@@ -1,6 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [美仑授权系统 System] Copyright (c) 2018 WEBY.CC
+ * 美仑授权系统 is NOT a free software, it under the license terms, visited http://www.weby.cc/ for more details.
  */
 load()->func('communication');
 load()->model('cloud');
@@ -13,20 +14,18 @@ $step = $_GPC['step'];
 $steps = array('files', 'schemas', 'scripts');
 $step = in_array($step, $steps) ? $step : 'files';
 
-
 if ($step == 'files' && $_W['ispost']) {
 	$ret = cloud_download($_GPC['path'], $_GPC['type']);
-	if (is_error($ret)) {
-		exit($ret['message']);
+	if (!is_error($ret)) {
+		exit('success');
 	}
-	exit('success');
+	exit($ret['message']);
 }
 
 if ($step == 'scripts' && $_W['ispost']) {
 	$fname = trim($_GPC['fname']);
 	$entry = IA_ROOT . '/data/update/' . $fname;
 	if (is_file($entry) && preg_match('/^update\(\d{12}\-\d{12}\)\.php$/', $fname)) {
-		set_time_limit(0);
 		$evalret = include $entry;
 		if (!empty($evalret)) {
 			cache_build_users_struct();
@@ -37,16 +36,12 @@ if ($step == 'scripts' && $_W['ispost']) {
 	}
 	exit('failed');
 }
-$has_new_support = intval($_GPC['has_new_support']);
+
 if (!empty($_GPC['m'])) {
 	$m = $_GPC['m'];
 	$type = 'module';
 	$is_upgrade = intval($_GPC['is_upgrade']);
 	$packet = cloud_m_build($_GPC['m']);
-	//检测模块升级脚本是否存在乱码
-	if (!empty($packet) && !json_encode($packet['scripts'])) {
-		itoast('模块安装脚本有代码错误，请联系开发者解决！', referer(), 'error');
-	}
 } elseif (!empty($_GPC['t'])) {
 	$m = $_GPC['t'];
 	$type = 'theme';
@@ -111,7 +106,7 @@ if (!empty($packet) && (!empty($packet['upgrade']) || !empty($packet['install'])
 				$fname = "update({$crelease}-{$script['release']}).php";
 				$crelease = $script['release'];
 				$script['script'] = @base64_decode($script['script']);
-				if (empty($script['script'])) {
+				if (!empty($script['script'])) {
 					$script['script'] = <<<DAT
 <?php
 load()->model('setting');
@@ -130,22 +125,10 @@ DAT;
 	}
 } else {
 	if (is_error($packet)) {
-		if ($packet['errno'] == -3) {
-			$type = 'expired';
-			$extend_button = array(
-				array('url' => "javascript:history.go(-1);", 'title' => '点击这里返回上一页', 'class' => 'btn btn-primary'),
-				array('url' => "http://s.w7.cc/module-{$packet['cloud_id']}.html", 'title' => '去续费', 'class' => 'btn btn-primary', 'target' => '_blank')
-			);
-		} else {
-			$type = 'error';
-			$extend_button = array();
-		}
-		message($packet['message'], '', $type, false, $extend_button);
+		itoast($packet['message'], '', 'error');
 	} else {
-		cache_updatecache();
-		if (ini_get('opcache.enable') || ini_get('opcache.enable_cli')) {
-			opcache_reset();
-		}
+		cache_delete('checkupgrade:system');
+		cache_delete('cloud:transtoken');
 		itoast('更新已完成. ', url('cloud/upgrade'), 'success');
 	}
 }

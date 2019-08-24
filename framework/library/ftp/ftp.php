@@ -1,7 +1,7 @@
 <?php
 /**
  * FTP基本操作：
- * 1) 登录; 			connect
+ * 1) 登陆; 			connect
  * 2) 当前目录文件列表;  filelist
  * 3) 目录改变;			chgdir
  * 4) 重命名/移动;		rename
@@ -419,7 +419,7 @@ class Ftp {
 	}
 	
 	/**
-	 * FTP登录
+	 * FTP登陆
 	 *
 	 * @access 	private
 	 * @return	boolean

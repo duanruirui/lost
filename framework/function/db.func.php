@@ -1,50 +1,15 @@
 <?php
 /**
- * 函数版本兼容
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [美仑授权系统 System] Copyright (c) 2018 WEBY.CC
+ * 美仑授权系统 is NOT a free software, it under the license terms, visited http://www.weby.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
+define('HTTP_X_FOR', (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443') ? 'https://' : 'http://');
 $GLOBALS['_W']['config']['db']['tablepre'] = empty($GLOBALS['_W']['config']['db']['tablepre']) ? $GLOBALS['_W']['config']['db']['master']['tablepre'] : $GLOBALS['_W']['config']['db']['tablepre'];
-/**
- * 获得某个数据表的结构
- *
- * @param DB $db			数据库操作对象
- * @param string $tablename 表名
- * @return array eg: $ret = array();
- *
- * <pre>
- * // SHOW FULL COLUMNS FROM 'tablename'
- * $ret['tablename'] = '表名'; //string
- * $ret['charset']   = '字符集'; //string
- * $ret['engine']	= '存储引擎'; //string
- * $ret['increment'] = '主键自增基数'; //int
- *
- * $ret['fields'] = array(); // 数据字段
- * $ret['fields']['field1'] = array();
- * $ret['fields']['field1']['name']	  = '字段名称'; //string
- * $ret['fields']['field1']['type']	  = '字段类型'; //string
- * $ret['fields']['field1']['length']	= '字段长度'; //string
- * $ret['fields']['field1']['null']	  = '是否可空'; //bool
- * $ret['fields']['field1']['default']   = '字段默认值'; //string
- * $ret['fields']['field1']['signed']	= '有符号, 无符号'; //bool
- * $ret['fields']['field1']['increment'] = '是否增字段'; //bool
- * $ret['fields']['field1']['comment']   = '备注信息'; //string
- * $ret['fields']['field2'] = ...
- *
- * // SHOW INDEX FROM 'tablename'
- * $ret['indexes'] = array(); // 数据索引项
- * $ret['indexes']['index1'] = array(); // 数据索引项
- * $ret['indexes']['index1']['name']   = '索引名称'; // string
- * $ret['indexes']['index1']['type']   = '索引类型'; // primary|index|unique
- * $ret['indexes']['index1']['fields'] = array('f1','f2',...) // '索引包含的字段'; array 每个元素为字段名
- * $ret['indexes']['index2'] = ...;
- * ...
- * </pre>
- */
+
 function db_table_schema($db, $tablename = '') {
 	$result = $db->fetch("SHOW TABLE STATUS LIKE '" . trim($db->tablename($tablename), '`') . "'");
-	if(empty($result)) {
+	if(empty($result) || empty($result['Create_time'])) {
 		return array();
 	}
 	$ret['tablename'] = $result['Name'];
@@ -60,11 +25,7 @@ function db_table_schema($db, $tablename = '') {
 		$temp['type'] = $pieces[0];
 		$temp['length'] = rtrim($pieces[1], ')');
 		$temp['null'] = $value['Null'] != 'NO';
-		//暂时去掉默认值的对比
-		//if(isset($value['Default'])) {
-		//	$temp['default'] = $value['Default'];
-		//}
-		$temp['signed'] = empty($type[1]);
+										$temp['signed'] = empty($type[1]);
 		$temp['increment'] = $value['Extra'] == 'auto_increment';
 		$ret['fields'][$value['Field']] = $temp;
 	}
@@ -77,14 +38,7 @@ function db_table_schema($db, $tablename = '') {
 	return $ret;
 }
 
-/**
- * 获得数据表的序列化结构
- *
- * @param DB $db  数据库操作对象
- * @param string  $dbname 数据库名
- * @return string $result 序列后的数据表结构
- *
- */
+
 
 function db_table_serialize($db, $dbname) {
 	$tables = $db->fetchall('SHOW TABLES');
@@ -128,29 +82,7 @@ function db_table_create_sql($schema) {
 	return $sql;
 }
 
-/**
- * 比较两个表结构
- *
- * @param array $table1
- * @param array $table2
- * @return 返回两个数据结构差异项. eg: $ret = array();
- * <pre>
- * $ret['diffs']['tablename'] = true; //如果表名不同, 记录此元素
- * $ret['diffs']['charset'] = true; //如果字符集不同, 记录此元素
- * $ret['diffs']['engine'] = true; //如果存储引擎不同, 记录此元素
- * $ret['diffs']['increment'] = true; //如果自增基数不同, 记录此元素
- *
- * $ret['fields'] 字段差异
- * $ret['fields']['greater'] $table1中存在, $table2中不存在的字段
- * $ret['fields']['less'] $table1中不存在, $table2中存在的字段
- * $ret['fields']['diff'] $table1和$table2都存在, 但是定义不同的字段
- *
- * $ret['indexes'] 索引差异
- * $ret['indexes']['greater']  $table1中存在, $table2中不存在的索引
- * $ret['indexes']['less'] $table1中不存在, $table2中存在的索引
- * $ret['indexes']['diff'] $table1和$table2都存在, 但是定义不同的索引
- * </pre>
- */
+
 function db_schema_compare($table1, $table2) {
 	$table1['charset'] == $table2['charset'] ? '' : $ret['diffs']['charset'] = true;
 
@@ -177,8 +109,8 @@ function db_schema_compare($table1, $table2) {
 		$ret['fields']['diff'] = array_values($diffs);
 	}
 
-	$indexes1 = is_array($table1['indexes']) ? array_keys($table1['indexes']) : array();
-	$indexes2 = is_array($table2['indexes']) ? array_keys($table2['indexes']) : array();
+	$indexes1 = array_keys($table1['indexes']);
+	$indexes2 = array_keys($table2['indexes']);
 	$diffs = array_diff($indexes1, $indexes2);
 	if(!empty($diffs)) {
 		$ret['indexes']['greater'] = array_values($diffs);
@@ -202,14 +134,7 @@ function db_schema_compare($table1, $table2) {
 
 	return $ret;
 }
-/**
- * 创建修复两张表差异的SQL语句
- *
- * @param string $schema1 表结构 需要修复的表
- * @param string $schema2 表结构 基准表
- * @param bool $strict 使用严格模式, 严格模式将会把表2完全变成表1的结构, 否则将只处理表2种大于表1的内容(多出的字段和索引)
- * @return array $sql 修复SQL语句组成的数组
- */
+
 function db_table_fix_sql($schema1, $schema2, $strict = false) {
 	if(empty($schema1)) {
 		return array(db_table_create_sql($schema2));
@@ -243,8 +168,7 @@ function db_table_fix_sql($schema1, $schema2, $strict = false) {
 					}
 					$sql = "ALTER TABLE `{$schema1['tablename']}` ADD `{$field['name']}` {$piece}{$pos}";
 				}
-				//如果此条SQL语句为自增，则需要先把其它自增字段去掉，并把此字段设置为主键
-				$primary = array();
+								$primary = array();
 				$isincrement = array();
 				if (strexists($sql, 'AUTO_INCREMENT')) {
 					$isincrement = $field;
@@ -334,7 +258,7 @@ function _db_build_field_sql($field) {
 	} else {
 		$length = '';
 	}
-	if (strpos(strtolower($field['type']), 'int') !== false || in_array(strtolower($field['type']) , array('decimal', 'float', 'dobule'))) {
+	if (strpos(strtolower($field['type']), 'int') !== false) {
 		$signed = empty($field['signed']) ? ' unsigned' : '';
 	} else {
 		$signed = '';

@@ -1,12 +1,16 @@
 {template 'common/header'}
-<ul class="we7-page-tab">
-	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-	<li {if $do == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
-	{/if}
-	{/loop}
-</ul>
 {if $do == 'fans_sync_set'}
+<div class="we7-page-title">
+	粉丝管理
+</div>
+<ul class="we7-page-tab">
+	<li class="">
+		<a href="{php echo url('mc/fans')}" >全部粉丝</a>
+	</li>
+	<li class="active">
+		<a href="{php echo url('mc/fans/fans_sync_set')}">粉丝同步设置</a>
+	</li>
+</ul>
 <div class="alert alert-info">
 	<p><i class="fa fa-exclamation-circle"></i> 此同步设置是指系统后台自动同步系统数据中已关注粉丝的基本信息，并非该公众号全部粉丝数据；</p>
 	<p><i class="fa fa-exclamation-circle"></i> 如若想同步全部粉丝信息，请到菜单“粉丝”->“全部粉丝”，点击“同步全部粉丝信息”按钮！</p>
@@ -43,14 +47,23 @@
 	angular.bootstrap($('#js-profile-sync'), ['profileApp']);
 </script>
 {else}
+<div class="we7-page-title">
+	粉丝管理
+</div>
+<ul class="we7-page-tab">
+	<li class="active">
+		<a href="{php echo url('mc/fans')}" >全部粉丝</a>
+	</li>
+	<li class="">
+		<a href="{php echo url('mc/fans/fans_sync_set')}">粉丝同步设置</a>
+	</li>
+</ul>
 <div id="main" ng-controller="DisplayCtrl" ng-cloak>
 <div class="we7-page-search we7-padding-bottom clearfix">
 	<div class="pull-right">
 		<button class="btn btn-primary we7-padding-horizontal add-group" data-show="popover">+添加分组</button>
 	</div>
-	<form action="" method="get" class="form-inline" role="form">
-		<input type="hidden" name="c" value="mc">
-		<input type="hidden" name="a" value="fans">
+	<form action="" method="post" class="form-inline" role="form">
 		<div class="form-group">
 			<div class="form-controls">
 				<select name="follow" class="we7-select" >
@@ -141,40 +154,12 @@
 									}
 								</script>
 								<a href="javascript:;" class="btn btn-primary test we7-margin-left-sm batch-group" data-show='popover' >打标签</a>
-								<a href="javascript:;" class="btn btn-default we7-margin-left-sm" ng-click="sync('check')">同步选中信息</a>
-								<a href="javascript:;" class="btn btn-default we7-margin-left-sm" ng-click="downloadFans()">同步全部信息</a>
-								<span class="pull-right color-gray" data-toggle="modal" data-target="#sync-setting" style="cursor:pointer;position: relative;top:4px">
-									<i class="wi wi-appsetting"></i> 同步设置
-								</span>
-								<div class="modal fade" id="sync-setting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-									<div class="modal-dialog">
-										<div class="modal-content">
-											<div class="modal-header">
-												<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-												<h4 class="modal-title" id="myModalLabel">同步设置</h4>
-											</div>
-											<div class="modal-body">
-												<div class="form-group">
-													<label class="col-sm-2 control-label" style="text-align:left;">同步信息设置</label>
-													<div class="col-sm-8 form-control-static" ng-init="sync_member = {$sync_member}">
-														<input type="radio" name="sync_member" id="status-0" value="0" ng-checked="sync_member == 0" ng-click="sync_member=0">
-														<label class="radio-inline" for="status-0">
-															仅同步粉丝信息
-														</label>
-														<input type="radio" name="sync_member" id="status-1" value="1" ng-checked="sync_member == 1" ng-click="sync_member=1">
-														<label class="radio-inline" for="status-1">
-															同步粉丝，会员信息
-														</label>
-													</div>
-												</div>
-											</div>
-											<div class="modal-footer">
-												<button type="button" class="btn btn-default" data-dismiss="modal">取 消</button>
-												<button type="button" class="btn btn-primary" ng-click="syncMember()">保 存</button>
-											</div>
-										</div><!-- /.modal-content -->
-									</div><!-- /.modal -->
-								</div>
+								<a href="javascript:;" class="btn btn-default we7-margin-left-sm" ng-click="sync('check')">同步选中粉丝信息</a>
+								<a href="javascript:;" class="btn btn-default we7-margin-left-sm" ng-click="downloadFans()">同步全部粉丝信息</a>
+								<label>同步会员信息
+									<input name="" class="form-control" type="checkbox" >
+									<div style = "float:left;" ng-class="sync_member == 1 ? 'switch switchOn' : 'switch'"  ng-click="syncMember()"></div>
+								</label>
 							</div>
 						</th>
 					</tr>
@@ -188,7 +173,7 @@
 						</td>
 						<td style="overflow-x: hidden;">
 							<a href="{php echo url('mc/chats', array('openid' => $fan['openid']))}" target="_blank" class="avatar">
-								<img src="{php echo tomedia($fan['headimgurl'])}" width="48" />
+								<img src="{php echo tomedia($fan['tag']['headimgurl'])}" width="48" />
 							</a>
 						</td>
 						<td>
@@ -228,7 +213,7 @@
 								</a>
 							</div>
 							{if empty($fan['follow'])}
-							<p>取消关注：{if $fan['unfollowtime'] == 0}无{else}{php echo date('Y-m-d H:i:s', $fan['unfollowtime'])}{/if}
+							<p>取消关注：{php echo date('Y-m-d H:i:s', $fan['unfollowtime'])}</p>
 							{else}
 							<p>关注：{php echo date('Y-m-d H:i:s', $fan['followtime'])}</p>
 							{/if}
@@ -442,7 +427,7 @@
 		$.post("{php echo url('mc/fans/edit_fans_tag')}", {'tags' : checktags, 'fanid' : fanid}, function(data) {
 			data = $.parseJSON(data);
 			if (data.message.errno == 0) {
-				util.message('设置成功', "{php echo url('mc/fans', array('follow' => $follow, 'nickname' => $nickname, 'tag' => $tag, 'page' => $pageindex, 'search_mod' => $search_mod))}", 'success');
+				util.message('设置成功', "{php echo url('mc/fans')}", 'success');
 			} else {
 				util.message(data.message.message, "", 'info');
 			}
@@ -482,10 +467,10 @@
 		$.post("{php echo url('mc/fans/add_tag')}", {'tag' : tag}, function(data) {
 			data = $.parseJSON(data);
 			if (data.message.errno != 0) {
-				util.message(data.message.message.message, '', 'info');
+				util.message(data.message.message, '', 'info');
 				return false;
 			} else {
-				util.message('添加成功', "{php echo url('mc/fans', array('follow' => $follow, 'nickname' => $nickname, 'tag' => $tag, 'page' => $pageindex, 'search_mod' => $search_mod))}", 'ajax');
+				util.message('添加成功', "{php echo url('mc/fans/display')}", 'ajax');
 				return false;
 			}
 		});
@@ -501,7 +486,6 @@
 		'addTagUrl' : "{php echo url('mc/fans/add_tag')}",
 		'syncAllUrl' : "{php echo url('mc/fans/download_fans')}",
 		'syncUrl' : "{php echo url('mc/fans/sync')}",
-		'syncMember' : "{php echo url('mc/fans/sync_member')}",
 		'msgUrl' : "{php echo url('mc/fans')}",
 		'searchMod' : "{$search_mod}",
 		'registerUrl' : "{php echo url('mc/fans/register')}"

@@ -1,11 +1,11 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->classs('weixin.account');
-class coupon extends WeixinAccount {
+class coupon extends WeiXinAccount {
 	public $account = null;
 	public function __construct($acid = '') {
 		$this->account_api = self::create($acid);
@@ -45,7 +45,7 @@ class coupon extends WeixinAccount {
 		return $record['ticket'];
 	}
 
-	/*设置门店logo接口*/
+	
 	public function LocationLogoupload($logo){
 		global $_W;
 		if(!strexists($logo, 'http://') && !strexists($logo, 'https://')) {
@@ -79,7 +79,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	/*微信卡券测试白名单接口*/
+	
 	public function SetTestWhiteList($data){
 		global $_W;
 		$token = $this->getAccessToken();
@@ -101,8 +101,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//创建门店接口
-	public function LocationAdd($data) {
+		public function LocationAdd($data) {
 		if(empty($data)) {
 			return error(-1, '门店信息错误');
 		}
@@ -127,8 +126,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//修改门店
-	public function LocationEdit($data) {
+		public function LocationEdit($data) {
 		if(empty($data)) {
 			return error(-1, '门店信息错误');
 		}
@@ -156,8 +154,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//删除门店
-	public function LocationDel($id) {
+		public function LocationDel($id) {
 		if(empty($id)) {
 			return error(-1, '门店信息错误');
 		}
@@ -232,8 +229,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//获取颜色列表
-	public function GetColors() {
+		public function GetColors() {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
@@ -282,8 +278,7 @@ class coupon extends WeixinAccount {
 		}
 	}
 
-	//创建卡券接口
-	public function CreateCard($card) {
+		public function CreateCard($card) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
@@ -295,8 +290,7 @@ class coupon extends WeixinAccount {
 		return $response;
 	}
 
-	//删除卡券接口
-	public function DeleteCard($card_id) {
+		public function DeleteCard($card_id) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
@@ -317,8 +311,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//设置会员卡一键激活开卡字段
-	public function setActivateUserForm($card_id) {
+		public function setActivateUserForm($card_id) {
 		global $_W;
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
@@ -326,15 +319,13 @@ class coupon extends WeixinAccount {
 		}
 		$data['required_form']['common_field_id_list'] = array('USER_FORM_INFO_FLAG_MOBILE');
 		$data['card_id'] = $card_id;
-//		$data['bind_old_card'] = array('name' => '绑定老会员卡', 'url' => $_W['siteroot'].'app'.trim(url('mc/card/checkoldmember'), '.'));
 		$data['bind_old_card'] = array('name' => '绑定老会员卡', 'url' => 'www.weixin.qq.com');
 		$url = "https://api.weixin.qq.com/card/membercard/activateuserform/set?access_token={$token}";
 		load()->func('communication');
 		$result = $this->requestApi($url, json_encode($data));
 		return $result;
 	}
-	//激活会员卡接口
-	public function activateMemberCard($data) {
+		public function activateMemberCard($data) {
 		global $_W;
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
@@ -345,11 +336,7 @@ class coupon extends WeixinAccount {
 		$result = $this->requestApi($url, json_encode($data));
 		return $result;
 	}
-	/*
-	 * 修改卡券库存接口
-	 * $card_id 卡券id
-	 * $num 增加或减少多少【可正可负】
-	 * */
+	
 	public function ModifyStockCard($card_id, $num) {
 		$data['card_id'] = trim($card_id);
 		$data['increase_stock_value'] = 0;
@@ -376,12 +363,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	/**
-	 * 生成卡券投放二维码
-	 * @param string $card_id 卡券Id
-	 * @param unknown $sceneid 二维码场景值，用于统计来源
-	 * @param string $expire 过期时间范围是60 ~ 1800秒。不填默认为365天有效
-	 */
+	
 	public function QrCard($card_id, $sceneid, $expire = '') {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
@@ -406,8 +388,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//群发卡券
-	public function sendCoupons($coupon, $openids) {
+		public function sendCoupons($coupon, $openids) {
 		$token = $this->getAccessToken();
 		if(is_error($token)){
 			return $token;
@@ -422,8 +403,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//设置卡券失效接口
-	public function UnavailableCode($data) {
+		public function UnavailableCode($data) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
@@ -443,8 +423,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//核销卡券接口
-	public function ConsumeCode($data) {
+		public function ConsumeCode($data) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
@@ -464,8 +443,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//微信卡券自助核销接口
-	public function selfConsume($data) {
+		public function selfConsume($data) {
 		$token = $this->getAccessToken();
 		if(is_error($token)) {
 			return $token;
@@ -486,8 +464,7 @@ class coupon extends WeixinAccount {
 
 	}
 
-	//code解码接口
-	public function DecryptCode($data) {
+		public function DecryptCode($data) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
@@ -507,8 +484,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//获取某个卡券详情
-	public function fetchCard($card_id) {
+		public function fetchCard($card_id) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
@@ -541,8 +517,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 	
-	//批量查询卡券列表
-	public function batchgetCard($data) {
+		public function batchgetCard($data) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
@@ -585,8 +560,7 @@ class coupon extends WeixinAccount {
 		return $result;
 	}
 
-	//支付接口中调用解码核销接口
-	public function PayConsumeCode($data) {
+		public function PayConsumeCode($data) {
 		$code_error['uniacid'] = $this->account['uniacid'];
 		$code_error['acid'] = $this->account['acid'];
 		$code_error['type'] = 2;
@@ -610,8 +584,7 @@ class coupon extends WeixinAccount {
 	}
 
 
-	//生成卡券签名
-	public function SignatureCard($data) {
+		public function SignatureCard($data) {
 		$ticket = $this->getCardTicket();
 		if (is_error($ticket)) {
 			return $ticket;
@@ -621,12 +594,7 @@ class coupon extends WeixinAccount {
 		return sha1(implode($data));
 	}
 
-	/*
-	 * 生成发送卡券的card_ext 字段
-	 * $id 卡券id(微擎系统中的id)
-	 * $openid 粉丝openid 如果不为空,则只有该粉丝可以领取发放的卡券
-	 * $type 发送卡券类型 membercard（会员卡） 或 coupon（卡券） 默认为coupon
-	 * */
+	
 	public function BuildCardExt($id, $openid = '', $type = 'coupon') {
 		global $_W;
 		if ($type == 'membercard') {
@@ -742,17 +710,12 @@ EOF;
 	}
 
 
-	/*jsapi 添加卡券到卡包
-	 *参数：可以是卡券类型(如:折扣券)。或者是卡券id(非微信返回的card_id)【二者选一】
-	 *参数示例：$data = array('type' => 'discount');或者$data = array(1,2)
-	 * */
+	
 	public function BatchAddCard($data) {
 		$acid = $this->account['acid'];
 		$condition = '';
-		$params = array();
 		if(!empty($data['type'])) {
-			$condition .= " AND type = :type";
-			$params[':type'] = $data['type'];
+			$condition .= " AND type = '{$data['type']}'";
 		} else {
 			$ids = array();
 			foreach($data as $da) {
@@ -771,13 +734,10 @@ EOF;
 
 		$card = array();
 		if(!empty($condition)) {
-			$params[':acid'] = $acid;
-			$card = pdo_fetchall('SELECT id, card_id FROM ' . tablename('coupon') . " WHERE acid = :acid " . $condition, $params);
+			$card = pdo_fetchall('SELECT id, card_id FROM ' . tablename('coupon') . " WHERE acid = {$acid} " . $condition);
 		}
-		//生成数组
-		foreach($card as $ca) {
-			//生成签名
-			$time = TIMESTAMP;
+				foreach($card as $ca) {
+						$time = TIMESTAMP;
 			$sign = array($ca['card_id'], $time);
 			$signature = $this->SignatureCard($sign);
 			if(is_error($signature)) {
@@ -821,7 +781,6 @@ define('COUPON_CODE_TYPE_BARCODE', 3);
 
 define('COUPON_TIME_TYPE_RANGE', 1);
 define('COUPON_TIME_TYPE_FIX', 2);
-//卡券类
 class Card {
 	public $card_id = '';
 	public $logo_url = '';
@@ -836,28 +795,14 @@ class Card {
 	public $sku = array('quantity' => 50000);
 	public $date_info = array('type' => COUPON_TIME_TYPE_RANGE);
 	public $location_id_list = array();
-	public $get_limit = 10; //每人限领
-	public $can_share = true;
-	public $can_give_friend = true; //必须为true,false
-	public $use_custom_code = false; //是否自定义code码，非必填,必须为true,false
-	public $bind_openid = false; //是否指定特定的人领
-	public $source = ''; //卡券来源
-	public $status = ''; //卡券状态
-	public $promotion_url_name = ''; //营销场景入口
-	public $promotion_url_sub_title = '';
+	public $get_limit = 10; 	public $can_share = true;
+	public $can_give_friend = true; 	public $use_custom_code = false; 	public $bind_openid = false; 	public $source = ''; 	public $status = ''; 	public $promotion_url_name = ''; 	public $promotion_url_sub_title = '';
 	public $promotion_url = '';
-	public $custom_url_name = ''; //服务场景入口
-	public $custom_url_sub_title = '';
+	public $custom_url_name = ''; 	public $custom_url_sub_title = '';
 	public $custom_url = '';
-	public $center_title = ''; //使用场景入口
-	public $center_sub_title = '';
+	public $center_title = ''; 	public $center_sub_title = '';
 	public $center_url = '';
-	public $need_push_on_view = false;//进入会员卡时推送事件
-	public $pay_info = array();//是否支持刷卡支付
-
-	//aj修改
-	public $get_custom_code_mode = '';//非必填, 填入GET_CUSTOM_CODE_MODE_DEPOSIT 卡券为预存code模式，须导入超过库存数目的自定义code
-
+	public $need_push_on_view = false;	public $pay_info = array();
 	private $types = array('', 'DISCOUNT', 'CASH', 'GROUPON', 'GIFT', 'GENERAL_COUPON', "MEMBER_CARD", "SCENIC_TICKET", "MOVIE_TICKET");
 	private $code_types = array(COUPON_CODE_TYPE_TEXT => 'CODE_TYPE_TEXT', COUPON_CODE_TYPE_QRCODE => 'CODE_TYPE_QRCODE',COUPON_CODE_TYPE_BARCODE => 'CODE_TYPE_BARCODE');
 
@@ -881,21 +826,15 @@ class Card {
 
 	public function setDateinfoRange($starttime, $endtime) {
 		$this->date_info = array(
-			'type' => 'DATE_TYPE_FIX_TIME_RANGE',//新版文档变更为字符串，数值1也可用
-			'begin_timestamp' => strtotime($starttime),
+			'type' => 'DATE_TYPE_FIX_TIME_RANGE',			'begin_timestamp' => strtotime($starttime),
 			'end_timestamp' => strtotime($endtime),
 		);
 		return true;
 	}
-	/**
-	 *
-	 * @param 有效期多少天 $term
-	 * @param 多少天开始生效 $begin
-	 */
+	
 	public function setDateinfoFix($begin, $term) {
 		$this->date_info = array(
-			'type' => 'DATE_TYPE_FIX_TERM', //新版文档变更为字符串，数值2也可用
-			'fixed_term' => $term,
+			'type' => 'DATE_TYPE_FIX_TERM', 			'fixed_term' => $term,
 			'fixed_begin_term' => $begin,
 		);
 		return true;
@@ -913,22 +852,19 @@ class Card {
 		}
 	}
 
-	//使用场景入口
-	public function setCenterMenu($title, $subtitle, $url) {
+		public function setCenterMenu($title, $subtitle, $url) {
 		$this->center_title = urlencode($title);
 		$this->center_sub_title = urlencode($subtitle);
 		$this->center_url = urlencode($url);
 		return true;
 	}
-	//服务场景入口
-	public function setCustomMenu($title, $subtitle, $url) {
+		public function setCustomMenu($title, $subtitle, $url) {
 		$this->custom_url_name = urlencode($title);
 		$this->custom_url_sub_title = urlencode($subtitle);
 		$this->custom_url = urlencode($url);
 		return true;
 	}
-	//营销场景入口
-	public function setPromotionMenu($title, $subtitle, $url) {
+		public function setPromotionMenu($title, $subtitle, $url) {
 		$this->promotion_url_name = urlencode($title);
 		$this->promotion_url_sub_title = urlencode($subtitle);
 		$this->promotion_url = urlencode($url);
@@ -965,7 +901,7 @@ class Card {
 			'bind_openid', 'can_share', 'can_give_friend', 'location_id_list',
 			'center_title', 'center_sub_title','center_url',
 			'custom_url_name','custom_url','custom_url_sub_title',
-			'promotion_url_name','promotion_url', 'promotion_url_sub_title', 'source', 'get_custom_code_mode',
+			'promotion_url_name','promotion_url', 'promotion_url_sub_title', 'source',
 		);
 		if ($this->type == 6) {
 			$fields[] = 'need_push_on_view';
@@ -987,8 +923,7 @@ class Card {
 	function getCardData() {
 		$carddata = array(
 			'base_info' => $this->getBaseinfo(),
-			//'advanced_info' => $this->getAdvinfo(),
-		);
+					);
 		$carddata = array_merge($carddata, $this->getCardExtraData());
 		$card = array(
 			'card' => array(
@@ -1041,31 +976,10 @@ class Card {
 
 class MemberCard extends Card {
 	public $background_pic_url = '';
-	public $supply_bonus = true;//显示积分
-	public $bonus_rule = array(
-		'cost_money_unit' => 100,//消费金额，以分为单位
-		'increase_bonus' => '',//对应增加积分
-		'max_increase_bonus' => '',//用户单次可获取的积分上限
-		'init_increase_bonus' => '',//初始设置积分
-		'cost_bonus_unit' => '',//每次使用积分
-		'reduce_money' => 100,//抵扣xx元，以分为单位
-		'least_money_to_use_bonus' => '',//抵扣条件，满xx元（这里以分为单位）可用
-		'max_reduce_bonus' => '',//抵扣条件，单笔最多使用xx积分
-	);//积分规则
-	public $supply_balance = true;//是否支持储值
-	public $prerogative = '';//会员卡特权说明
-	public $auto_activate = false;//是否自动激活
-	public $custom_field1 = array('name_type' => 'FIELD_NAME_TYPE_COUPON', 'url' => '' );
-	public $activate_url = '';//激活会员卡的url
-	public $wx_activate = false;//是否支持一键开卡
-	public $bonus_url = '';//查看积分跳转链接
-	public $balance_url = '';//查看储值跳转链接
-	public $bonus_rules = '';//积分规则
-	public $balance_rules = '';//储值说明
-	public $custom_cell1 = array('name' => '账单', 'tips' => '', 'url' => 'http://06.we7.cc/app/index.php?i=76&c=mc&a=bond&do=credits&credittype=credit2&type=record&period=1&wxref=mp.weixin.qq.com#wechat_redirect');
-	public $discount = '';//该会员卡享受折扣
-	public $bonus_cleared = '';//积分清零规则
-	public $format_type = true;
+	public $supply_bonus = true;	public $bonus_rule = array(
+		'cost_money_unit' => 100,		'increase_bonus' => '',		'max_increase_bonus' => '',		'init_increase_bonus' => '',		'cost_bonus_unit' => '',		'reduce_money' => 100,		'least_money_to_use_bonus' => '',		'max_reduce_bonus' => '',	);	public $supply_balance = true;	public $prerogative = '';	public $auto_activate = false;	public $custom_field1 = array('name_type' => 'FIELD_NAME_TYPE_COUPON', 'url' => '' );
+	public $activate_url = '';	public $wx_activate = false;	public $bonus_url = '';	public $balance_url = '';	public $bonus_rules = '';	public $balance_rules = '';	public $custom_cell1 = array('name' => '账单', 'tips' => '', 'url' => 'http://06.we7.cc/app/index.php?i=76&c=mc&a=bond&do=credits&credittype=credit2&type=record&period=1&wxref=mp.weixin.qq.com#wechat_redirect');
+	public $discount = '';	public $bonus_cleared = '';	public $format_type = true;
 	public $grant_rate = '';
 	public $offset_rate = '';
 	public $offset_max = '';
@@ -1247,8 +1161,7 @@ class MemberCard extends Card {
 
 
 class DiscountCard extends Card {
-	public $discount = 0; //折扣
-
+	public $discount = 0; 
 	public function validate() {
 		$error = parent::validate();
 		if (is_error($error)) {
@@ -1268,9 +1181,7 @@ class DiscountCard extends Card {
 }
 
 class CashCard extends Card {
-	public $least_cost = 0; //起用金额
-	public $reduce_cost = 0; //减免金额
-
+	public $least_cost = 0; 	public $reduce_cost = 0; 
 	public function validate() {
 		$error = parent::validate();
 		if (is_error($error)) {
@@ -1294,8 +1205,7 @@ class CashCard extends Card {
 }
 
 class GiftCard extends Card {
-	public $gift = ''; //填写兑换内容的名称
-
+	public $gift = ''; 
 	public function validate() {
 		$error = parent::validate();
 		if (is_error($error)) {
@@ -1315,8 +1225,7 @@ class GiftCard extends Card {
 }
 
 class GrouponCard extends Card {
-	public $deal_detail = ''; //团购详情
-	public function validate() {
+	public $deal_detail = ''; 	public function validate() {
 		$error = parent::validate();
 		if (is_error($error)) {
 			return $error;
@@ -1335,8 +1244,7 @@ class GrouponCard extends Card {
 }
 
 class GeneralCard extends Card {
-	public $default_detail = ''; //填写优惠详情
-	public function validate() {
+	public $default_detail = ''; 	public function validate() {
 		$error = parent::validate();
 		if (is_error($error)) {
 			return $error;

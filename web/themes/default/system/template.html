@@ -1,4 +1,8 @@
 {template 'common/header'}
+
+	<div class="we7-page-title">
+		模板管理
+	</div>
 	<ul class="we7-page-tab">
 		<li {if $do == 'installed'}class="active"{/if}>
 		<a href="{php echo url('system/template/installed')}" >已安装模板</a>
@@ -7,43 +11,37 @@
 		<a href="{php echo url('system/template/not_install')}">未安装模板</a>
 		</li>
 	</ul>
-	<div class="search-box we7-padding-bottom clearfix">
-		{if $do == 'installed'}
-		<select class="we7-margin-right" onchange="location.href=this.value">
-			<option value="{php echo url('system/template')}&do={$do}&keyword={$_GPC['keyword']}">全部模板类型</option>
-			{loop $temtypes $item}
-			<option value="{php echo url('system/template')}&do={$do}&keyword={$_GPC['keyword']}&type={$item['name']}" {if $_GPC['type'] == $item['name']}selected="selected"{/if}>{$item['title']}</option>
-			{/loop}
-		</select>
-		{/if}
-		<form action="" method="get" class="search-form">
-			<input type="hidden" name="c" value="system">
-			<input type="hidden" name="a" value="template">
-			<input type="hidden" name="do" value="{$do}">
-			<input type="hidden" name="type" value="{$_GPC['type']}">
+	<div class="we7-page-search we7-padding-bottom clearfix">
+		<form action="{if $do == 'not_install'}{php echo url('system/template/not_install')}{else}{php echo url('system/template/installed')}{/if}" method="post" role="form">
 			<div class="input-group col-sm-4">
-				<input type="text" name="keyword" value="{$_GPC['keyword']}" class="form-control" placeholder="请输入模板名称">
+				<input name="keyword" value="{$_GPC['keyword']}" class="form-control" placeholder="" type="text">
 				<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 			</div>
 		</form>
 	</div>
 	<div class="system-template">
 		{if $do == 'installed'}
+		<div class="btn-group we7-btn-group">
+			<a href="{php echo url('system/template/installed')}" class="btn {if $_GPC['type'] == ''}active{/if}">全部</a>
+			{loop $temtypes $type}
+			<a href="{php echo url('system/template/installed', array('type' => $type['name']))}" class="btn {if $_GPC['type'] == $type['name']}active{/if}">{$type['title']}</a>
+			{/loop}
+		</div>
 		<div class="system-template-list" id="js-system-template" ng-controller="templateCtrl" ng-cloak>
 			{loop $template_list $template}
 			<div class="system-template-item" ng-class="templateList.{$template['name']}.upgrade == 1 ? '' : 'active'">
 				<div class="cover-lock">
 					<div class="lock">
 						<a href="" ng-if="templateList.{$template['name']}.upgrade == 1" class="btn btn-primary item-build-btn" role="button" ng-click="setUpgradeInfo('{$template['name']}')">更新</a>
-						<a href="javascript:void(0)"  class="btn btn-danger item-build-btn" ng-click="deleteTemplate('{php echo url("system/template/uninstall", array("id" => $template["id"]))}');" role="button">停用</a>
+						<a href="{php echo url('system/template/uninstall', array('id' => $template['id']))}" onclick="return confirm('确认删除模板吗？');" class="btn btn-danger item-build-btn" role="button">停用</a>
 					</div>
-				</div>
-				<div class="system-template-img">
-					<img src="{php echo tomedia('../app/themes/'. $template['name']. '/preview.jpg')}"/>
 				</div>
 				<h2 class="system-template-title">
 					{$template['title']}
 				</h2>
+				<div class="system-template-img">
+					<img src="{php echo tomedia('../app/themes/'. $template['name']. '/preview.jpg')}"/>
+				</div>
 			</div>
 			{/loop}
 			<div class="modal fade" id="upgradeInfo"  tabindex="-1" role="dialog" aria-labelledby="myModalLabels" aria-hidden="true">
@@ -115,9 +113,6 @@
 				'url' : "{php echo url('system/template/check_upgrade')}",
 				'get_upgrade_info_url' : "{php echo url('system/template/get_upgrade_info')}"
 			});
-
-
-
 			angular.bootstrap($('#js-system-template'), ['moduleApp']);
 		</script>
 		{elseif $do == 'not_install'}

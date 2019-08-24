@@ -1,59 +1,40 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
 
 class StoreTable extends We7Table {
 
-	/**获取站内商城的商品展示列表
-	 * @param $type string 1.模块 2.公众号 3.小程序
-	 */
+	
 	public function searchGoodsList($type = '', $pageindex, $pagesize) {
 		$this->query->from('site_store_goods');
 		if (!empty($type)) {
 			$this->query->where('type', $type);
 		}
 		$goods_list = array(
-			'goods_list' => $this->searchWithPage($pageindex, $pagesize)->getall('id'),
+			'goods_list' => $this->searchWithPage($pageindex, $pagesize)->query->where('status !=', STORE_GOODS_STATUS_DELETE)->getall('id'),
 			'total' => $this->getLastQueryTotal()
 		);
 		return $goods_list;
 	}
 
-	/**获取公众号在站内商城购买的物品
-	 * @param $uniacid string 1.指定的公众号
-	 * @param $type string 1.商品类型
-	 */
+	
 	public function searchAccountBuyGoods($uniacid, $type) {
-		$this->query->from('site_store_goods', 'g')
-			->leftjoin('site_store_order', 'r')
-			->on(array('g.id' => 'r.goodsid'))
-			->where('g.type', $type)
-			->where('r.type', STORE_ORDER_FINISH);
-
+		$type_name = array(
+			STORE_TYPE_MODULE => 'module',
+			STORE_TYPE_WXAPP_MODULE => 'module',
+			STORE_TYPE_PACKAGE => 'module_group',
+			STORE_TYPE_API => '(g.api_num * r.duration) as number',
+		);
 		if ($type == STORE_TYPE_API) {
-			$number_list = $this->query->where('r.uniacid', $uniacid)->select('(g.api_num * r.duration) as number')->getall('number');
+			$number_list = $this->query->from('site_store_goods', 'g')->leftjoin('site_store_order', 'r')->on(array('g.id' => 'r.goodsid'))->where('r.uniacid', $uniacid)->where('g.type', $type)->where('r.type', STORE_ORDER_FINISH)->select($type_name[$type])->getall('number');
 			return array_sum(array_keys($number_list));
-
 		} else{
-			$this->query->where(function ($query) use ($uniacid) {
-				$query->where('r.uniacid', $uniacid)->whereor('r.wxapp', $uniacid);
-			});
-
-			load()->model('store');
-			$all_type = store_goods_type_info();
-			if ($all_type[$type]['group'] == 'module') {
-				$keyfield = 'module';
-			} else {
-				$type_name = array(
-					STORE_TYPE_PACKAGE => 'module_group',
-				);
-				$keyfield = empty($type_name[$type]) ? '' : $type_name[$type];
-			}
-			return $this->query->getall($keyfield);
+			$this->query->from('site_store_goods', 'g')->leftjoin('site_store_order', 'r')->on(array('g.id' => 'r.goodsid'))->where('r.uniacid', $uniacid)->where('g.type', $type)->where('r.type', STORE_ORDER_FINISH);
+			return  $this->query->getall($type_name[$type]);
 		}
 	}
 
@@ -83,11 +64,6 @@ class StoreTable extends We7Table {
 		}
 	}
 
-	public function searchWithIsWish($is_wish) {
-		$this->query->where('is_wish', $is_wish);
-		return $this;
-	}
-
 	public function searchWithOrderid($orderid) {
 		if (!empty($orderid)) {
 			$this->query->where('orderid', $orderid);
@@ -97,7 +73,9 @@ class StoreTable extends We7Table {
 	}
 
 	public function goodsInfo($id) {
-		return $this->query->from('site_store_goods')->where('id', $id)->getall('id');
+		$id = intval($id);
+		$this->query->from('site_store_goods')->where('id', $id);
+		return $this->query->get();
 	}
 
 	public function searchOrderList($pageindex = 0, $pagesize = 0) {
@@ -124,7 +102,9 @@ class StoreTable extends We7Table {
 	}
 
 	public function searchOrderInfo($id) {
-		return $this->query->from('site_store_order')->where('id', $id)->getall('id');
+		$id = intval($id);
+		$result = $this->query->from('site_store_order')->where('id', $id)->get();
+		return $result;
 	}
 
 	public function searchOrderWithUid($uid) {
@@ -135,7 +115,7 @@ class StoreTable extends We7Table {
 
 	public function searchHaveModule($type = STORE_TYPE_MODULE) {
 		$this->query->from('site_store_goods');
-		$result = $this->query->where('type', $type)->where('status !=', STORE_GOODS_STATUS_DELETE)->getall();
+		$result = $this->query->where('type', $type)->where('status !=', STORE_GOODS_STATUS_DELETE)->getall('module');
 		return $result;
 	}
 
@@ -168,26 +148,21 @@ class StoreTable extends We7Table {
 	}
 
 	public function searchUserBuyPackage($uniacid) {
-		$sql = "SELECT * FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE (a.uniacid = :uniacid OR a.wxapp = :wxapp) AND a.type = 3 AND b.type = 5" ;
-		return pdo_fetchall($sql, array(':uniacid' => $uniacid, ':wxapp' => $uniacid), 'module_group');
+		$sql = "SELECT * FROM " . tablename('site_store_order') . " as a left join " . tablename('site_store_goods') . " as b on a.goodsid = b.id WHERE a.uniacid = :uniacid AND a.type = 3 AND b.type = 5" ;
+		return pdo_fetchall($sql, array(':uniacid' => $uniacid), 'module_group');
 	}
 
 	public function searchUserCreateAccountNum($uid) {
-		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 1)->select('count(*) as count')->get('count');
+		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 1)->where('b.isdeleted', 0)->select('count(*) as count')->get('count');
 		return $count['count'];
 	}
 
 	public function searchUserCreateWxappNum($uid) {
-		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 4)->select('count(*) as count')->get('count');
+		$count = $this->query->from('site_store_create_account', 'a')->leftjoin('account', 'b')->on('a.uniacid', 'b.uniacid')->where('a.uid', $uid)->where('b.type', 4)->where('b.isdeleted', 0)->select('count(*) as count')->get('count');
 		return $count['count'];
 	}
 
 	public function searchPaymentsOrder() {
 		return  $this->query->from('site_store_order', 'a')->leftjoin('site_store_goods', 'b')->on('a.goodsid', 'b.id')->where('a.type', 3)->orderby('a.createtime', 'desc')->select(array('a.id', 'a.createtime', 'b.title', 'a.orderid', 'b.type', 'a.amount'))->getall();
-	}
-
-	public function getStatisticsOrderInfoByDate($starttime, $endtime) {
-		$sql = "SELECT COUNT(id) AS total_orders, SUM(amount) AS total_amounts FROM " . tablename('site_store_order') . " WHERE type=3 AND createtime >= :starttime AND createtime <= :endtime";
-		return pdo_fetch($sql, array(':starttime' => $starttime, ':endtime' => $endtime));
 	}
 }

@@ -3,21 +3,18 @@
 <script>
 	$(function(){
 		$(document).on('input propertychange', '.js-mobile-val', function(){
-			var inputVal = $(this).val();
-			var register_mode = $("#register_mode").val();
-			var isMobile = /^1[34578]\d{9}$/.test(inputVal);
-			var isEmail = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(inputVal);
-			if (register_mode == 'mobile' && !isMobile) {
-				$('.js-check-mobile').addClass('send-code');
-			}
-			if (register_mode == 'email' && !isEmail) {
-				$('.js-check-mobile').addClass('send-code');
-			}
-			if (register_mode == 'random' && !(!isMobile || isEmail)) {
-				$('.js-check-mobile').addClass('send-code');
-			}
-			if (isMobile) {
-				$.post("{php echo url('auth/login/mobile_exist')}", {'mobile' : inputVal, 'find_mode':register_mode}, function(data) {
+				var mobile_value = $(this).val();
+				var register_mode = $("#register_mode").val();
+				if (register_mode == 'mobile' && mobile_value.length != '11') {
+					$('.js-check-mobile').removeClass('send-code');
+				}
+				if (register_mode == 'email' && !/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(mobile_value)) {
+					$('.js-check-mobile').removeClass('send-code');
+				}
+				if (register_mode == 'random' && !(mobile_value.length == '11' || /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(mobile_value))) {
+					$('.js-check-mobile').removeClass('send-code');
+				}
+				$.post("{php echo url('auth/login/mobile_exist')}", {'mobile' : mobile_value, 'find_mode':register_mode}, function(data) {
 					data = $.parseJSON(data);
 					if (data.message.errno == '1') {
 						$('.js-check-mobile').addClass('send-code');
@@ -27,8 +24,7 @@
 						return;
 					}
 				});
-			}
-		});
+			});
 		$(document).on('click', '.send-code', function(){
 			var username = $('#sendcode input[name="username"]').val();
 			option = {
@@ -40,7 +36,6 @@
 						util.toast(message);
 						$('#sendcode').hide();
 						$('#codeverify').show();
-						$('#reset .js-reset').text(username);
 					} else {
 						util.toast(message);
 						$('#sendcode').show();
@@ -51,7 +46,7 @@
 			};
 			util.sendCode(username, option);
 		});
-		$(document).on('click', '.resetpassword', function(){
+		$(document).on('click', '.check-verify', function(){
 			var code = $('#codeverify input[name="code"]').val();
 			if (!code) {
 				util.toast('未填写验证码', '', 'error');
@@ -61,9 +56,24 @@
 				util.toast('验证码少于六位', '', 'error');
 				return;
 			}
+			var username = $('#sendcode input[name="username"]').val();
+			$.post("{php echo url('auth/forget/verifycode')}", {'code' : code, 'username' : username}, function(dat){
+				dat = $.parseJSON(dat);
+				if(dat.type != 'success') {
+					util.toast(dat.message, '', 'error');
+					return;
+				} else {
+					$('#codeverify').hide();
+					$('#reset').show();
+					$('#reset .js-reset').text(username);
+					return;
+				}
 
-			var password = $('#codeverify input[name="password"]').val();
-			var repassword = $('#codeverify input[name="repassword"]').val();
+			});
+		});
+		$(document).on('click', '.resetpassword', function(){
+			var password = $('#reset input[name="password"]').val();
+			var repassword = $('#reset input[name="repassword"]').val();
 			if(password == '' || repassword == '') {
 				util.toast('请填写密码', '', 'error');
 				return;
@@ -76,10 +86,9 @@
 				util.toast('两次密码输入不一致', '', 'error');
 				return ;
 			}
-
 			var username = $('#sendcode input[name="username"]').val();
-
-			$.post("{php echo url('auth/forget/reset')}", {'username' : username, 'code': code, 'password' : password, 'repassword' : repassword}, function(dat){
+			params = {username, password, repassword};
+			$.post("{php echo url('auth/forget/reset')}", {'username' : username, 'password' : password, 'repassword' : repassword}, function(dat){
 				dat = $.parseJSON(dat);
 				if(dat.type != 'success') {
 					util.toast(dat.message, '', 'error');
@@ -106,7 +115,22 @@
 		</div>
 	</div>
 	<div id="codeverify" style="display:none;">
-		<div class="mui-content-padded mui-text-muted">您的{if $register_mode == 'mobile'}手机号{elseif $register_mode == 'email'}邮箱{else}手机号/邮箱{/if}<span class="mui-text-success"></span>会收到一条含有数字验证码的短息</div>
+		<div class="mui-content-padded mui-text-muted">您的请输入{if $register_mode == 'mobile'}手机号{elseif $register_mode == 'email'}邮箱{else}手机号/邮箱{/if}<span class="mui-text-success"></span>会收到一条含有6位数字验证码的短息</div>
+		<div class="mui-input-group mui-mt15">
+			<div class="mui-input-row mui-help">
+				<input type="text" placeholder="请输入验证码" name="code"/>
+			</div>
+		</div>
+		<div class="mui-content-padded mui-text-center">
+			<button class="mui-btn mui-btn-success mui-btn-block check-verify">下一步</button>
+			<div class="mui-mt15 mui-text-center">
+				<span class="mui-text-muted js-timer">
+
+				</span>
+			</div>
+		</div>
+	</div>
+	<div id="reset" style="display:none;">
 		<div class="mui-content-padded mui-text-muted">请为你的账号<span class="mui-ml5 mui-mr5 js-reset"></span>设置密码,以保证下次正常登录</div>
 		<div class="mui-input-group">
 			<div class="mui-input-row">
@@ -117,33 +141,8 @@
 			</div>
 		</div>
 		<div class="mui-content-padded mui-text-muted">密码为6~16位数字或字母</div>
-		<div class="mui-input-group mui-mt15">
-			<div class="mui-input-row mui-help">
-				<input type="text" placeholder="请输入验证码" name="code"/>
-			</div>
-		</div>
-		<div class="mui-content-padded mui-text-center">
+		<div class="mui-content-padded">
 			<button class="mui-btn mui-btn-success mui-btn-block resetpassword">确认</button>
-			<div class="mui-mt15 mui-text-center">
-				<span class="mui-text-muted js-timer">
-
-				</span>
-			</div>
 		</div>
 	</div>
-	<!--<div id="reset" style="display:none;">-->
-		<!--<div class="mui-content-padded mui-text-muted">请为你的账号<span class="mui-ml5 mui-mr5 js-reset"></span>设置密码,以保证下次正常登录</div>-->
-		<!--<div class="mui-input-group">-->
-			<!--<div class="mui-input-row">-->
-				<!--<input name="password" type="password" placeholder="请设置密码"/>-->
-			<!--</div>-->
-			<!--<div class="mui-input-row">-->
-				<!--<input name="repassword" type="password" placeholder="确认新密码"/>-->
-			<!--</div>-->
-		<!--</div>-->
-		<!--<div class="mui-content-padded mui-text-muted">密码为6~16位数字或字母</div>-->
-		<!--<div class="mui-content-padded">-->
-			<!--<button class="mui-btn mui-btn-success mui-btn-block resetpassword">确认</button>-->
-		<!--</div>-->
-	<!--</div>-->
 </div>

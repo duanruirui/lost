@@ -1,9 +1,7 @@
 <?php
 /**
- * 手机充值模块,会员卡充值
- *
- * @author 微擎团队
- * @url http://bbs.w7.cc/
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -172,9 +170,7 @@ class RechargeModuleSite extends WeModuleSite {
 		}
 	}
 	
-	/**
-	 * 支付完成后更改业务状态
-	 */
+	
 	public function payResult($params) {
 		global $_W;
 		load()-> model('mc');
@@ -184,15 +180,13 @@ class RechargeModuleSite extends WeModuleSite {
 			$fee = $params['fee'];
 			$total_fee = $fee;
 			$data = array('status' => $params['result'] == 'success' ? 1 : -1);
-			//如果是微信支付，需要记录transaction_id。
-			if ($params['type'] == 'wechat') {
+						if ($params['type'] == 'wechat') {
 				$data['transid'] = $params['tag']['transaction_id'];
 				$params['user'] = mc_openid2uid($params['user']);
 			}
 			pdo_update('mc_credits_recharge', $data, array('tid' => $params['tid']));
 			$paydata = array('wechat' => '微信', 'alipay' => '支付宝', 'baifubao' => '百付宝', 'unionpay' => '银联');
-			//余额充值
-			if(empty($order['type']) || $order['type'] == 'credit') {
+						if(empty($order['type']) || $order['type'] == 'credit') {
 				$setting = uni_setting($_W['uniacid'], array('creditbehaviors', 'recharge'));
 				$credit = $setting['creditbehaviors']['currency'];
 				$recharge_settings = card_params_setting('cardRecharge');
@@ -236,20 +230,17 @@ class RechargeModuleSite extends WeModuleSite {
 				}
 			}
 
-			//会员卡次数充值
-			if($order['type'] == 'card_nums') {
+						if($order['type'] == 'card_nums') {
 				$member_card = pdo_get('mc_card_members', array('uniacid' => $order['uniacid'], 'uid' => $order['uid']));
 				$total_num = $member_card['nums'] + $order['tag'];
 				pdo_update('mc_card_members', array('nums' => $total_num), array('uniacid' => $order['uniacid'], 'uid' => $order['uid']));
-				//给会员卡的充值和消费数据表同步一条记录
-				$log = array(
+								$log = array(
 					'uniacid' => $order['uniacid'],
 					'uid' => $order['uid'],
 					'type' => 'nums',
 					'fee' => $params['fee'],
 					'model' => '1',
-					'tag' => $order['tag'], //次数
-					'note' => date('Y-m-d H:i') . "通过{$paydata[$params['type']]}充值{$params['fee']}元，返{$order['tag']}次，总共剩余{$total_num}次",
+					'tag' => $order['tag'], 					'note' => date('Y-m-d H:i') . "通过{$paydata[$params['type']]}充值{$params['fee']}元，返{$order['tag']}次，总共剩余{$total_num}次",
 					'addtime' => TIMESTAMP
 				);
 				pdo_insert('mc_card_record', $log);
@@ -258,8 +249,7 @@ class RechargeModuleSite extends WeModuleSite {
 				mc_notice_nums_plus($order['openid'], $type, $order['tag'], $total_num);
 			}
 
-			//会员卡时长充值
-			if($order['type'] == 'card_times') {
+						if($order['type'] == 'card_times') {
 				$member_card = pdo_get('mc_card_members', array('uniacid' => $order['uniacid'], 'uid' => $order['uid']));
 				if($member_card['endtime'] > TIMESTAMP) {
 					$endtime = $member_card['endtime'] + $order['tag'] * 86400;
@@ -273,8 +263,7 @@ class RechargeModuleSite extends WeModuleSite {
 					'type' => 'times',
 					'model' => '1',
 					'fee' => $params['fee'],
-					'tag' => $order['tag'], //天数
-					'note' => date('Y-m-d H:i') . "通过{$paydata[$params['type']]}充值{$params['fee']}元，返{$order['tag']}天，充值后到期时间:". date('Y-m-d', $endtime),
+					'tag' => $order['tag'], 					'note' => date('Y-m-d H:i') . "通过{$paydata[$params['type']]}充值{$params['fee']}元，返{$order['tag']}天，充值后到期时间:". date('Y-m-d', $endtime),
 					'addtime' => TIMESTAMP
 				);
 				pdo_insert('mc_card_record', $log);
@@ -288,8 +277,7 @@ class RechargeModuleSite extends WeModuleSite {
 		} else {
 			$url = murl('mc/card/mycard');
 		}
-		//如果消息是用户直接返回（非通知），则提示一个付款成功
-		if ($params['from'] == 'return') {
+				if ($params['from'] == 'return') {
 			if ($params['result'] == 'success') {
 				message('支付成功！', $_W['siteroot'] . 'app/' . $url, 'success');
 			} else {
@@ -320,8 +308,7 @@ class RechargeModuleSite extends WeModuleSite {
 				'uniacid' => $_W['uniacid'],
 				'acid' => $_W['acid'],
 				'openid' => $_W['member']['uid'],
-				'module' => $this->module['name'], //模块名称，请保证$this可用
-				'tid' => $params['tid'],
+				'module' => $this->module['name'], 				'tid' => $params['tid'],
 				'fee' => $params['fee'],
 				'card_fee' => $params['fee'],
 				'status' => '0',

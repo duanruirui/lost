@@ -1,7 +1,10 @@
 {template 'common/header'}
+<div class="we7-page-title">
+	参数设置
+</div>
 <ul class="we7-page-tab">
 	<li class="active">
-	<a href="{php echo url('system/oauth')}">全局借用权限设置</a>
+	<a href="{php echo url('system/oauth')}">oauth全局设置</a>
 	</li>
 </ul>
 
@@ -11,14 +14,14 @@
 		<col />
 		<col width="100px" />
 		<tr>
-			<th class="text-left" colspan="3">全局借用权限设置</th>
+			<th class="text-left" colspan="3">oAuth全局设置</th>
 		</tr>
 		<tr>
 			<td class="text-left">
 				选择公众号
 			</td>
 			<td class="text-left color-gray" ng-bind="oauthtitle"></td>
-			<td >
+			<td class="text-left">
 				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#oauth">修改</a></div>
 			</td>
 		</tr>
@@ -27,7 +30,7 @@
 				oAuth独立域名
 			</td>
 			<td class="text-left color-gray" ng-bind="originalHost"></td>
-			<td >
+			<td class="text-left">
 				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#host">修改</a></div>
 			</td>
 		</tr>

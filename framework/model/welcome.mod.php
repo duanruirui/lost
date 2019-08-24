@@ -1,14 +1,20 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 从云商城获取广告
- * @return array()
- */
+
+function welcome_get_last_modules() {
+	load()->classs('cloudapi');
+
+	$api = new CloudApi();
+	$last_modules = $api->get('store', 'app_fresh');
+	return $last_modules;
+}
+
+
 function welcome_get_ads() {
 	load()->classs('cloudapi');
 	$result = array();
@@ -18,18 +24,11 @@ function welcome_get_ads() {
 }
 
 
-/**
- * 获取公告
- * @return array
-*/
+
 function welcome_notices_get() {
 	global $_W;
 	$order = !empty($_W['setting']['notice_display']) ? $_W['setting']['notice_display'] : 'displayorder';
-	$article_table = table('article_notice');
-	$article_table->orderby($order, 'DESC');
-	$article_table->searchWithIsDisplay();
-	$article_table->searchWithPage(0, 15);
-	$notices = $article_table->getall();
+	$notices = pdo_getall('article_notice', array('is_display' => 1), array('id', 'title', 'createtime', 'style', 'group'), '', $order . ' DESC', array(1,15));
 	if(!empty($notices)) {
 		foreach ($notices as $key => $notice_val) {
 			$notices[$key]['url'] = url('article/notice-show/detail', array('id' => $notice_val['id']));
@@ -43,11 +42,7 @@ function welcome_notices_get() {
 	}
 	return $notices;
 }
-/**
- * 获取距离上次数据库备份间隔的天数
- * @param mixed 时间戳数组 /时间戳
- * @return integer 天数;
- */
+
 function welcome_database_backup_days($time) {
 	global $_W;
 	$cachekey = cache_system_key('back_days');
@@ -72,10 +67,7 @@ function welcome_database_backup_days($time) {
 	cache_write($cachekey, $backup_days, 24 * 3600);
 	return $backup_days;
 }
-/**
- * 获取云服务系统更新数据
- * @return array() ;
- */
+
 function welcome_get_cloud_upgrade() {
 	load()->model('cloud');
 	$upgrade_cache = cache_load(cache_system_key('upgrade'));
@@ -89,7 +81,7 @@ function welcome_get_cloud_upgrade() {
 		$upgrade = array();
 	}
 	if (!empty($upgrade['schemas'])) {
-		$upgrade['database'] = cloud_build_schemas($upgrade['schemas']);
+		$upgrade['database'] = cloud_build_schemas($schems);
 	}
 	if (!empty($upgrade['files'])) {
 		$file_nums = count($upgrade['files']);

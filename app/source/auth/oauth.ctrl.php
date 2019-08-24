@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->func('communication');
@@ -9,8 +9,7 @@ load()->func('communication');
 $code = $_GPC['code'];
 $scope = $_GPC['scope'];
 if (!empty($_SESSION['pay_params'])) {
-	//借用微信支付或服务商支付，授权公众号信息改成借用公众号信息
-	$setting = uni_setting($_W['uniacid'], array('payment'));
+		$setting = uni_setting($_W['uniacid'], array('payment'));
 	$uniacid = !empty($setting['payment']['wechat']['service']) ? $setting['payment']['wechat']['service'] : $setting['payment']['wechat']['borrow'];
 	$acid = pdo_getcolumn('uni_account', array('uniacid' => $uniacid), 'default_acid');
 	$setting = account_fetch($acid);
@@ -29,10 +28,7 @@ $oauth_account = WeAccount::create($_W['account']['oauth']);
 $oauth = $oauth_account->getOauthInfo($code);
 
 if (is_error($oauth) || empty($oauth['openid'])) {
-	$state = '';
-	if (isset($_GPC['state']) && !empty($_GPC['state']) && strexists($_GPC['state'], 'we7sid-')) {
-		$state = $_GPC['state'];
-	}
+	$state = 'we7sid-'.$_W['session_id'];
 	$str = '';
 	if(uni_is_multi_acid()) {
 		$str = "&j={$_W['acid']}";
@@ -54,7 +50,7 @@ if (!empty($_SESSION['pay_params'])) {
 $_SESSION['oauth_openid'] = $oauth['openid'];
 $_SESSION['oauth_acid'] = $_W['account']['oauth']['acid'];
 
-if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
+if (intval($_W['account']['level']) == 4) {
 	$fan = mc_fansinfo($oauth['openid']);
 	if (!empty($fan)) {
 		$_SESSION['openid'] = $oauth['openid'];
@@ -69,7 +65,6 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 	} else {
 		$accObj = WeAccount::create($_W['account']);
 		$userinfo = $accObj->fansQueryInfo($oauth['openid']);
-
 		if(!is_error($userinfo) && !empty($userinfo) && !empty($userinfo['subscribe'])) {
 			$userinfo['nickname'] = stripcslashes($userinfo['nickname']);
 			$userinfo['avatar'] = $userinfo['headimgurl'];
@@ -90,7 +85,7 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 			);
 			if (!isset($unisetting['passport']) || empty($unisetting['passport']['focusreg'])) {
 				$email = md5($oauth['openid']).'@we7.cc';
-				$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email, 'uniacid' => $_W['uniacid']), 'uid');
+				$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email), 'uid');
 				if (!empty($email_exists_member)) {
 					$uid = $email_exists_member;
 				} else {
@@ -116,22 +111,6 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 				$_SESSION['uid'] = $uid;
 			}
 			pdo_insert('mc_mapping_fans', $record);
-
-			$mc_fans_tag_table = table('mc_fans_tag');
-			$mc_fans_tag_fields = mc_fans_tag_fields();
-			$fans_tag_update_info = array();
-			foreach ($userinfo as $fans_field_key => $fans_field_info) {
-				if (in_array($fans_field_key, array_keys($mc_fans_tag_fields))) {
-					$fans_tag_update_info[$fans_field_key] = $fans_field_info;
-				}
-				$fans_tag_update_info['tagid_list'] = iserializer($fans_tag_update_info['tagis_list']);
-			}
-			$fans_tag_exists = $mc_fans_tag_table->getByOpenid($fans_tag_update_info['openid']);
-			if (!empty($fans_tag_exists)) {
-				pdo_update('mc_fans_tag', $fans_tag_update_info, array('openid' => $fans_tag_update_info['openid']));
-			} else {
-				pdo_insert('mc_fans_tag', $fans_tag_update_info);
-			}
 		} else {
 			$record = array(
 				'openid' => $oauth['openid'],
@@ -146,9 +125,8 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 		$_W['fans']['from_user'] = $record['openid'];
 	}
 }
-if (intval($_W['account']['level']) != ACCOUNT_SERVICE_VERIFY) {
-	//如果包含Unionid，则直接查原始openid
-	if (!empty($oauth['unionid'])) {
+if (intval($_W['account']['level']) != 4) {
+		if (!empty($oauth['unionid'])) {
 		$fan = pdo_get('mc_mapping_fans', array('unionid' => $oauth['unionid'], 'uniacid' => $_W['uniacid']));
 		if (!empty($fan)) {
 			if (!empty($fan['uid'])) {
@@ -191,9 +169,6 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 			$record['updatetime'] = TIMESTAMP;
 			$record['nickname'] = stripslashes($userinfo['nickname']);
 			$record['tag'] = base64_encode(iserializer($userinfo));
-			if (empty($fan['unionid'])) {
-				$record['unionid'] = !empty($userinfo['unionid']) ? $userinfo['unionid'] : '';
-			}
 			pdo_update('mc_mapping_fans', $record, array('openid' => $fan['openid'], 'acid' => $_W['acid'], 'uniacid' => $_W['uniacid']));
 			if (!empty($fan['uid']) || !empty($_SESSION['uid'])) {
 				$uid = $fan['uid'];
@@ -236,8 +211,7 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 				'follow' => 0,
 				'followtime' => 0,
 				'unfollowtime' => 0,
-				'tag' => base64_encode(iserializer($userinfo)),
-				'unionid' => !empty($userinfo['unionid']) ? $userinfo['unionid'] : ''
+				'tag' => base64_encode(iserializer($userinfo))
 			);
 			if (!isset($unisetting['passport']) || empty($unisetting['passport']['focusreg'])) {
 				$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));
@@ -273,12 +247,6 @@ if(uni_is_multi_acid()) {
 	$str = "&j={$_W['acid']}";
 }
 $forward = strexists($forward, 'i=') ? $forward : "{$forward}&i={$_W['uniacid']}{$str}";
-//部分开发者链接内有‘&wxref=mp.weixin.qq.com’，而没有‘#wechat_redirect’会导致判断错误，故不能直接判断‘&wxref=mp.weixin.qq.com#wechat_redirect’
-if (strpos($forward, '&wxref=mp.weixin.qq.com')) {
-	//部分开发者链接形如： i=1&c=enrey&do=detail&wxref=mp.weixin.qq.com&m=we7_mall&id=2,此时使用strstr会丢失&wxref=mp.weixin.qq.com后的值
-	$forward = str_replace('&wxref=mp.weixin.qq.com', '', $forward) . '&wxref=mp.weixin.qq.com#wechat_redirect';
-} else {
-	$forward .= '&wxref=mp.weixin.qq.com#wechat_redirect';
-}
+$forward = strexists($forward, '&wxref=mp.weixin.qq.com#wechat_redirect') ? $forward : $forward . '&wxref=mp.weixin.qq.com#wechat_redirect';
 header('Location: ' . $forward);
 exit;

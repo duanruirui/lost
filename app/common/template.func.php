@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -29,19 +29,9 @@ function template_page($id, $flag = TEMPLATE_DISPLAY) {
 	}
 	$page['html'] = str_replace(array('<?', '<%', '<?php', '{php'), '_', $page['html']);
 	$page['html'] = preg_replace('/<\s*?script.*(src|language)+/i', '_', $page['html']);
-
-	$script_start = "<sc<x>ript type=\"text/ja<x>vasc<x>ript\">";
-	$script_end = "</sc<x>ript>";
-	$count_down_script = <<<EOF
-$(document).ready(function(){\r\n\t\t\t\t\tsetInterval(function(){\r\n\t\t\t\t\t\tvar timer = $('.timer');\r\n\t\t\t\t\t\tfor (var i = 0; i < timer.length; i++) {\r\n\t\t\t\t\t\t\tvar dead = $(timer.get(i)).attr('data');\r\n\t\t\t\t\t\t\tvar deadtime = dead.replace(/-/g,'/');\r\n\t\t\t\t\t\t\tdeadtime = new Date(deadtime).getTime();\r\n\t\t\t\t\t\t\tvar nowtime = Date.parse(Date());\r\n\t\t\t\t\t\t\tvar diff = deadtime - nowtime > 0 ? deadtime - nowtime : 0;\r\n\t\t\t\t\t\t\tvar res = {};\r\n\t\t\t\t\t\t\tres.day = parseInt(diff / (24 * 60 * 60 * 1000));\r\n\t\t\t\t\t\t\tres.hour = parseInt(diff / (60 * 60 * 1000) % 24);\r\n\t\t\t\t\t\t\tres.min = parseInt(diff / (60 * 1000) % 60);\r\n\t\t\t\t\t\t\tres.sec = parseInt(diff / 1000 % 60);\r\n\t\t\t\t\t\t\t$('.timer[data="'+dead+'"] .day').text(res.day);\r\n\t\t\t\t\t\t\t$('.timer[data="'+dead+'"] .hours').text(res.hour);\r\n\t\t\t\t\t\t\t$('.timer[data="'+dead+'"] .minutes').text(res.min);\r\n\t\t\t\t\t\t\t$('.timer[data="'+dead+'"] .seconds').text(res.sec);\r\n\t\t\t\t\t\t};\r\n\t\t\t\t\t}, 1000);\r\n\t\t\t\t});
-EOF;
-	if (strexists($page['html'], $script_start . $count_down_script . $script_end)) {
-		$page['html'] = str_replace($script_start . $count_down_script . $script_end, "<script type=text/javascript>" . $count_down_script . "</script>", $page['html']);
-	}
-
 	$page['params'] = json_decode($page['params'], true);
 	$GLOBALS['title'] = htmlentities($page['title'], ENT_QUOTES, 'UTF-8');
-	$GLOBALS['_share'] = array('desc' => $page['description'], 'title' => $page['title'], 'imgUrl' => tomedia($page['params']['0']['params']['thumb']));
+	$GLOBALS['_share'] = array('desc' => $page['description'], 'title' => $page['title'], 'imgUrl' => tomedia($page['params']['0']['params']['thumb']));;
 
 	$compile = IA_ROOT . "/data/tpl/app/{$id}.{$_W['template']}.tpl.php";
 	$path = dirname($compile);
@@ -124,27 +114,16 @@ function template($filename, $flag = TEMPLATE_DISPLAY) {
 }
 
 function template_compile($from, $to) {
-	global $_W;
 	$path = dirname($to);
 	if (!is_dir($path)) {
 		load()->func('file');
 		mkdirs($path);
 	}
 	$content = template_parse(file_get_contents($from));
-	if (defined('IN_MODULE') &&
-		$_W['os'] != 'mobile' &&
-		module_get_direct_enter_status($_W['current_module']['name']) == STATUS_ON &&
-		!preg_match('/\<script\>var we7CommonForModule.*document\.body\.appendChild\(we7CommonForModule\)\<\/script\>/', $content) &&
-		!preg_match('/(footer|header|account\/welcome|module\/welcome)+/', $from)) {
-		$extra_code = "<script>var we7CommonForModule = document.createElement(\"script\");we7CommonForModule.src = '//cdn.w7.cc/we7/w7windowside.js?v=" . IMS_RELEASE_DATE . "';document.body.appendChild(we7CommonForModule)
-</script>";
-		$content .= $extra_code;
-	}
 	file_put_contents($to, $content);
 }
 
 function template_parse($str) {
-	load()->model('mc');
 	$check_repeat_template = array(
 		"'common\\/header'",
 		"'common\\/footer'",
@@ -180,7 +159,7 @@ function template_parse($str) {
 	$str = str_replace('{##', '{', $str);
 	$str = str_replace('##}', '}', $str);
 
-	$business_stat_script = "</script><script type=\"text/javascript\" src=\"{$GLOBALS['_W']['siteroot']}app/index.php?i=" . mc_current_real_uniacid() . "&c=utility&a=visit&do=showjs&m={$GLOBALS['_W']['current_module']['name']}\">";
+	$business_stat_script = "</script><script type=\"text/javascript\" src=\"{$GLOBALS['_W']['siteroot']}app/index.php?i={$GLOBALS['_W']['uniacid']}&c=utility&a=visit&do=showjs&m={$GLOBALS['_W']['current_module']['name']}\">";
 	if (!empty($GLOBALS['_W']['setting']['remote']['type'])) {
 		$str = str_replace('</body>', "<script>var imgs = document.getElementsByTagName('img');for(var i=0, len=imgs.length; i < len; i++){imgs[i].onerror = function() {if (!this.getAttribute('check-src') && (this.src.indexOf('http://') > -1 || this.src.indexOf('https://') > -1)) {this.src = this.src.indexOf('{$GLOBALS['_W']['attachurl_local']}') == -1 ? this.src.replace('{$GLOBALS['_W']['attachurl_remote']}', '{$GLOBALS['_W']['attachurl_local']}') : this.src.replace('{$GLOBALS['_W']['attachurl_local']}', '{$GLOBALS['_W']['attachurl_remote']}');this.setAttribute('check-src', true);}}};{$business_stat_script}</script></body>", $str);
 	} else {
@@ -196,20 +175,7 @@ function template_addquote($matchs) {
 	return str_replace('\\\"', '\"', $code);
 }
 
-/**
- *
- * 此处变量为系统定义+自定义，系统定义在下方列出，如果模块有特殊参数需要
- * 则可在标签上自定义参数，在对应的func中使用即可。
- *
- * func - 指定获取数据的函数，此函数定义在模块目录下的model.php文件中
- * module - 指定获取数据的模块。
- * assign - 指定该标签得到数据后，存入的变量名称。如果为空则存在与func同名的变量中，方便在下方的代码中使用。
- * item - 指定循环体内的迭代时的变量名。相当于`foreach ($foo as $i => $row)` 中 $row变量。
- * limit - 指定获取变量时条数。
- * return - 为true时，获取到数据后直接循环输出，为false时，获取到数据后作为变量返回。
- *
- * @return string
- */
+
 function moduledata($params = '') {
 	if (empty($params[1])) {
 		return '';
@@ -278,12 +244,7 @@ function modulefunc($modulename, $funcname, $params) {
 	}
 }
 
-/**
- * 以 HTML 的形式返回微站链接
- *
- * @param array $params
- * @return array array()
- */
+
 function site_navs($params = array()) {
 	global $_W, $multi, $cid, $ishomepage;
 	$condition = array();
@@ -576,10 +537,8 @@ function template_modulehook_parser($params = array()) {
 	}
 
 	if (empty($plugin['return']) || $plugin['return'] == 'false') {
-		//$plugin['return'] = false;
-	} else {
-		//$plugin['return'] = true;
-	}
+			} else {
+			}
 	if (empty($plugin['func']) || empty($plugin['module'])) {
 		return false;
 	}

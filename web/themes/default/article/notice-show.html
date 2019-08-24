@@ -6,7 +6,7 @@
 				<span class="font-lg">公告列表</span>
 			</div>
 			<div class="panel-body we7-padding">
-				<div class="btn-group we7-btn-group we7-margin-bottom ">
+				<div class="btn-group we7-btn-group we7-margin-bottom btn-group-justified">
 					<a href="{php echo url('article/notice-show/list');}" class="btn {if !$cateid}active{/if}">全部</a>
 					{loop $categroys $key $categroy}
 					{if $key}
@@ -36,9 +36,9 @@
 	{/if}
 	{if $do == 'detail'}
 	<div class="we7-padding">
-
+		
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{url 'article/notice-show/list'}"><i class="wi wi-back-circle"></i></a>
+			<a href="{url 'account/welcome'}"><i class="wi wi-back-circle"></i></a>
 			<li class="active"><a href="{php echo url('article/notice-show/list');}">公告列表</a></li>
 			<li class="active">{$notice['title']}</li>
 		</ol>
@@ -54,23 +54,6 @@
 				{php echo html_entity_decode($notice['content'], ENT_QUOTES)}
 			</div>
 		</div>
-		{if $comment_status}
-		<form class="we7-margin-top" action="" method="post">
-			<div class="form-group">
-				<textarea name="content" class="form-control" rows="5" placeholder="扯淡、吐槽、表扬、鼓励......想说啥就说啥！"></textarea>
-			</div>
-			<div class="form-group">
-				<input name="submit" type="submit" value="发表评论" class="btn btn-primary"/>
-				<input type="hidden" name="token" value="{$_W['token']}" />
-			</div>
-		</form>
-		<div class="panel we7-panel">
-			<div class="panel-heading">
-				最新评论
-			</div>
-			{template 'article/comments'}
-		</div>
-		{/if}
 	</div>
 	{/if}
 </div>

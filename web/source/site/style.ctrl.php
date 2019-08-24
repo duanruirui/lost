@@ -1,7 +1,7 @@
 <?php
 /**
- * 微站风格管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -11,31 +11,28 @@ load()->func('file');
 
 $dos = array('default', 'designer', 'module', 'template', 'copy', 'build', 'del');
 $do = in_array($do, $dos) ? $do : 'template';
-permission_check_account_user('platform_site_style');
+permission_check_account_user('platform_site');
 
-$site_multi_table = table('site_multi');
-$site_styles_table = table('site_styles');
-$site_styles_vars_table = table('site_styles_vars');
-$site_templates_table = table('site_templates');
+$templateid = intval($_GPC['templateid']);
 
 if ($do == 'template') {
 	$setting = uni_setting($_W['uniacid'], array('default_site'));
-	$site_multi_info = $site_multi_table->getById($setting['default_site']);
-	$setting['styleid'] = $site_multi_info['styleid'];
-	$site_styles_table->searchWithTemplates();
-	$site_styles_table->where('a.uniacid', $_W['uniacid']);
+	$setting['styleid'] = pdo_fetchcolumn('SELECT styleid FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $setting['default_site']));
+	$_W['page']['title'] = '风格管理 - 网站风格设置 - 微站功能';
+	$params = array();
+	$params[':uniacid'] = $_W['uniacid'];
+	$condition = '';
 	if (!empty($_GPC['keyword'])) {
-		$keyword = safe_gpc_string($_GPC['keyword']);
-		$site_styles_table->where('a.name LIKE', "%$keyword%");
+		$condition .= " AND a.name LIKE :keyword";
+		$params[':keyword'] = "%{$_GPC['keyword']}%";
 	}
-	$styles = $site_styles_table->getall();
+	$styles = pdo_fetchall("SELECT a.* FROM ".tablename('site_styles')." AS a LEFT JOIN ".tablename('site_templates')." AS b ON a.templateid = b.id WHERE uniacid = :uniacid ".(!empty($condition) ? " $condition" : ''), $params);
 	$templates = uni_templates();
 
-	//模板激活
-	$stylesResult = array();
+		$stylesResult = array();
 	foreach ($templates as $k => $v) {
-		if (!empty($keyword)) {
-			if (strpos($v['title'], $keyword) !== false) {
+		if (!empty($_GPC['keyword'])) {
+			if (strpos($v['title'], $_GPC['keyword']) !== false) {
 				$stylesResult[$k] = array(
 					'templateid' => $v['id'],
 					'name' => $v['name'],
@@ -60,8 +57,7 @@ if ($do == 'template') {
 	}
 	$templates_id = array_keys($templates);
 	foreach ($styles as $v) {
-		//如果某个风格没有对应模板的使用权限，跳过
-		if (!in_array($v['templateid'], $templates_id)) {
+				if (!in_array($v['templateid'], $templates_id)) {
 			continue;
 		}
 		$stylesResult[] =  array(
@@ -88,14 +84,15 @@ if ($do == 'template') {
 
 if ($do == 'default') {
 	$setting = uni_setting($_W['uniacid'], array('default_site'));
-	$multi = $site_multi_table->getById($setting['default_site']);
+	$multi = pdo_fetch('SELECT id,styleid FROM ' . tablename('site_multi') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $setting['default_site']));
 	if (empty($multi)) {
-		itoast('您的默认微站找不到,请联系网站管理员');
+		itoast('您的默认微站找不到,请联系网站管理员', '', 'error');
 	}
+
 	$styleid = intval($_GPC['styleid']);
-	$style = $site_styles_table->getById($styleid);
+	$style = pdo_fetch("SELECT * FROM ".tablename('site_styles')." WHERE id = :styleid AND uniacid = :uniacid", array(':styleid' => $styleid, ':uniacid' => $_W['uniacid']));
 	if (empty($style)) {
-		itoast('抱歉，风格不存在或是您无权限使用！');
+		itoast('抱歉，风格不存在或是您无权限使用！', '', 'error');
 	}
 	$templateid = $style['templateid'];
 	$template = array();
@@ -109,10 +106,10 @@ if ($do == 'default') {
 		}
 	}
 	if (empty($template)) {
-		itoast('抱歉，模板不存在或是您无权限使用！');
+		itoast('抱歉，模板不存在或是您无权限使用！', '', 'error');
 	}
-	$site_multi_table->fill(array('styleid' => $styleid))->where(array('uniacid' => $_W['uniacid'], 'id' => $setting['default_site']))->save();
-	$styles = $site_styles_vars_table->getAllByStyleid($styleid);
+	pdo_update('site_multi', array('styleid' => $styleid), array('uniacid' => $_W['uniacid'], 'id' => $setting['default_site']));
+	$styles = pdo_fetchall("SELECT variable, content FROM " . tablename('site_styles_vars') . " WHERE styleid = :styleid  AND uniacid = '{$_W['uniacid']}'", array(':styleid' => $styleid), 'variable');
 	$styles_tmp = array_keys($styles);
 	$templatedata = ext_template_manifest($template['name']);
 	if (empty($styles)) {
@@ -142,35 +139,21 @@ if ($do == 'default') {
 
 if ($do == 'designer') {
 	$styleid = intval($_GPC['styleid']);
-	$style = $site_styles_table->getById($styleid);
+	$style = pdo_fetch("SELECT * FROM ".tablename('site_styles')." WHERE id = :id AND uniacid = :unacid", array(':id' => $styleid, ':unacid' => $_W['uniacid']));
 	if (empty($style)) {
 		itoast('抱歉，风格不存在或是已经被删除！', '', 'error');
 	}
 	$templateid = $style['templateid'];
-	$template = $site_templates_table->getById($templateid);
+	$template = pdo_fetch("SELECT * FROM " . tablename('site_templates') . " WHERE id = '{$templateid}'");
 	if (empty($template)) {
 		itoast('抱歉，模板不存在或是已经被删除！', '', 'error');
 	}
-	$styles = $site_styles_vars_table->getAllByStyleid($styleid);
-	$systemtags = array(
-		'imgdir',
-		'indexbgcolor',
-		'indexbgimg',
-		'indexbgextra',
-		'fontfamily',
-		'fontsize',
-		'fontcolor',
-		'fontnavcolor',
-		'linkcolor',
-		'css'
-	);
+	$styles = pdo_fetchall("SELECT variable, content, description FROM " . tablename('site_styles_vars') . " WHERE styleid = :styleid AND uniacid = :uniacid", array(':styleid' => $styleid, ':uniacid' => $_W['uniacid']), 'variable');
 	if (checksubmit('submit')) {
+
 		if (!empty($_GPC['style'])) {
 			$_GPC['style'] = safe_gpc_array($_GPC['style']);
 			foreach ($_GPC['style'] as $variable => $value) {
-				if (!in_array($variable, $systemtags)) {
-					continue;
-				}
 				$value = safe_gpc_html(htmlspecialchars_decode($value, ENT_QUOTES));
 				if ($variable == 'imgdir') {
 					$value = safe_gpc_path($value);
@@ -197,11 +180,8 @@ if ($do == 'designer') {
 		if (!empty($_GPC['custom']['name'])) {
 			$_GPC['custom']['name'] = safe_gpc_array($_GPC['custom']['name']);
 			foreach ($_GPC['custom']['name'] as $i => $variable) {
-				if (preg_match('/[^0-9A-Za-z-_]/', $variable)) {
-					continue;
-				}
-				$value = safe_gpc_string($_GPC['custom']['value'][$i]);
-				$desc = safe_gpc_string($_GPC['custom']['desc'][$i]);
+				$value = $_GPC['custom']['value'][$i];
+				$desc = $_GPC['custom']['desc'][$i];
 				if (!empty($value)) {
 					if (!empty($styles[$variable])) {
 						if ($styles[$variable] != $value) {
@@ -229,27 +209,38 @@ if ($do == 'designer') {
 
 		if (!empty($styles)) {
 			$stylekeys = array_keys($styles);
-			foreach ($stylekeys as $value) {
-				pdo_delete('site_styles_vars', array('uniacid' => $_W['uniacid'], 'styleid' => $styleid, 'variable' => $value));
-			}
+			$stylekeys = array_map(function($item){
+				return str_replace(' ','',$item);
+			},$stylekeys);
+			$stylekeys_str = implode(',', $stylekeys);
+			pdo_query("DELETE FROM " . tablename('site_styles_vars') . " WHERE variable IN ('" . $stylekeys_str . "') AND styleid = :styleid AND uniacid = '{$_W['uniacid']}'", array(':styleid' => $styleid));
 		}
-		$site_styles_table->fill(array('name' => safe_gpc_string($_GPC['name'])))->where(array('id' => $styleid, 'uniacid' => $_W['uniacid']))->save();
+		pdo_update('site_styles', array('name' => $_GPC['name']), array('id' => $styleid));
 		itoast('更新风格成功！', url('site/style'), 'success');
 	}
-
+	$systemtags = array(
+		'imgdir',
+		'indexbgcolor',
+		'indexbgimg',
+		'indexbgextra',
+		'fontfamily',
+		'fontsize',
+		'fontcolor',
+		'fontnavcolor',
+		'linkcolor',
+		'css'
+	);
 	template('site/tpl-post');
 }
 
 if ($do == 'module') {
-	// permission_check_account_user('site_style_module');
+		$_W['page']['title'] = '模块扩展模板说明 - 网站风格设置 - 微站功能';
 	if (empty($_W['isfounder'])) {
 		itoast('您无权进行该操作！', '', '');
 	}
 	$setting = uni_setting($_W['uniacid'], array('default_site'));
-	$multi_info = $site_multi_table->getById($setting['default_site']);
-	$styleid = !empty($multi_info) ? $multi_info['styleid'] : 0;
-	$style_info = $site_styles_table->getById($styleid);
-	$templateid = !empty($style_info) ? $style_info['templateid'] : 0;
+	$styleid = pdo_fetchcolumn("SELECT styleid FROM ".tablename('site_multi')." WHERE id = :id", array(':id' => $setting['default_site']));
+	$templateid = pdo_fetchcolumn("SELECT templateid FROM ".tablename('site_styles')." WHERE id = :id", array(':id' => $styleid));
 	$ts = uni_templates();
 	$currentTemplate = !empty($ts[$templateid]) ? $ts[$templateid]['name'] : 'default';
 	$modules = uni_modules();
@@ -273,6 +264,8 @@ if ($do == 'module') {
 	}
 	template('site/style');
 }
+
+
 
 if ($do == 'build') {
 	$templateid = intval($_GPC['styleid']);
@@ -318,13 +311,12 @@ if ($do == 'build') {
 
 if ($do == 'copy') {
 	$styleid = intval($_GPC['styleid']);
-
-	$style = $site_styles_table->getById($styleid);
+	$style = pdo_fetch("SELECT * FROM ".tablename('site_styles')." WHERE id = :id AND uniacid = '{$_W['uniacid']}'", array(':id' => $styleid));
 	if (empty($style)) {
 		itoast('抱歉，风格不存在或是已经被删除！', '', 'error');
 	}
 	$templateid = $style['templateid'];
-	$template = $site_templates_table->getById($templateid);
+	$template = pdo_fetch("SELECT * FROM " . tablename('site_templates') . " WHERE id = '{$templateid}'");
 	if (empty($template)) {
 		itoast('抱歉，模板不存在或是已经被删除！', '', 'error');
 	}
@@ -338,7 +330,7 @@ if ($do == 'copy') {
 	pdo_insert('site_styles', $newstyle);
 	$id = pdo_insertid();
 
-	$styles = $site_styles_vars_table->getAllByStyleid($styleid);
+	$styles = pdo_fetchall("SELECT variable, content, templateid, uniacid FROM " . tablename('site_styles_vars') . " WHERE styleid = :styleid AND uniacid = '{$_W['uniacid']}'", array(':styleid' => $styleid));
 	if (!empty($styles)) {
 		foreach($styles as $data) {
 			$data['styleid'] = $id;

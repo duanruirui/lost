@@ -1,8 +1,7 @@
 <?php
 /**
- * 图文回复模块
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -16,8 +15,7 @@ class NewsModule extends WeModule {
 		$replies = array();
 		$replies = pdo_fetchall("SELECT * FROM ".tablename($this->tablename)." WHERE rid = :rid AND parent_id = -1 ORDER BY `displayorder` DESC, id ASC", array(':rid' => $rid));
 		if(!empty($replies)) {
-			//此处是兼容写法。将0.6没有多组图文回复发规则设置到一组回复里面
-			$parent_id = $replies[0]['id'];
+						$parent_id = $replies[0]['id'];
 			pdo_update($this->tablename, array('parent_id' => $parent_id), array('rid' => $rid));
 			pdo_update($this->tablename, array('parent_id' => 0), array('rid' => $rid, 'id' => $parent_id));
 		}
@@ -88,8 +86,7 @@ class NewsModule extends WeModule {
 				}
 			}
 			if($parent_id == -1) {
-				//新增
-				$i = 0;
+								$i = 0;
 				foreach($group as $reply) {
 					if(!$i) {
 						$i++;

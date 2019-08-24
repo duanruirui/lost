@@ -1,8 +1,8 @@
 {template 'common/header'}
 <ol class="breadcrumb we7-breadcrumb">
-	<a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i> </a>
-	<li><a href="{php echo url('account/manage')}">平台管理</a></li>
-	<li>{php echo $account->typeName}设置</li>
+	<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
+	<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}">小程序管理</a></li>
+	<li>小程序设置</li>
 </ol>
 <div class="media media-wechat-setting">
 	<a class="media-left">
@@ -22,11 +22,11 @@
 <div class="clearfix"></div>
 <div class="btn-group we7-btn-group wechat-edit-group">
 	
-
-	
-		{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER}
+		{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER || $state == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
 		<a href="{php echo url('account/post/base', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE_APP_NORMAL))}" class="btn btn-default {if $do == 'base'} active{/if}">基础信息</a>
 		{/if}
+	
+
 	
 
 	<a href="{php echo url('account/post-user/edit', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE_APP_NORMAL))}" class="btn btn-default {if $action == 'post-user' && $do == 'edit'} active{/if}">使用者管理</a>
@@ -37,7 +37,7 @@
 <div id="js-account-manage-wxapp" ng-controller="AccountManageWxappCtrl" ng-cloak>
 	<!--版本管理-->
 	<div class="text-right we7-margin-bottom">
-		<a href="{php echo url('miniapp/post', array('uniacid' => $account['uniacid'], 'type' => $account['type']))}" class="btn btn-primary" target="_blank">添加新版本</a>
+		<a href="{php echo url('wxapp/post/design_method', array('uniacid' => $account['uniacid']))}" class="btn btn-primary" target="_blank">添加新版本</a>
 	</div>
 	<table class="table we7-table vertical-middle wxapp-version-table">
 		<tr>
@@ -47,15 +47,15 @@
 			<th class="text-center">最新应用版本</th>
 			<th class="text-right">操作</th>
 		</tr>
-		<tr ng-if="wxapp_version_lists" ng-repeat="item in wxapp_version_lists">
+		<tr ng-if="version_exist" ng-repeat="item in wxapp_version_lists">
 			<td class="text-left">
 				<div class="version" ng-bind="item.version"></div>
 				<div class="color-gray" ng-bind="item.description"></div>
 			</td>
 			<td class="clearfix">
-				<div class="item col-sm-6" ng-if="item.module">
-					<img ng-src="{{item.module.logo}}" class="icon"/>
-					<div class="name" ng-bind="item.module.title"></div>
+				<div class="item col-sm-6" ng-if="item.last_modules">
+					<img ng-src="{{item.last_modules.logo}}" class="icon"/>
+					<div class="name" ng-bind="item.last_modules.title"></div>
 				</div>
 			</td>
 			<td class="text-center">
@@ -77,10 +77,8 @@
 				</div>
 			</td>
 		</tr>
-		<tr ng-if="!wxapp_version_lists">
-			<td colspan="5" class="text-center">
-				<div class="we7-empty-block">暂无数据</div>
-			</td>
+		<tr ng-if="!version_exist">
+			<td colspan="3" class="text-center">暂无数据</td>
 		</tr>
 	</table>
 	<div class="modal fade" id="modal_edit_versioninfo"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -135,7 +133,7 @@
 					<h4 class="modal-title">选择小程序</h4>
 				</div>
 				<div class="modal-body">
-					<div class="input-group" style="width: 400px">
+					<div class="input-group" style="width: 500px">
 						<input class="form-control" name="title" ng-model="search.moduleName" type="text" placeholder="名称">
 						<span class="input-group-btn">
 							<button ng-click="searchModuleName()" class="btn btn-default">
@@ -143,7 +141,7 @@
 							</button>
 						</span>
 					</div>
-					<div class="we7-margin-top">
+					<div class="we7-padding">
 						<div class="col-sm-2 text-center we7-margin-bottom select-module-wxapp" ng-repeat="module in modules" ng-if="modules">
 							<a href="javascript:;" ng-click="selectedWxModule(module, $event)">
 								<img ng-src="{{module.logo}}" style="width:50px;height:50px;">

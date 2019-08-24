@@ -1,7 +1,7 @@
 <?php
 /**
- * 编辑用户
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -25,8 +25,8 @@ $founders = explode(',', $_W['config']['setting']['founder']);
 $profile = pdo_get('users_profile', array('uid' => $uid));
 if (!empty($profile)) $profile['avatar'] = tomedia($profile['avatar']);
 
-//编辑用户基础信息
 if ($do == 'edit_base') {
+	$account_num = permission_user_account_num($uid);
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
 	$user['end'] = $user['endtime'] == 0 ? '永久' : date('Y-m-d', $user['endtime']);
 	$user['endtype'] = $user['endtime'] == 0 ? 1 : 2;

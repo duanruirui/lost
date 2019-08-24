@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/app/common/tpl.func.php : v 8b6dd7b5a696 : 2015/09/17 03:20:11 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -198,7 +198,7 @@ function tpl_app_form_field_district($name, $values = array()) {
 	return $html;
 }
 
-function tpl_app_form_field_avatar($name, $value = '', $type = 0) {
+function tpl_app_form_field_avatar($name, $value = '') {
 	$val = './resource/images/nopic.jpg';
 	if (!empty($value)) {
 		$val = tomedia($value);
@@ -213,12 +213,6 @@ function tpl_app_form_field_avatar($name, $value = '', $type = 0) {
 		</li>
 	</ul>
 	';
-	if ($type) {
-		$html = '<div class="mui-pull-right mui-navigate-right js-avatar-'.$name.'" style="padding-right: 50px;">
-					<img class="mui-avatar-select mui-pull-left" src="' . $val. '" width="40" height="40">
-				</div>
-		';
-	}
 	$href = url('mc/profile/avatar');
 	$html .= "<script>
 		util.image($('.js-avatar-{$name}'), function(url){
@@ -238,12 +232,7 @@ function tpl_app_form_field_avatar($name, $value = '', $type = 0) {
 	return $html;
 }
 
-/**
- * 【表单控件】: 图片上传
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @return string
- */
+
 function tpl_app_form_field_image($name, $value = '') {
 
 	$thumb = empty($value) ? 'images/global/nopic.jpg' : $value;

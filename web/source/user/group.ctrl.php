@@ -1,40 +1,45 @@
 <?php
 /**
- * 用户组管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('user');
 
-$dos = array('display', 'post', 'del', 'save');
+$dos = array('display', 'post', 'del');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
 if ($do == 'display') {
+	$_W['page']['title'] = '用户组列表 - 用户组 - 用户管理';
+
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 10;
 
-	$users_group_table = table('users_group');
 	$condition = '' ;
 	$params = array();
 	$name = safe_gpc_string($_GPC['name']);
 	if (!empty($name)) {
-		$users_group_table->searchWithNameLike($name);
+		$condition .= "WHERE name LIKE :name";
+		$params[':name'] = "%{$name}%";
 	}
-
-	if (user_is_vice_founder()) {
-		$users_group_table->getOwnUsersGroupsList($_W['uid']);
-	}
-	$lists = $users_group_table->getUsersGroupList();
-
+	
+		if (user_is_vice_founder()) {
+			$condition .= "WHERE owner_uid = :owner_uid";
+			$params[':owner_uid'] = $_W['uid'];
+		}
+	
+	$lists = pdo_fetchall("SELECT * FROM " . tablename('users_group') . $condition . " LIMIT " . ($pageindex - 1) * $pagesize . "," . $pagesize, $params);
 	$lists = user_group_format($lists);
-	$total = $users_group_table->getLastQueryTotal();
+
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('users_group') . $condition, $params);
 	$pager = pagination($total, $pageindex, $pagesize);
 	template('user/group-display');
 }
 
 if ($do == 'post') {
 	$id = intval($_GPC['id']);
+	$_W['page']['title'] = $id ? '编辑用户组 - 用户组 - 用户管理' : '添加用户组 - 用户组 - 用户管理';
 	if (!empty($id)) {
 		$group_info = pdo_get('users_group', array('id' => $id));
 		$group_info['package'] = iunserializer($group_info['package']);
@@ -44,7 +49,6 @@ if ($do == 'post') {
 			$checked_groups = pdo_getall('uni_group', array('uniacid' => 0, 'id' => $group_info['package']), array('id', 'name'), '', array('id DESC'));
 		}
 	}
-
 	$packages = uni_groups();
 	if (!empty($packages)) {
 		foreach ($packages as $key => &$package_val) {
@@ -60,67 +64,37 @@ if ($do == 'post') {
 		unset($package_val);
 		$packages = array_values($packages);
 	}
-
 	$pagesize = 15;
 	$pager = pagination(count($packages), 1, $pagesize, '', array('ajaxcallback' => true, 'callbackfuncname' => 'loadMore'));
+	if (checksubmit('submit')) {
+		$user_group = array(
+			'id' => intval($_GPC['id']),
+			'name' => $_GPC['name'],
+			'package' => $_GPC['package'],
+			'maxaccount' => intval($_GPC['maxaccount']),
+			'maxwxapp' => intval($_GPC['maxwxapp']),
+			'maxwebapp' => intval($_GPC['maxwebapp']),
+			'maxphoneapp' => intval($_GPC['maxphoneapp']),
+			'maxxzapp' => intval($_GPC['maxxzapp']),
+			'timelimit' => intval($_GPC['timelimit'])
+		);
+		$user_group_info = user_save_group($user_group);
+		if (is_error($user_group_info)) {
+			itoast($user_group_info['message'], '', '');
+		}
+		cache_clean(cache_system_key('user_modules'));
+		itoast('用户组更新成功！', url('user/group/display'), 'success');
+	}
 	template('user/group-post');
-}
-
-
-if ($do == 'save') {
-	$account_all_type = uni_account_type();
-	$account_all_type_sign = array_keys(uni_account_type_sign());
-	$group_info = safe_gpc_array($_GPC['group_info']);
-	$user_group = array(
-		'id' => intval($group_info['id']),
-		'name' => $group_info['name'],
-		'package' => $group_info['package'],
-		'timelimit' => intval($group_info['timelimit'])
-	);
-	$max_type_all = 0;
-	foreach ($account_all_type_sign as $account_type) {
-		$maxtype = 'max' . $account_type;
-		$user_group[$maxtype] = intval($group_info[$maxtype]);
-		$max_type_all += $group_info[$maxtype];
-	}
-
-	if ($max_type_all <= 0) {
-		iajax(-1, '创建账号个数，不能全部为0，至少要有一个!', referer());
-	}
-
-	$user_group_info = user_save_group($user_group);
-	if (is_error($user_group_info)) {
-		iajax(-1, $user_group_info['message'], referer());
-	}
-	cache_clean(cache_system_key('user_modules'));
-	iajax(0, '用户组更新成功！', url('user/group/display'));
 }
 
 if ($do == 'del') {
 	$id = intval($_GPC['id']);
-
-	$users = pdo_getall('users', array('groupid' => $id));
-	if (!empty($users)) {
-		$users_extra_limit_table = table('users_extra_limit');
-		$group_info = pdo_get('users_group', array('id' => $id));
-		foreach ($users as $user_info) {
-			$extra_limit_info = $users_extra_limit_table->getExtraLimitByUid($user_info['uid']);
-			if (empty($extra_limit_info)) {
-				$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => 1));
-			} else {
-				$group_info_timelimit = $group_info['timelimit'];
-				if ($group_info_timelimit == 0) {
-					$end_time = !empty($extra_limit_info) && $extra_limit_info['timelimit'] > 0 ? strtotime($extra_limit_info['timelimit'] . ' days', $user_info['joindate']) : $user_info['joindate'];
-				} else {
-					$end_time = strtotime('-' . $group_info_timelimit . ' days', $user_info['endtime']);
-				}
-				$result = user_update(array('uid' => $user_info['uid'], 'groupid' => '', 'endtime' => $end_time));
-			}
-		}
-	}
-
 	$result = pdo_delete('users_group', array('id' => $id));
-	$result_founder = pdo_delete('users_founder_own_users_groups', array('users_group_id' => $id));
-	itoast('删除成功！', url('user/group/display'), 'success');
+	if(!empty($result)){
+		itoast('删除成功！', url('user/group/display'), 'success');
+	}else {
+		itoast('删除失败！请稍候重试！', url('user/group'), 'error');
+	}
 	exit;
 }

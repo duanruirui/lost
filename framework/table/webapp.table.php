@@ -1,21 +1,13 @@
 <?php
 /**
- * @package	 ${NAMESPACE}
- * @subpackage
- * @since 1.6.3
- * @copyright   A copyright
- * @license	 A "Slug" license name e.g. GPL2
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->table('account');
 class WebappTable extends AccountTable {
 
-	/**
-	 *  创建PC
-	 * @param $attr
-	 * @return bool
-	 * @since version
-	 */
+	
 	public function createWebappInfo($attr, $uid) {
 		$name = $attr['name'];
 		$description = $attr['description'];
@@ -49,11 +41,7 @@ class WebappTable extends AccountTable {
 		return $uniacid;
 	}
 
-	/**
-	 *  创建记录
-	 * @param $uniacid
-	 * @param $uid
-	 * */
+	
 	private function createLog($uniacid, $uid) {
 		if (empty($_W['isfounder'])) {
 			$user_info = permission_user_account_num($uid);

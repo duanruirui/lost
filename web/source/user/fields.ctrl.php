@@ -1,37 +1,36 @@
 <?php
 /**
- * 资料字段管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 $dos = array('display', 'post');
 $do = in_array($do, $dos) ? $do : 'display';
 
+
 if ($do == 'display') {
+	$_W['page']['title'] = '字段管理 - 用户管理';
 
 	$table = table('core_profile_fields');
 
 	$keyword = safe_gpc_string($_GPC['keyword']);
 	if (!empty($keyword)) {
-		$table->searchWithKeyword($keyword);
+		$table->searchKeyword($keyword);
 	}
 
-	if ($_W['isajax'] && $_W['ispost']) {
-		$id = intval($_GPC['id']);
-		$key = safe_gpc_string($_GPC['key']);
-		$value = intval($_GPC['val']);
-		$allowed_key = array('required', 'showinregister', 'available');
-		if (!in_array($key, $allowed_key)) {
-			iajax(-1, '不允许的键值', referer());
+	if (checksubmit('submit')) {
+		if (!empty($_GPC['displayorder'])) {
+			foreach ($_GPC['displayorder'] as $id => $displayorder) {
+				pdo_update('profile_fields', array(
+				'displayorder' => intval($displayorder),
+				'available' => intval($_GPC['available'][$id]),
+				'showinregister' => intval($_GPC['showinregister'][$id]),
+				'required' => intval($_GPC['required'][$id]),
+				), array('id' => $id));
+			}
 		}
-		$filldata = array($key => $value);
-		$result = $table->fill($filldata)->where('id', $id)->save();
-		if ($result) {
-			iajax(0, '修改成功!', referer());
-		} else {
-			iajax(0, '修改失败!', referer());
-		}
+		itoast('资料设置更新成功！', referer(), 'success');
 	}
 
 	$fields = $table->getFieldsList();
@@ -39,27 +38,31 @@ if ($do == 'display') {
 }
 
 if ($do == 'post') {
-	$field = $_GPC['field'];
-	$id = intval($field['id']);
-	if ($_W['isajax'] && $_W['ispost']) {
-		if (empty($field['title'])) {
-			iajax(-1, '抱歉，请填写资料名称！', referer());
+	$_W['page']['title'] = '编辑字段 - 用户管理';
+	$id = intval($_GPC['id']);
+
+	if (checksubmit('submit')) {
+		if (empty($_GPC['title'])) {
+			itoast('抱歉，请填写资料名称！', '', '');
 		}
-		if (empty($field['field'])) {
-			iajax(-1, '抱歉，请填写字段名！', referer());
+		if (empty($_GPC['field'])) {
+			itoast('请填写字段名!', '', '');
 		}
-		if (!preg_match('/^[A-Za-z0-9_]*$/', $field['field'])) {
-			iajax(-1, '请使用字母或数字或下划线组合字段名！', referer());
+		if (!preg_match('/^[A-Za-z0-9_]*$/', $_GPC['field'])) {
+			itoast('请使用字母或数字或下划线组合字段名!', '', '');
 		}
 		$data = array(
-			'title' => safe_gpc_string($field['title']),
-			'description' => safe_gpc_string($field['description']),
-			'displayorder' => intval($field['displayorder']),
-			'unchangeable' => intval($field['unchangeable']),
-			'field' => safe_gpc_string($field['field']),
-			'field_length' => intval($field['field_length'])
+			'title' => $_GPC['title'],
+			'description' => $_GPC['description'],
+			'displayorder' => intval($_GPC['displayorder']),
+			'available' => intval($_GPC['available']),
+			'unchangeable' => intval($_GPC['unchangeable']),
+			'showinregister' => intval($_GPC['showinregister']),
+			'required' => intval($_GPC['required']),
+			'field' => safe_gpc_string($_GPC['field']),
+			'field_length' => intval($_GPC['length'])
 		);
-		$length = intval($field['field_length']);
+		$length = intval($_GPC['length']);
 		if (empty($id)) {
 			pdo_insert('profile_fields', $data);
 			if (!pdo_fieldexists('users_profile', $data['field'])) {
@@ -81,7 +84,7 @@ if ($do == 'post') {
 			}
 			pdo_update('profile_fields', $data, array('id' => $id));
 		}
-		iajax(0, '更新字段成功！', url('user/fields'));
+		itoast('更新字段成功！', url('user/fields'), 'success');
 	}
 
 	if (!empty($id)) {

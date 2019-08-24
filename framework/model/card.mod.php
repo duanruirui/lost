@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -62,9 +62,7 @@ function card_credit_setting() {
 	return $set;
 }
 
-/*
- * 返回会员未读的公告数
- * */
+
 function card_notice_stat() {
 	global $_W;
 	$new_id = pdo_fetchcolumn('SELECT notice_id FROM ' . tablename('mc_card_notices_unread') . ' WHERE uniacid = :uniacid AND uid = :uid AND type = 1 ORDER BY notice_id DESC LIMIT 1', array(':uid' => $_W['member']['uid'], ':uniacid' => $_W['uniacid']));
@@ -87,9 +85,7 @@ function card_notice_stat() {
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('mc_card_notices_unread') . ' WHERE uniacid = :uniacid AND uid = :uid AND is_new = 1', array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid']));
 	return $total;
 }
-/*
- * 获取会员卡设置
- */
+
 function card_params_setting($setting_name = '') {
 	global $_W;
 	$setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid'], 'status' => '1'));
@@ -106,9 +102,7 @@ function card_params_setting($setting_name = '') {
 	}
 	
 }
-/*
- * 获取会员卡消费优惠后的价格
- */
+
 function card_discount_fee($fee) {
 	global $_W;
 	$fee = floatval($fee);

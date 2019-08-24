@@ -1,7 +1,7 @@
 <?php
 /**
- * 文章/公告---文章管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,8 +9,8 @@ $dos = array('category_post', 'category', 'category_del', 'list', 'post', 'batch
 $do = in_array($do, $dos) ? $do : 'list';
 permission_check_account_user('system_article_news');
 
-//添加分类
 if ($do == 'category_post') {
+	$_W['page']['title'] = '编辑分类-新闻分类-文章管理';
 	if (checksubmit('submit')) {
 		$i = 0;
 		if (!empty($_GPC['title'])) {
@@ -33,30 +33,25 @@ if ($do == 'category_post') {
 	template('article/news-category-post');
 }
 
-//修改分类
 if ($do == 'category') {
-	$category_table = table('article_category');
+	$_W['page']['title'] = '分类列表-新闻分类-文章管理';
 	if (checksubmit('submit')) {
-		$id = intval($_GPC['id']);
-		if (empty($id)) {
-			iajax(1, '参数有误');
+		if (!empty($_GPC['ids'])) {
+			foreach ($_GPC['ids'] as $k => $v) {
+				$data = array(
+					'title' => safe_gpc_string($_GPC['title'][$k]),
+					'displayorder' => intval($_GPC['displayorder'][$k])
+				);
+				pdo_update('article_category', $data, array('id' => intval($v)));
+			}
+			itoast('修改分类成功', referer(), 'success');
 		}
-		if (empty($_GPC['title'])) {
-			iajax(1, '分类名称不能为空');
-		}
-		$update =  array(
-			'title' => safe_gpc_string($_GPC['title']),
-			'displayorder' => max(0,intval($_GPC['displayorder']))
-		);
-		$category_table->fill($update)->where('id', $id)->save();
-		iajax(0, '修改分类成功');
 	}
 
-	$data = $category_table->getNewsCategoryLists();
+	$data = table('articlecategory')->getNewsCategoryLists();
 	template('article/news-category');
 }
 
-//删除分类
 if ($do == 'category_del') {
 	$id = intval($_GPC['id']);
 	pdo_delete('article_category', array('id' => $id, 'type' => 'news'));
@@ -64,10 +59,10 @@ if ($do == 'category_del') {
 	itoast('删除分类成功', referer(), 'success');
 }
 
-//编辑文章
 if ($do == 'post') {
+	$_W['page']['title'] = '编辑新闻-新闻列表';
 	$id = intval($_GPC['id']);
-	$new = table('article_news')->searchWithId($id)->get();
+	$new = table('articlenews')->searchWithId($id)->get();
 	if (empty($new)) {
 		$new = array(
 			'is_display' => 1,
@@ -110,16 +105,17 @@ if ($do == 'post') {
 		itoast('编辑文章成功', url('article/news/list'), 'success');
 	}
 
-	$categorys = table('article_category')->getNewsCategoryLists();
+	$categorys = table('articlecategory')->getNewsCategoryLists();
 	template('article/news-post');
 }
 
-//新闻列表
 if ($do == 'list') {
+	$_W['page']['title'] = '所有新闻-新闻列表';
+
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
-	$article_table = table('article_news');
+	$article_table = table('articlenews');
 	$cateid = intval($_GPC['cateid']);
 	$createtime = intval($_GPC['createtime']);
 	$title = safe_gpc_string($_GPC['title']);
@@ -139,16 +135,14 @@ if ($do == 'list') {
 	$order = !empty($_W['setting']['news_display']) ? $_W['setting']['news_display'] : 'displayorder';
 
 	$article_table->searchWithPage($pindex, $psize);
-	$article_table->orderby($order, 'DESC');
-	$news = $article_table->getall();
+	$news = $article_table->getArticleNewsLists($order);
 	$total = $article_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 
-	$categorys = table('article_category')->getNewsCategoryLists($order);
+	$categorys = table('articlecategory')->getNewsCategoryLists($order);
 	template('article/news');
 }
 
-//编辑新闻
 if ($do == 'batch_post') {
 	if (checksubmit()) {
 		if (!empty($_GPC['ids'])) {
@@ -165,14 +159,12 @@ if ($do == 'batch_post') {
 	}
 }
 
-//删除文章
 if ($do == 'del') {
 	$id = intval($_GPC['id']);
 	pdo_delete('article_news', array('id' => $id));
 	itoast('删除文章成功', referer(), 'success');
 }
 
-//显示排序设置
 if ($do == 'displaysetting') {
 	$setting = safe_gpc_string($_GPC['setting']);
 	$data = $setting == 'createtime' ? 'createtime' : 'displayorder';

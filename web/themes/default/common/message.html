@@ -11,7 +11,7 @@
 				<div class="tips">{$caption}</div>
 				<div class="state">{$msg}</div>
 			{/if}
-			{if $redirect && $type != 'expired'}
+			{if $redirect}
 			<div class="btn-group">
 				<a class="btn btn-link" href="{$redirect}">如果你的浏览器没有自动跳转，请点击此链接</a>
 				<script type="text/javascript">
@@ -21,25 +21,9 @@
 				</script>
 			</div>
 			{else}
-				<p>
-					{if $type != 'expired'}
-					<a href="javascript:history.go(-1);" class="btn btn-primary">点击这里返回上一页</a>
-					<a href="{php echo url('home/welcome/system', array('page' => 'home'))}" class="btn btn-default">首页</a>
-					{/if}
-					{loop $extend $button}
-						<a href="{$button['url']}" class="{$button['class']}" target="{if !empty($button['target'])}{$button['target']}{else}_self{/if}">{$button['title']}</a>
-					{/loop}
-				</p>
-			{/if}
+				<p><a href="javascript:history.go(-1);" class="btn btn-primary">点击这里返回上一页</a> &nbsp; <a href="./?refresh" class="btn btn-primary">首页</a></p>
+			{/if}		
 		</div>
-
-		{if $redirect == url('home/welcome/ext', array('m' => 'store')) && $type == 'expired'}
-			<script type="text/javascript">
-				setTimeout(function () {
-					location.href = "{$redirect}";
-				}, 5000);
-			</script>
-		{/if}
 	{template 'common/footer'}
 {else}
 	{template 'common/header-base'}

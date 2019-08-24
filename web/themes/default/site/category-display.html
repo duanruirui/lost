@@ -1,10 +1,10 @@
 {template 'common/header'}
+<div class="we7-page-title">微官网</div>
 <ul class="we7-page-tab">
-	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-	<li {if $action == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
-	{/if}
-	{/loop}
+	<li><a href="{php echo url('site/multi')}">微官网列表</a></li>
+	<li><a href="{php echo url('site/style')}">微官网模板</a></li>
+	<li><a href="{php echo url('site/article')}">文章管理</a></li>
+	<li class="active"><a href="{php echo url('site/category')}">文章分类管理</a></li>
 </ul>
 <div class="we7-page-search we7-padding-bottom clearfix">
 	<div class="pull-right">
@@ -49,7 +49,7 @@
 					<a href="javascript:;" data-url="{php echo murl('site/site', array('cid' => $row['id']), true, true)}"  class="js-clip">复制链接</a>
 					<a href="{php echo url('site/article/post', array('pcate' => $row['id']));}" >添加文章</a>
 					<a href="{php echo url('site/category/post', array('id' => $row['id']));}" >编辑</a>
-					<a href="javascript:void(0);" class="del" onclick="delArtCat('{php echo url("site/category/delete", array("id" => $row["id"]));}')">删除</a>
+					<a href="{php echo url('site/category/delete', array('id' => $row['id']));}" class="del" onclick="return confirm('确认删除此分类吗？');return false;">删除</a>
 				</div>
 			</td>
 		</tr>
@@ -83,7 +83,7 @@
 	{/loop}
 </table>
 <div class="clearfix"></div>
-<div class="checkboxall">
+<div class="we7-margin-left">
 	<input type="checkbox" we7-check-all="1" name="rid[]" id="select_all" value="1">
 	<label for="select_all">&nbsp;</label>
 	<input type="submit" class="btn btn-danger" name="submit" value="删除" onclick="if(!confirm('确定删除选中的规则吗？')) return false;"/>
@@ -91,21 +91,12 @@
 </div>
 </form>
 <script>
-	function delArtCat(url) {
-		util.confirm(function () {
-			window.location.href = url;
-		}, function () {
-			return false;
-		}, '确认删除吗?');
-	}
-
-
 $('#select_all').click(function(){
 	$('.article-list :checkbox').prop('checked', $(this).prop('checked'));
 });
-// $('.js-clip').each(function(){
-// 	util.clip(this, $(this).attr('data-url'));
-// });
+$('.js-clip').each(function(){
+	util.clip(this, $(this).attr('data-url'));
+});
 var changeStatus = function(id) {
 	var id = parseInt(id);
 	$.post('./index.php?c=site&a=category&do=change_status', {id: id},function(data) {

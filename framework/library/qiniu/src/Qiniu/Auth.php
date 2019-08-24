@@ -141,7 +141,7 @@ final class Auth
 
     private static function copyPolicy(&$policy, $originPolicy, $strictPolicy)
     {
-        if ($originPolicy === null || !is_array($originPolicy)) {
+        if ($originPolicy === null) {
             return array();
         }
         foreach ($originPolicy as $key => $value) {

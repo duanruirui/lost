@@ -1,8 +1,7 @@
 <?php
 /**
- * 数据库操作类
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 define('PDO_DEBUG', true);
@@ -23,8 +22,7 @@ class DB {
 	public function __construct($name = 'master') {
 		global $_W;
 		$this->cfg = $_W['config']['db'];
-		//unset掉敏感信息，一些非敏感信息保留
-		unset($_W['config']['db']);
+				unset($_W['config']['db']);
 		$_W['config']['db']['tablepre'] = $this->cfg['tablepre'];
 		$_W['config']['db']['slave_status'] = $this->cfg['slave_status'];
 		$this->connect($name);
@@ -49,30 +47,22 @@ class DB {
 				$options = array(PDO::ATTR_PERSISTENT => $cfg['pconnect']);
 			} else {
 				if(!class_exists('_PDO')) {
-					load()->library('pdo');
+					include IA_ROOT . '/framework/library/pdo/PDO.class.php';
 				}
 				$dbclass = '_PDO';
 			}
 		} else {
-			load()->library('pdo');
+			include IA_ROOT . '/framework/library/pdo/PDO.class.php';
 			$dbclass = 'PDO';
 		}
-
-		$pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
-		//if(DEVELOPMENT && class_exists('\DebugBar\DataCollector\PDO\TraceablePDO')) {
-		//	$pdo = new \DebugBar\DataCollector\PDO\TraceablePDO($pdo);
-		//}
-		$this->pdo = $pdo;
-		//$this->pdo->setAttribute(pdo::ATTR_EMULATE_PREPARES, false);
-		$sql = "SET NAMES '{$cfg['charset']}';";
+		$this->pdo = new $dbclass($dsn, $cfg['username'], $cfg['password'], $options);
+				$sql = "SET NAMES '{$cfg['charset']}';";
 		$this->pdo->exec($sql);
 		$this->pdo->exec("SET sql_mode='';");
-		if ($cfg['username'] == 'root' && in_array($cfg['host'], array('localhost', '127.0.0.1'))) {
-			$this->pdo->exec("SET GLOBAL max_allowed_packet = 2*1024*1024*10;");
-		}
 		if(is_string($name)) {
 			$this->link[$name] = $this->pdo;
 		}
+
 		$this->logging($sql);
 	}
 
@@ -91,15 +81,7 @@ class DB {
 		return $statement;
 	}
 
-	/**
-	 * 执行一条非查询语句
-	 *
-	 * @param string $sql
-	 * @param array or string $params
-	 * @return mixed
-	 *		  成功返回受影响的行数
-	 *		  失败返回FALSE
-	 */
+	
 	public function query($sql, $params = array()) {
 		$sqlsafe = SqlPaser::checkquery($sql);
 		if (is_error($sqlsafe)) {
@@ -126,14 +108,7 @@ class DB {
 		}
 	}
 
-	/**
-	 * 执行SQL返回第一个字段
-	 *
-	 * @param string $sql
-	 * @param array $params
-	 * @param int $column 返回查询结果的某列，默认为第一列
-	 * @return mixed
-	 */
+	
 	public function fetchcolumn($sql, $params = array(), $column = 0) {
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
@@ -151,22 +126,16 @@ class DB {
 		}
 	}
 
-	/**
-	 * 执行SQL返回第一行
-	 *
-	 * @param string $sql
-	 * @param array $params
-	 * @return mixed
-	 */
+	
 	public function fetch($sql, $params = array()) {
-		$starttime = microtime(true);
+		$starttime = microtime();
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
 
 		$this->logging($sql, $params, $statement->errorInfo());
 
-		$endtime = microtime(true);
-		$this->performance($sql, intval($endtime - $starttime));
+		$endtime = microtime();
+		$this->performance($sql, $endtime - $starttime);
 		if (!$result) {
 			return false;
 		} else {
@@ -175,13 +144,7 @@ class DB {
 		}
 	}
 
-	/**
-	 * 执行SQL返回全部记录
-	 *
-	 * @param string $sql
-	 * @param array $params
-	 * @return mixed
-	 */
+	
 	public function fetchall($sql, $params = array(), $keyfield = '') {
 		$starttime = microtime();
 		$statement = $this->prepare($sql);
@@ -263,24 +226,7 @@ class DB {
 		}
 	}
 
-	/**
-	 * 更新记录
-	 *
-	 * @param string $table
-	 * @param array $data
-	 *		要更新的数据数组
-	 *			array(
-	 *				'字段名' => '值'
-	 *			)
-	 * @param array $params
-	 *			更新条件
-	 *			array(
-	 *				'字段名' => '值'
-	 *			)
-	 * @param string $glue
-	 *			可以为AND OR
-	 * @return mixed
-	 */
+	
 	public function update($table, $data = array(), $params = array(), $glue = 'AND') {
 		$fields = SqlPaser::parseParameter($data, ',');
 		$condition = SqlPaser::parseParameter($params, $glue);
@@ -290,47 +236,19 @@ class DB {
 		return $this->query($sql, $params);
 	}
 
-	/**
-	 * 更新记录
-	 *
-	 * @param string $table
-	 * @param array $data
-	 *		要更新的数据数组
-	 *		array(
-	 *			'字段名' => '值'
-	 *		)
-	 * @param boolean $replace
-	 *		是否执行REPLACE INTO
-	 *		默认为FALSE
-	 * @return mixed
-	 */
+	
 	public function insert($table, $data = array(), $replace = FALSE) {
 		$cmd = $replace ? 'REPLACE INTO' : 'INSERT INTO';
 		$condition = SqlPaser::parseParameter($data, ',');
 		return $this->query("$cmd " . $this->tablename($table) . " SET {$condition['fields']}", $condition['params']);
 	}
 
-	/**
-	 * 返回lastInsertId
-	 *
-	 */
+	
 	public function insertid() {
 		return $this->pdo->lastInsertId();
 	}
 
-	/**
-	 * 删除记录
-	 *
-	 * @param string $table
-	 * @param array $params
-	 *		更新条件
-	 *		array(
-	 *			'字段名' => '值'
-	 *		)
-	 * @param string $glue
-	 *		可以为AND OR
-	 * @return mixed
-	 */
+	
 	public function delete($table, $params = array(), $glue = 'AND') {
 		$condition = SqlPaser::parseParameter($params, $glue);
 		$sql = "DELETE FROM " . $this->tablename($table);
@@ -338,11 +256,7 @@ class DB {
 		return $this->query($sql, $condition['params']);
 	}
 
-	/**
-	 * 检测一条记录是否存在
-	 * @param unknown $tablename
-	 * @param array $params
-	 */
+	
 	public function exists($tablename, $params = array()) {
 		$row = $this->get($tablename, $params);
 		if (empty($row) || !is_array($row) || count($row) == 0) {
@@ -352,43 +266,28 @@ class DB {
 		}
 	}
 
-	/**
-	 *
-	 * @param unknown $tablename
-	 * @param array $params
-	 */
+	
 	public function count($tablename, $params = array(), $cachetime = 30) {
 		$total = pdo_getcolumn($tablename, $params, 'count(*)');
 		return intval($total);
 	}
 
-	/**
-	 * 启动一个事务，关闭自动提交
-	 *
-	 */
+	
 	public function begin() {
 		$this->pdo->beginTransaction();
 	}
 
-	/**
-	 * 提交一个事务，恢复自动提交
-	 * @return boolean
-	 */
+	
 	public function commit() {
 		$this->pdo->commit();
 	}
 
-	/**
-	 * 回滚一个事务，恢复自动提交
-	 * @return boolean
-	 */
+	
 	public function rollback() {
 		$this->pdo->rollBack();
 	}
 
-	/**
-	 * 执行SQL文件
-	 */
+	
 	public function run($sql, $stuff = 'ims_') {
 		if(!isset($sql) || empty($sql)) return;
 
@@ -412,38 +311,15 @@ class DB {
 				$this->query($query, array());
 			}
 		}
-		return true;
 	}
 
-	/**
-	 * 查询字段是否存在
-	 * 成功返回TRUE，失败返回FALSE
-	 *
-	 * @param string $tablename
-	 * 		查询表名
-	 * @param string $fieldname
-	 * 		查询字段名
-	 * @return boolean
-	 */
+	
 	public function fieldexists($tablename, $fieldname) {
 		$isexists = $this->fetch("DESCRIBE " . $this->tablename($tablename) . " `{$fieldname}`", array());
 		return !empty($isexists) ? true : false;
 	}
 
-	/**
-	 * 查询字段类型是否匹配
-	 * 成功返回TRUE，失败返回FALSE，字段存在，但类型错误返回-1
-	 *
-	 * @param string $tablename
-	 * 		查询表名
-	 * @param string $fieldname
-	 * 		查询字段名
-	 * @param string $datatype
-	 * 		查询字段类型
-	 * @param string $length
-	 * 		查询字段长度
-	 * @return boolean
-	 */
+	
 	public function fieldmatch($tablename, $fieldname, $datatype = '', $length = '') {
 		$datatype = strtolower($datatype);
 		$field_info = $this->fetch("DESCRIBE " . $this->tablename($tablename) . " `{$fieldname}`", array());
@@ -463,15 +339,7 @@ class DB {
 		return true;
 	}
 
-	/**
-	 * 查询索引是否存在
-	 * 成功返回TRUE，失败返回FALSE
-	 * @param string $tablename
-	 * 		查询表名
-	 * @param array $indexname
-	 * 		查询索引名
-	 * @return boolean
-	 */
+	
 	public function indexexists($tablename, $indexname) {
 		if (!empty($indexname)) {
 			$indexs = $this->fetchall("SHOW INDEX FROM " . $this->tablename($tablename), array(), '');
@@ -486,22 +354,12 @@ class DB {
 		return false;
 	}
 
-	/**
-	 * 返回完整数据表名(加前缀)(返回是主库的数据表前缀+表明)
-	 * @param string $table 表名
-	 * @param boolean $force 是否强制增加前缀，某些用户设置前缀会和表名有前部一样，导致无法添加前缀
-	 * @return string
-	 */
+	
 	public function tablename($table) {
 		return (strpos($table, $this->tablepre) === 0 || strpos($table, 'ims_') === 0) ? $table : "`{$this->tablepre}{$table}`";
 	}
 
-	/**
-	 * 获取pdo操作错误信息列表
-	 * @param bool $output 是否要输出执行记录和执行错误信息
-	 * @param array $append 加入执行信息，如果此参数不为空则 $output 参数为 false
-	 * @return array
-	 */
+	
 	public function debug($output = true, $append = array()) {
 		if(!empty($append)) {
 			$output = false;
@@ -519,6 +377,10 @@ class DB {
 					$ts .= "file: {$trace['file']}; line: {$trace['line']}; <br />";
 				}
 				$params = var_export($append['params'], true);
+				if (!function_exists('message')) {
+					load()->web('common');
+					load()->web('template');
+				}
 				trigger_error("SQL: <br/>{$append['sql']}<hr/>Params: <br/>{$params}<hr/>SQL Error: <br/>{$append['error'][2]}<hr/>Traces: <br/>{$ts}", E_USER_WARNING);
 			}
 		}
@@ -536,11 +398,7 @@ class DB {
 		return true;
 	}
 
-	/**
-	 * 判断某个数据表是否存在
-	 * @param string $table 表名（不加表前缀）
-	 * @return bool
-	 */
+	
 	public function tableexists($table) {
 		if(!empty($table)) {
 			$data = $this->fetch("SHOW TABLES LIKE '{$this->tablepre}{$table}'", array());
@@ -568,8 +426,7 @@ class DB {
 		if (strexists($sql, 'core_performance')) {
 			return false;
 		}
-		//将超时SQL语句存入数据库
-		if (empty($_W['config']['setting']['maxtimesql'])) {
+				if (empty($_W['config']['setting']['maxtimesql'])) {
 			$_W['config']['setting']['maxtimesql'] = 5;
 		}
 		if ($runtime > $_W['config']['setting']['maxtimesql']) {
@@ -586,10 +443,7 @@ class DB {
 	}
 }
 
-/**
- * 格式化SQL语句
- *
- */
+
 class SqlPaser {
 	private static $checkcmd = array('SELECT', 'UPDATE', 'INSERT', 'REPLAC', 'DELETE');
 	private static $disable = array(
@@ -687,17 +541,7 @@ class SqlPaser {
 		return $clean;
 	}
 
-	/**
-	 * 将数组格式化为具体的字符串
-	 * 增加支持 大于 小于, 不等于, not in, +=, -=等操作符
-	 *
-	 * @param array $params
-	 * 		要格式化的数组
-	 * @param string $glue
-	 * 		字符串分隔符
-	 * @return array
-	 * 		array['fields']是格式化后的字符串
-	 */
+	
 	public static function parseParameter($params, $glue = ',', $alias = '') {
 		$result = array('fields' => ' 1 ', 'params' => array());
 		$split = '';
@@ -713,8 +557,7 @@ class SqlPaser {
 		if (is_array($params)) {
 			$result['fields'] = '';
 			foreach ($params as $fields => $value) {
-				//update或是insert语句，值为null时按空处理，仅当值为NULL时，才按 IS null 处理
-				if ($glue == ',') {
+								if ($glue == ',') {
 					$value = $value === null ? '' : $value;
 				}
 				$operator = '';
@@ -738,20 +581,17 @@ class SqlPaser {
 				} elseif ($operator == '-=') {
 					$operator = " = `$fields` - ";
 				} elseif ($operator == '!=' || $operator == '<>') {
-					//如果是数组不等于情况，则转换为NOT IN
-					if (is_array($value) && !empty($value)) {
+										if (is_array($value) && !empty($value)) {
 						$operator = 'NOT IN';
 					} elseif ($value === 'NULL') {
 						$operator = 'IS NOT';
 					}
 				}
 
-				//当条件为having时，可以使用聚合函数
-				$select_fields = self::parseFieldAlias($fields, $alias);
+								$select_fields = self::parseFieldAlias($fields, $alias);
 				if (is_array($value) && !empty($value)) {
 					$insql = array();
-					//忽略数组的键值，防止SQL注入
-					$value = array_values($value);
+										$value = array_values($value);
 					foreach ($value as $v) {
 						$placeholder = self::parsePlaceholder($fields, $suffix);
 						$insql[] = $placeholder;
@@ -772,11 +612,7 @@ class SqlPaser {
 		return $result;
 	}
 
-	/**
-	 * 处理字段占位符
-	 * @param string $field
-	 * @param string $suffix
-	 */
+	
 	private static function parsePlaceholder($field, $suffix = '') {
 		static $params_index = 0;
 		$params_index++;
@@ -798,11 +634,7 @@ class SqlPaser {
 		return $select_fields;
 	}
 
-	/**
-	 * 格式化select字段
-	 * @param array $field 字段
-	 * @param string $alias 表别名
-	 */
+	
 	public static function parseSelect($field = array(), $alias = '') {
 		if (empty($field) || $field == '*') {
 			return ' SELECT *';
@@ -815,18 +647,14 @@ class SqlPaser {
 		foreach ($field as $field_row) {
 			if (strexists($field_row, '*')) {
 				if (!strexists(strtolower($field_row), 'as')) {
-					//此代码暂时注释，否则会造成 * AS 0 的问题，忘了是为什么要加
-					//$field_row .= " AS '{$index}'";
-				}
+														}
 			} elseif (strexists(strtolower($field_row), 'select')) {
-				//当前可能包含子查询，但不推荐此写法
-				if ($field_row[0] != '(') {
+								if ($field_row[0] != '(') {
 					$field_row = "($field_row) AS '{$index}'";
 				}
 			} elseif (strexists($field_row, '(')) {
 				$field_row = str_replace(array('(', ')'), array('(' . (!empty($alias) ? "`{$alias}`." : '') . '`',  '`)'), $field_row);
-				//如果聚合函数没有指定AS字段，则添加当前索引为AS
-				if (!strexists(strtolower($field_row), 'as')) {
+								if (!strexists(strtolower($field_row), 'as')) {
 					$field_row .= " AS '{$index}'";
 				}
 			} else {
@@ -844,8 +672,7 @@ class SqlPaser {
 			return $limitsql;
 		}
 		if (is_array($limit)) {
-			//兼容第一个值为0的写法
-			if (empty($limit[0]) && !empty($limit[1])) {
+						if (empty($limit[0]) && !empty($limit[1])) {
 				$limitsql = " LIMIT 0, " . $limit[1];
 			} else {
 				$limit[0] = max(intval($limit[0]), 1);

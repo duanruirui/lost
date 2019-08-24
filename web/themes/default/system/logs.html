@@ -1,4 +1,5 @@
 {template 'common/header'}
+<div class="we7-page-title">查看日志</div>
 <ul class="we7-page-tab">
 	<li{if $do == 'wechat' || $do == 'detail'} class="active"{/if}><a href="{php echo url('system/logs/wechat');}">微信日志</a></li>
 	<li{if $do == 'system'} class="active"{/if}><a href="{php echo url('system/logs/system');}">系统日志</a></li>

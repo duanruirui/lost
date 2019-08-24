@@ -1,7 +1,7 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 define('IN_MOBILE', true);
 require '../../framework/bootstrap.inc.php';
@@ -56,7 +56,6 @@ if($auth != $_GPC['auth']) {
 
 $setting = uni_setting($_W['uniacid'], array('payment'));
 
-//如果GET参数中包含code参数，则更新粉丝openid
 if (!empty($_GPC['code'])) {
 	$proxy_pay_account = payment_proxy_pay_account();
 	$oauth = $proxy_pay_account->getOauthInfo($_GPC['code']);

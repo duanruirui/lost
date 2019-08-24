@@ -1,41 +1,22 @@
 <?php
 /**
- * SQL构造助手
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 
- * @method Query groupby($field)
- * @method Query having($condition, $parameters = array())
- * @method Query where($condition, $parameters = array())
- * @method Query whereor($condition, $parameters = array())
- * @method Query leftjoin($tablename, $alias = '')
- * @method Query innerjoin($tablename, $alias = '')
- * @method Query orderby($field, $direction = 'ASC')
- * @method Query limit(start, size) 附加一个limit选项
- * @method Query page(pageindex, pagesize) 根据分页获取数据
- *
- */
+
 class Query {
-	//所有支持的SQL关键字
-	private $clauses;
-	//SQL关键字值
-	private $statements = array();
-	//参数绑定
-	private $parameters = array();
-	//主表名
-	private $mainTable = '';
-	//主表别名
-	private $currentTableAlias = '';
+		private $clauses;
+		private $statements = array();
+		private $parameters = array();
+		private $mainTable = '';
+		private $currentTableAlias = '';
 	private $error = array();
 	private $lastsql = '';
 	private $lastparams = '';
-	//要更新数据列表
-	private $values;
-	//用于table类查询后重置条件时，设置默认from表名
-	public $fixTable;
+		private $values;
+		public $fixTable;
 	
 	public function __construct() {
 		$this->initClauses();
@@ -84,18 +65,12 @@ class Query {
 		return $this;
 	}
 	
-	/**
-	 * 添加表达式的值
-	 * @param string $clause 要添加的SQL关键字表达式 WHERE, SELECT等
-	 * @param <string|array> $statement 表达式的内容 ，例如： *
-	 * @param array $parameters 如果是WHERE 条件需要传入相应的值
-	 */
+	
 	private function addStatement($clause, $statement, $parameters = array()) {
 		if ($statement === null) {
 			return $this->resetClause($clause);
 		}
-		//为数组时代表可以同时设置多个项
-		if (isset($this->statements[$clause]) && is_array($this->statements[$clause])) {
+				if (isset($this->statements[$clause]) && is_array($this->statements[$clause])) {
 			if (is_array($statement)) {
 				$this->statements[$clause] = array_merge($this->statements[$clause], $statement);
 			} else {
@@ -126,11 +101,7 @@ class Query {
 			return call_user_func_array(array($this, 'join'), $statement);
 		}
 		
-		//$statement = array_shift($statement);
-		//if (strpos($clause, 'JOIN') !== false) {
-			//return $this->addJoinStatements($clause, $statement, $parameters);
-		//}
-		return $this->addStatement($clause, $statement);
+											return $this->addStatement($clause, $statement);
 	}
 	
 	public function where($condition, $parameters = array(), $operator = 'AND') {
@@ -193,19 +164,13 @@ class Query {
 		if (empty($field)) {
 			return $this;
 		}
-		//去掉默认的select * 
-		if (count($this->statements['SELECT']) == 1) {
+				if (count($this->statements['SELECT']) == 1) {
 			$this->resetClause('SELECT');
 		}
 		return $this->addStatement('SELECT', $field);
 	}
 	
-	/**
-	 * 构造条件
-	 * @param <string|array> $condition
-	 * 			条件与Pdo_get中相同
-	 * @param array $parameters
-	 */
+	
 	private function condition($operator, $condition, $parameters = array()) {
 		if ($condition === null) {
 			return $this->resetClause('WHERE');
@@ -261,8 +226,7 @@ class Query {
 		$this->lastparams = $this->parameters;
 		$result = pdo_fetch($this->lastsql, $this->parameters);
 		
-		//查询完后，重置Query对象
-		$this->resetClause();
+				$this->resetClause();
 		return $result;
 	}
 	
@@ -277,8 +241,7 @@ class Query {
 		$this->lastparams = $this->parameters;
 		$result = pdo_fetchcolumn($this->lastsql, $this->parameters);
 		
-		//查询完后，重置Query对象
-		$this->resetClause();
+				$this->resetClause();
 		return $result;
 	}
 	
@@ -290,20 +253,15 @@ class Query {
 		$this->lastparams = $this->parameters;
 		$result = pdo_fetchall($this->lastsql, $this->parameters, $keyfield);
 		
-		//查询完后，重置Query对象
-		$this->resetClause();
+				$this->resetClause();
 		return $result;
 	}
 	
-	/**
-	 * 一般用于获取分页后总记录条数
-	 */
+	
 	public function getLastQueryTotal() {
 		$lastquery = $this->getLastQuery();
-		//替换SELECT XX 为 SELECT COUNT(*)
-		$countsql = str_replace(substr($lastquery[0], 0, strpos($lastquery[0], 'FROM')), 'SELECT COUNT(*) ', $lastquery[0]);
-		//删除掉Limit
-		if (strpos($countsql, 'LIMIT') !== false) {
+				$countsql = str_replace(substr($lastquery[0], 0, strpos($lastquery[0], 'FROM')), 'SELECT COUNT(*) ', $lastquery[0]);
+				if (strpos($countsql, 'LIMIT') !== false) {
 			$countsql = substr($countsql, 0, strpos($countsql, 'LIMIT'));
 		}
 		if (strexists(strtoupper($countsql), 'GROUP BY')) {
@@ -340,15 +298,13 @@ class Query {
 		$where = $this->buildWhereArray();
 		$result = pdo_delete($this->statements['FROM'], $where);
 		
-		//查询完后，重置Query对象
-		$this->resetClause();
+				$this->resetClause();
 		return $result;
 	}
 	
 	public function insert() {
 		$result = pdo_insert($this->statements['FROM'], $this->values);
-		//查询完后，重置Query对象
-		$this->resetClause();
+				$this->resetClause();
 		return $result;
 	}
 	
@@ -358,8 +314,7 @@ class Query {
 			return error(-1, '未指定更新条件');
 		}
 		$result = pdo_update($this->statements['FROM'], $this->values, $where);
-		//查询完后，重置Query对象
-		$this->resetClause();
+				$this->resetClause();
 		return $result;
 	}
 	

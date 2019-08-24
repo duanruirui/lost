@@ -1,12 +1,11 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/app/source/auth/forward.ctrl.php : v a6138ccb04fb : 2015/08/26 06:57:40 : RenChao $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 $_W['setting']['authmode'] = 1;
-//通过点击图文进来的粉丝,需要将session的数据清空.否则,一直使用的上次session的uid
 unset($_SESSION['uid']);
 if($_GPC['__auth']) {
 	$auth = @json_decode(base64_decode($_GPC['__auth']), true);
@@ -26,8 +25,7 @@ if($_GPC['__auth']) {
 					$_SESSION['uniacid'] = $_W['uniacid'];
 					$_SESSION['acid'] = $auth['acid'];
 					$_SESSION['openid'] = $auth['openid'];
-					//认证订阅号尝试拉取用户信息
-					if ($_W['account']['level'] == '3' && empty($fan['nickname'])) {
+										if ($_W['account']['level'] == '3' && empty($fan['nickname'])) {
 						$account_obj = WeAccount::create($_W['account']);
 						$userinfo = $account_obj->fansQueryInfo($auth['openid']);
 						if(!is_error($userinfo) && is_array($userinfo) && !empty($userinfo['nickname'])) {
@@ -35,7 +33,6 @@ if($_GPC['__auth']) {
 							$record['updatetime'] = TIMESTAMP;
 							$record['nickname'] = stripslashes($userinfo['nickname']);
 							$record['tag'] = base64_encode(iserializer($userinfo));
-							$recode['unionid'] = $userinfo['unionid'];
 							pdo_update('mc_mapping_fans', $record, array('openid' => $fan['openid']));
 							if(!empty($fan['uid'])) {
 								$user = mc_fetch($fan['uid'], array('nickname', 'gender', 'residecity', 'resideprovince', 'nationality', 'avatar'));

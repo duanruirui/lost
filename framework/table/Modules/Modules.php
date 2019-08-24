@@ -1,6 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 namespace We7\Table\Modules;
 
@@ -31,41 +32,6 @@ class Modules extends \We7Table {
 		'webapp_support',
 		'oauth_type',
 		'phoneapp_support',
-		'xzapp_support',
-		'aliapp_support',
-		'logo',
-		'baiduapp_support',
-		'toutiaoapp_support',
-	);
-	protected $default = array(
-		'name' => '',
-		'type' => '',
-		'title' => '',
-		'title_initial' => '',
-		'version' => '',
-		'ability' => '',
-		'description' => '',
-		'author' => '',
-		'url' => '',
-		'settings' => '0',
-		'subscribes' => '',
-		'handles' => '',
-		'isrulefields' => '0',
-		'issystem' => '0',
-		'target' => '0',
-		'iscard' => '0',
-		'permissions' => '',
-		'wxapp_support' => '1',
-		'account_support' => '1',
-		'welcome_support' => '1',
-		'webapp_support' => '1',
-		'oauth_type' => '1',
-		'phoneapp_support' => '1',
-		'xzapp_support' => '1',
-		'aliapp_support' => '1',
-		'logo' => '',
-		'baiduapp_support' => '1',
-		'toutiaoapp_support' => '1',
 	);
 
 	public function bindings() {
@@ -108,29 +74,7 @@ class Modules extends \We7Table {
 		return $this;
 	}
 
-	public function getNonRecycleModules() {
-		load()->model('module');
-		$modules = $this->where('issystem' , 0)->orderby('mid', 'DESC')->getall('name');
-		if (empty($modules)) {
-			return array();
-		}
-		foreach ($modules as &$module) {
-			$module_info = module_fetch($module['name']);
-			if (empty($module_info)) {
-				unset($module);
-			}
-			if (!empty($module_info['recycle_info'])) {
-				foreach (module_support_type() as $support => $value) {
-					if ($module_info['recycle_info'][$support] > 0 && $module_info[$support] == $value['support']) {
-						$module[$support] = $value['not_support'];
-					}
-				}
-			}
-		}
-		return $modules;
-	}
-
-	public function getInstalled() {
-		return $this->query->select(array('name', 'version'))->where(array('issystem' => '0'))->getall('name');
+	public function searchWithRecycle() {
+		return $this->query->from('modules', 'a')->select('a.*')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.name'))->where('b.name', 'NULL')->orderby('a.mid', 'DESC')->getall('name');
 	}
 }

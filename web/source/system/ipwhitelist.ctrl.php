@@ -1,7 +1,7 @@
 <?php
 /**
- * ip白名单
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,6 +10,7 @@ load()->model('setting');
 
 $dos = array('display', 'change_status', 'add', 'delete');
 $do = in_array($_GPC['do'], $dos)? $do : 'display';
+$_W['page']['title'] = '站点管理 - 设置  - IP白名单';
 
 $ip_lists = setting_load('ip_white_list');
 $ip_lists = $ip_lists['ip_white_list'];

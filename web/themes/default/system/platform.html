@@ -1,11 +1,9 @@
 {template 'common/header'}
+<div class="we7-page-title">
+	微信开放平台设置
+</div>
 <ul class="we7-page-tab"></ul>
 <div id="js-system-platform" ng-controller="SystemPlatform" ng-cloak>
-	<a id="auth" href="{$authurl}" class="btn btn-primary pull-right we7-margin-bottom " ><i class="fa fa-wechat"></i>微信公众号登录授权</a>
-	<div class="clearfix"></div>
-	<div class="alert we7-page-alert ">
-		开发信息需开放平台审核通过后才可以看到，填写完后才可以使用授权登录功能
-	</div>
 	<table class="table we7-table table-hover table-form we7-form">
 		<col width="220px " />
 		<col />
@@ -13,8 +11,11 @@
 		<tr>
 			<th class="text-left" colspan="2">微信开放平台开发信息</th>
 			<th class="we7-padding-right">
-				
+				<a id="auth" href="{$authurl}" class="btn btn-success"><i class="fa fa-wechat"></i>微信公众号登录授权</a>
 			</th>
+		</tr>
+		<tr>
+			<td colspan="3" class="bg-info text-info">开发信息需开放平台审核通过后才可以看到，填写完后才可以使用授权登录功能</td>
 		</tr>
 		<tr> 
 			<td class="table-label" colspan="2">是否启用微信公众号登录授权</td>

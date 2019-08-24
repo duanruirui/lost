@@ -1,18 +1,23 @@
 <?php
 /**
- * 小程序入口页面
  * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('module');
+load()->model('wxapp');
 
 $dos = array('entrance_link');
 $do = in_array($do, $dos) ? $do : 'entrance_link';
 
-permission_check_account_user('wxapp_entrance_link');
+$_W['page']['title'] = '入口页面 - 小程序 - 管理';
 
-$wxapp_info = miniapp_fetch($_W['uniacid']);
+$version_id = intval($_GPC['version_id']);
+$wxapp_info = wxapp_fetch($_W['uniacid']);
+if (!empty($version_id)) {
+	$version_info = wxapp_version($version_id);
+}
 
 if ($do == 'entrance_link') {
 	$wxapp_modules = pdo_getcolumn('wxapp_versions', array('id' => $version_id), 'modules');

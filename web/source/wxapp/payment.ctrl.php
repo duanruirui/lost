@@ -1,27 +1,32 @@
 <?php
 /**
- * 支付参数配置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
+load()->model('account');
+load()->model('wxapp');
+
 $dos = array('get_setting', 'display', 'save_setting');
 $do = in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('wxapp_payment_pay');
+permission_check_account_user('wxapp_payment', true, 'wxapp');
+$_W['page']['title'] = '支付参数';
 
-$pay_setting = miniapp_payment_param();
-$wxapp_info = miniapp_fetch($_W['uniacid']);
+$pay_setting = wxapp_payment_param();
+
+$version_id = intval($_GPC['version_id']);
+if (!empty($version_id)) {
+	$version_info = wxapp_version($version_id);
+	$wxapp_info = wxapp_fetch($version_info['uniacid']);
+}
 
 if ($do == 'get_setting') {
 	iajax(0, $pay_setting, '');
 }
 
 if ($do == 'display') {
-	if (empty($pay_setting) || empty($pay_setting['wechat'])) {
-		$pay_setting = array(
-			'wechat' => array('mchid' => '', 'signkey' => '')
-		);
-	}
+	$pay_setting['wechat'] = empty($pay_setting['wechat']) ? array('mchid'=>'', 'signkey' => '') : $pay_setting['wechat'];
 }
 
 if ($do == 'save_setting') {

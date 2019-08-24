@@ -1,7 +1,7 @@
 <?php
 /**
- * 微信第三方登录
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 load()->func('communication');
 
@@ -60,7 +60,7 @@ class Wechat extends OAuth2Client {
 		$profile = array();
 		$user['username'] = strip_emoji($user_info['nickname']);
 		$user['password'] = '';
-		$user['type'] = $this->user_type;
+		$user['type'] = USER_TYPE_COMMON;
 		$user['starttime'] = TIMESTAMP;
 		$user['openid'] = $user_info['openid'];
 		$user['register_type'] = USER_REGISTER_TYPE_WECHAT;
@@ -73,8 +73,7 @@ class Wechat extends OAuth2Client {
 		$profile['birthyear'] = '';
 		return array(
 			'member' => $user,
-			'profile' => $profile,
-			'unionid' => empty($user_info['unionid']) ? '' : $user_info['unionid'],
+			'profile' => $profile
 		);
 	}
 
@@ -108,8 +107,9 @@ class Wechat extends OAuth2Client {
 			return $user;
 		}
 
+		$user_table = table('users');
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
-		$user_bind_info = table('users_bind')->getByTypeAndBindsign($user['member']['register_type'], $user['member']['openid']);
+		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);
 
 		if (!empty($user_id)) {
 			return $user_id;
@@ -121,9 +121,6 @@ class Wechat extends OAuth2Client {
 
 		if (!empty($user_id) && empty($user_bind_info)) {
 			pdo_insert('users_bind', array('uid' => $user_id, 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => $user['member']['username']));
-			if (!empty($user['unionid'])) {
-				pdo_insert('users_bind', array('uid' => $user_id, 'bind_sign' => $user['unionid'], 'third_type' => USER_REGISTER_TYPE_OPEN_WECHAT, 'third_nickname' => ''));
-			}
 			return $user_id;
 		}
 
@@ -133,39 +130,31 @@ class Wechat extends OAuth2Client {
 	public function bind() {
 		global $_W;
 		$user = $this->user();
+		$user_table = table('users');
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
-		$user_bind_info = table('users_bind')->getByTypeAndBindsign($user['member']['register_type'], $user['member']['openid']);
+		$user_bind_info = $user_table->userBindInfo($user['member']['openid'], $user['member']['register_type']);
 
 		if (!empty($user_id) || !empty($user_bind_info)) {
 			return error(-1, '已被其他用户绑定，请更换账号');
 		}
 		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => strip_emoji($user['profile']['nickname'])));
-		if (!empty($user['unionid'])) {
-			pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['unionid'], 'third_type' => USER_REGISTER_TYPE_OPEN_WECHAT, 'third_nickname' => ''));
-		}
 		return true;
 	}
 
 	public function unbind() {
 		global $_GPC, $_W;
-		$third_type = intval($_GPC['bind_type']);
-		$bind_info = table('users_bind')->getByTypeAndUid($third_type, $_W['uid']);
+		$user_table = table('users');
+		$third_type = $_GPC['bind_type'];
+		$user_table->bindSearchWithUser($_W['uid']);
+		$user_table->bindSearchWithType($third_type);
+		$bind_info = $user_table->bindInfo();
 
 		if (empty($bind_info)) {
 			return error(-1, '已经解除绑定');
 		}
 		pdo_update('users', array('openid' => ''), array('uid' => $_W['uid']));
 		pdo_delete('users_bind', array('uid' => $_W['uid'], 'third_type' => $third_type));
-		if ($third_type == USER_REGISTER_TYPE_WECHAT) {
-			pdo_delete('users_bind', array('uid' => $_W['uid'], 'third_type' => USER_REGISTER_TYPE_OPEN_WECHAT));
-		}
 
 		return error(0, '成功');
-	}
-
-	public function isbind() {
-		global $_W;
-		$bind_info = table('users_bind')->getByTypeAndUid(array(USER_REGISTER_TYPE_WECHAT, USER_REGISTER_TYPE_OPEN_WECHAT), $_W['uid']);
-		return !empty($bind_info['bind_sign']);
 	}
 }

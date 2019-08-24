@@ -1,357 +1,168 @@
 {template 'common/header'}
 <!--系统管理首页-->
 <div class="welcome-container js-system-welcome" ng-controller="WelcomeCtrl" ng-cloak>
-	<!--new start-->
-	<div ng-if="ads" class="ad-img we7-margin-bottom " style="">
-		<div ng-click="close_ads()" class="close">关闭</div>
-		<div id="welcome-ad" class="carousel slide" data-ride="carousel">
-			<ol class="carousel-indicators">
-				<li data-target="#welcome-ad" data-slide-to="{{key}}" ng-class="key ==0 ? 'active' : ''" ng-repeat="(key, ad) in ads"></li>
-			</ol>
-			<div class="carousel-inner" role="listbox">
-				<!-- Wrapper for slides -->
-				<div class="item advertising-box" ng-class="key ==0 ? 'active' : ''" ng-repeat="(key, ad) in ads">
-					<a ng-href="{{ad.url}}" target="_blank" alt="{{ad.title}}">
-						<img ng-src="{{ad.cdn_logo}}" alt="{{ad.title}}" >
-					</a>
-				</div>
-			</div>
-		</div>
+	<div ng-if="ads" class="ad-img we7-margin-bottom">
+		
+		<button ng-click="close_ads()" class="close">×</button>
+		
+		<a ng-href="{{ad.url}}" target="_blank" ng-repeat="ad in ads"><img ng-src="{{ad.src}}" alt="" class="img-responsive" style="margin: 0 auto;"></a>
 	</div>
-    
-	<div class="panle we7-panel">
-		<div class="panel-heading">
-			<h4>统计</h4>
-			<ul class="nav nav-tabs" role="tablist">
-				<li role="presentation" class="active">
-					<a href="#liuliang" aria-controls="liuliang" role="tab" data-toggle="tab">全站统计</a>
-				</li>
-				<li role="presentation">
-					<a href="#fangwen" aria-controls="fangwen" role="tab" data-toggle="tab">后台统计</a>
-				</li>
-				<li role="presentation">
-					<a href="#app_count" aria-controls="app_count" role="tab" data-toggle="tab">前台统计</a>
-				</li>
-				
-			</ul>
-		</div>
-		<div clss="panel-body">
-			<div class="tab-content">
-				<div class="tab-pane fade in active" id="liuliang">
-					<div class="chart-box">
-						<div class="chart-select" ng-init="dayType='week'">
-							<button class="btn btn-default daterange daterange-date" we7-date-range-picker ng-model="dateRange">
-								<span> {{dateRange.startDate}} </span>至<span> {{dateRange.endDate}} </span> <i class="fa fa-calendar"></i>
-							</button>
-						</div>
-						<div id="chart-line" class="chart-line"></div>
-					</div>
-				</div>
-
-				<div class="tab-pane fade in active" id="fangwen">
-					<div class="chart-box">
-						<div class="chart-select">
-							<button class="btn btn-default daterange daterange-date" we7-date-range-picker ng-model="dateRange">
-								<span> {{dateRange.startDate}} </span>至<span> {{dateRange.endDate}} </span>
-								<i class="fa fa-calendar"></i>
-							</button>
-						</div>
-						<div id="chart-line-fangwen" class="chart-line"></div>
-					</div>
-				</div>
-
-				<div class="tab-pane fade in active" id="app_count">
-					<div class="chart-box">
-						<div class="chart-select">
-							<button class="btn btn-default daterange daterange-date" we7-date-range-picker ng-model="dateRange">
-								<span> {{dateRange.startDate}} </span>至<span> {{dateRange.endDate}} </span>
-								<i class="fa fa-calendar"></i>
-							</button>
-						</div>
-						<div id="chart-line-app-count" class="chart-line"></div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- 可升级应用 start -->
-	<div class="panel we7-panel" ng-if="upgrade_module_list_show">
-		<div class="panel-heading">
-			<h4>应用动态</h4>
-			<ul class="nav nav-tabs" role="tablist">
-				<li role="presentation" class="active" ng-click="searchType('all')">
-					<a href="#update-all" aria-controls="update-all" role="tab" data-toggle="tab">全部</a>
-				</li>
-				<li role="presentation" ng-click="searchType('has_new_version')">
-					<a href="#update-version" aria-controls="update-version" role="tab" data-toggle="tab">版本更新 ({{ count_modules_has_new_version }})</a>
-				</li>
-				<li role="presentation" ng-click="searchType('has_new_branch')">
-					<a href="#update-branch" aria-controls="profile" role="tab" data-toggle="tab">分支升级 ({{ count_modules_has_new_branch }})</a>
-				</li>
-				<li role="presentation" ng-click="searchType('unstall')">
-					<a href="#update-branch" aria-controls="profile" role="tab" data-toggle="tab">未安装 ({{ count_modules_uninstall }})</a>
-				</li>
-			</ul>
-			<a href="{php echo url('module/manage-system/installed')}" class="more">查看更多</a>
-		</div>
-		<div class="panel-body">
-			<div class="tab-content ">
-				<div class="tab-pane active" id="update-all">
-					<div class="update-module-statistics">
-						<div ng-if="upgrade_modules | we7IsEmpty && search_type_name != 'unstall'" class="empty">恭喜您应用都为最新版本</div>
-						<div ng-if="count_modules_uninstall == 0 && search_type_name == 'unstall'" class="empty">没有未安装应用</div>
-						<div class="item" ng-repeat="module in upgrade_modules" ng-if="!module.is_ignore">
-							<a class="item-box" href="javascript:void(0);" ng-click="moduleLink(module)">
-								<div class="icon">
-									<img ng-src="{{module.logo}}" alt="{{module.title}}">
-								</div>
-								<div class="info">
-									<div class="title text-over">{{module.title|limitTo:4}}</div>
-									<div class="new" ng-if="module.has_new_version == 1">新版本</div>
-									<div class="new" ng-if="module.has_new_branch == 1">新分支</div>
-									<div class="new" ng-if="module.unstall == 1">未安装</div>
-								</div>
-							</a>
-							<a ng-show="module.unstall != 1" href="javascript:;" class="action-hide" data-toggle="tooltip" data-placement="bottom" title="忽略" ng-click="ignoreUpdate(module.name)"><i class="wi wi-hide"></i></a>
-							<a ng-show="module.unstall == 1" href="javascript:;" class="action-hide" data-toggle="tooltip" data-placement="bottom" title="放入回收站" ng-click="removeUnstallModule(module)" ><i class="wi wi-delete"></i></a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- 可升级应用 end -->
-
-	<!-- 系统更新/数据库备份 start -->
 	<div class="row">
 		<div class="col-sm-6">
-			<div class="panel we7-panel">
-				<div class="panel-heading">
-					<h4>系统更新</h4>
-				</div>
-				<div class="panel-body">
-					<div class="update-statistics">
-						<div class="icon">
-							<img src="resource/images/welcome/update-icon.png" alt="">
+			<div class="panel we7-panel account-stat">
+				<div class="panel-heading">微信应用模块</div>
+				<div class="panel-body we7-padding-vertical">
+					<div class="col-sm-4 text-center">
+						<div class="title">未安装应用</div>
+						<div class="num">
+							<a href="{php echo url('module/manage-system/not_installed', array('support' => MODULE_SUPPORT_ACCOUNT_NAME))}" class="color-default">{{module_statistics.account.total.uninstall}}</a>
 						</div>
-						<div class="content">
-							<div ng-class="{1 : 'update-version new', 0 : 'update-version'}[upgrade_show]">
-								{IMS_FAMILY}{IMS_VERSION}
-							</div>
-							<div class="now-version" ng-if="upgrade_show">当前版本：{IMS_FAMILY}{IMS_VERSION}（{IMS_RELEASE_DATE}）</div>
-							<div class="now-version" ng-if="!upgrade_show">当前版本即最新版本，无须升级</div>
-							<div class="">
-								<a ng-if="upgrade_show" href="{php echo url('cloud/upgrade');}" class="btn btn-primary">升级版本</a>
-								<a ng-if="!upgrade_show" href="{php echo url('cloud/upgrade');}" class="btn btn-default">检测新版本</a>
-							</div>
+					</div>
+					<div class="col-sm-4 text-center">
+						<div class="title">可升级应用</div>
+						<div class="num">
+						{{module_statistics.account.total.upgrade}}
+						</div>
+					</div>
+					<div class="col-sm-4 text-center">
+						<div class="title">应用总数</div>
+						<div class="num">
+							<a href="{php echo url('module/manage-system/installed', array('support' => MODULE_SUPPORT_ACCOUNT_NAME))}" class="color-default">{{module_statistics.account.total.all}}</a>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-
 		<div class="col-sm-6">
-			<div class="panel we7-panel">
-				<div class="panel-heading">
-					<h4>数据库备份</h4>
-				</div>
-				<div class="panel-body">
-					<div class="mysql-statistics">
-						<div class="icon">
-							<img src="resource/images/welcome/mysql-backup-icon.png" alt="">
+			<div class="panel we7-panel account-stat">
+				<div class="panel-heading">小程序应用模块</div>
+				<div class="panel-body we7-padding-vertical">
+					<div class="col-sm-4 text-center">
+						<div class="title">未安装应用</div>
+						<div class="num">
+							<a href="{php echo url('module/manage-system/not_installed', array('support' => MODULE_SUPPORT_WXAPP_NAME))}" class="color-default">{{module_statistics.wxapp.total.uninstall}}</a>
 						</div>
-						<div class="content">
-							{if $backup_days != 1}
-							<div class="no-backup">
-								<span class="day">{$backup_days}天</span>没有备份数据库了,请及时备份!
-							</div>
-							{else}
-							<div class="old-time">
-								{php echo date('Y-m-d H:i:s', $last_backup_time)}
-							</div>
-							<div class="title">完成数据库备份,请养成备份数据的好习惯。</div>
-							{/if}
-							<a href="{php echo url('system/database');}"  class="btn btn-primary">立即备份</a>
+					</div>
+					<div class="col-sm-4 text-center">
+						<div class="title">可升级应用</div>
+						<div class="num">
+						{{module_statistics.wxapp.total.upgrade}}
+						</div>
+					</div>
+					<div class="col-sm-4 text-center">
+						<div class="title">应用总数</div>
+						<div class="num">
+							<a href="{php echo url('module/manage-system/installed', array('support' => MODULE_SUPPORT_WXAPP_NAME))}" class="color-default">{{module_statistics.wxapp.total.all}}</a>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+		<div id="modal-loading" style="width:100%">
+			<div style="text-align:center;background-color: transparent;">
+				<img style="width:48px; height:48px; margin-top:10px;margin-bottom:10px;" src="resource/images/loading.gif" title="正在努力加载...">
+			</div>
+		</div>
 	</div>
-	<!-- 系统更新/数据库备份 end -->
-
-	<!-- 环境检测 start -->
-
-	{if !empty($system_check) && $system_check['check_wrong_num'] > 0}
-	<div class="panel we7-panel">
+	<div class="panel we7-panel system-update" ng-if="upgrade_show == 1">
 		<div class="panel-heading">
-			<h4>环境检测</h4>
+			<span class="color-gray pull-right">当前版本：{IMS_FAMILY}{IMS_VERSION}（{IMS_RELEASE_DATE}）</span>
+			系统更新
+		</div>
+		<div class="panel-body we7-padding-vertical clearfix">
+			<div class="col-sm-3 text-center">
+				<div class="title">更新文件</div>
+				<div class="num">{{upgrade.file_nums}} 个</div>
+			</div>
+			<div class="col-sm-3 text-center">
+				<div class="title">更新数据库</div>
+				<div class="num">{{upgrade.database_nums}} 项</div>
+			</div>
+			<div class="col-sm-3 text-center">
+				<div class="title">更新脚本</div>
+				<div class="num">{{upgrade.script_nums}} 项</div>
+			</div>
+			<div class="col-sm-3 text-center">
+				<a href="{php echo url('cloud/upgrade');}" class="btn btn-danger">去更新</a>
+			</div>
+		</div>
+	</div>
+	<div class="panel we7-panel database">
+		<div class="panel-heading">
+			数据库备份提醒
+		</div>
+		<div class="panel-body clearfix">
+			<div class="col-sm-9">
+				<span class="day">{$backup_days}</span>
+				<span class="color-default">天</span>
+				没有备份数据库了,请及时备份!
+			</div>
+			<div class="col-sm-3 text-center">
+				<a class="btn btn-default" href="{php echo url('system/database');}">开始备份</a>
+			</div>
+		</div>
+	</div>
+	<div class="panel we7-panel apply-list">
+		<div class="panel-heading">
+			<span class="pull-right">
+				<a href="{php echo url('module/manage-system', array('support' => MODULE_SUPPORT_ACCOUNT_NAME))}" class="color-default">查看更多公众号应用</a>
+				<span class="we7-padding-horizontal inline-block color-gray">|</span>
+				<a href="{php echo url('module/manage-system', array('support' => MODULE_SUPPORT_WXAPP_NAME))}" class="color-default">查看更多小程序应用</a>
+			</span>
+			可升级应用
+			<div class="btn-group">
+				<span class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor:pointer">
+					筛选 <span class="caret"></span>
+				</span>
+				<ul class="dropdown-menu" style="top: 150%;left: -103px;">
+					<li><a href="javascript:;" ng-click="searchType('all')">全部可升级应用</a></li>
+					<li><a href="javascript:;" ng-click="searchType('has_new_version')">应用版本更新</a></li>
+					<li><a href="javascript:;" ng-click="searchType('has_new_branch')">应用分支升级</a></li>
+				</ul>
+			</div>
+		</div>
+		<div class="panel-body welcome-apple-list">
+			<div class="apply-item" ng-repeat="module in upgrade_modules" ng-if="!module.is_ignore && $index+1 <= 8">
+				<a href="{{module.link}}" target="_blank"><img src="{{module.logo}}" class="apply-img"/></a>
+				<a href="{{module.link}}" target="_blank"><span class="text-over">{{module.title|limitTo:4}}</span></a>
+				<a href="{{module.link}}" target="_blank" class="color-red" ng-if="module.has_new_version == 1">升级</a>
+				<a href="{{module.link}}" target="_blank" class="color-red" ng-if="module.has_new_branch == 1">新分支</a>
+				<a href="javascript:;"data-toggle="popover" class="ignore" class="color-default" data-placement="bottom" data-trigger="hover" data-content="忽略当前版本更新，重新升级到模块列表自行升级" ng-click="ignoreUpdate(module.name)">忽略</a>
+			</div>
+			<div class="text-center" ng-if="upgrade_modules_show == 0">
+				没有可升级的应用
+			</div>
+		</div>
+	</div>
+	<div class="panel we7-panel apply-list" ng-show="not_installed_show == 1">
+		<div class="panel-heading">
+			<span class="pull-right">
+				<a href="{php echo url('module/manage-system/not_installed', array('support' => MODULE_SUPPORT_ACCOUNT_NAME))}" class="color-default">查看更多公众号应用</a>
+				<span class="we7-padding-horizontal inline-block color-gray">|</span>
+				<a href="{php echo url('module/manage-system/not_installed', array('support' => MODULE_SUPPORT_WXAPP_NAME))}" class="color-default">查看更多小程序应用</a>
+			</span>
+			未安装应用
 		</div>
 		<div class="panel-body">
-			<div class="environment-statistics">
-				<div class="icon">
-					<img src="resource/images/welcome/environment-icon.png" alt="">
-				</div>
-				<div class="error">
-					<div class="name">系统环境检测发现异常</div>
-					<div class="title text-over">
-						{loop $system_check['check_items'] $check_item $check_info}
-						{if !$check_info['check_result']}
-						<span> <i class="wi wi-info"></i>{$check_info['solution']}</span>
-						{/if}
-						{/loop}
-					</div>
-				</div>
-				<div class="action">
-					<a href="{php echo url('system/check')}" class="btn btn-default">去检测</a>
-				</div>
-			</div>
+			<a href="{{module.link}}" target="_blank" class="apply-item" ng-repeat="module in not_installed_module" ng-if="$index+1 <= 8">
+				<img src="{{module.logo}}" class="apply-img"/>
+				<span class="text-over">{{module.title|limitTo:4}}</span>
+				<span class="color-red">未安装</span>
+			</a>
 		</div>
 	</div>
-	{else}
-	<div class="panel we7-panel">
-		<div class="panel-heading">
-			<h4>环境检测</h4>
-		</div>
-		<div class="panel-body">
-			<div class="environment-statistics">
-				<div class="icon">
-					<img src="resource/images/welcome/environment-icon.png" alt="">
-				</div>
-				<div class="content">
-					<div class="name">环境检测</div>
-					<div class="title">在使用过程中，如果出现未知错误，可以自行检测修复，避免花费过多等待时间</div>
-				</div>
-				<div class="action">
-					<a href="{php echo url('system/check')}" class="btn btn-default">去检测</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	{/if}
-
-	<!-- 搜索应用 -->
-	<div class="panel we7-panel we7-store-search">
-		<div class="panel-heading">
-			<h4>
-				搜索市场应用
-			</h4>
-			<div class="search js-show-search">
-				<div class="show-place">
-					<i class="wi wi-search"></i>
-					此处搜索查询应用市场的模块
-				</div>
-				<div class="show-form">
-					<form action="//s.w7.cc/smart_search/index" target="_blank">
-						<div class="input-group">
-							<input type="text" name="keyword" placeholder="输入关键字" class="form-control">
-							<span class="input-group-btn"> <button class="btn btn-primary">搜索应用</button></span>
-						</div>
-					</form>
-				</div>
-			</div>
-			<div class="count" ng-show="total_count && new_app_count">
-				商城模块总计：<span>{{total_count}}+</span>
-				新增应用：<span>{{new_app_count}}</span>
-			</div>
-		</div>
-	</div>
-	<!-- end搜索应用 -->
-
-	<!-- 推荐应用 start -->
-	<div class="panel we7-panel" ng-if="is_recommend_close != 1">
-		<div class="panel-heading">
-			<h4>推荐应用</h4>
-			<ul class="nav nav-tabs" role="tablist">
-				<li role="presentation" :ng-class="{active: key == 'recommend'}" ng-click="changeTab(key)" ng-repeat="(key, item) in recommend"><a href="{{'#' + key}}" role="tab" aria-controls="{{key}}" data-type="{{key}}" data-toggle="tab" >{{item.name}}</a></li>
-			</ul>
-			
-			<a href="http://s.w7.cc/" target="_blank" class="more">去市场</a>
-		</div>
-		<div class="panel-body">
-			<div class="tab-content">
-				<div class="tab-pane " :ng-class="{active: key == 'recommend'}"  id="{{key}}" ng-repeat="(key, item) in recommend">
-					<div class="app-statistics">
-						<div class="left-box">
-							<div id="{{key + '-app-carousel'}}" class="carousel slide recommend-app-carousel" data-ride="carousel">
-								<ol class="carousel-indicators">
-									<li data-target="{{'#' + key + '-app-carousel'}}" data-slide-to="{{index}}"  ng-class="{active: index == 0}" ng-repeat="(index, ad) in item.ads"></li>
-								</ol>
-								<div class="carousel-inner" role="listbox">
-									<div class="item advertising-box" ng-class="{active: index == 0}" ng-repeat="(index, ad) in item.ads">
-										<a ng-href="{{ad.url}}" target="_blank">
-											<img ng-src="{{ad.cdn_logo}}" alt="">
-										</a>
-									</div>
-								</div>
-							</div>
-							<div class="go-store" ng-if="key != 'recommend' && item.ads.length == 0">
-								<div class="icon">
-									<img ng-src="{{'resource/images/welcome/' + item.icon + '-icon.png'}}" alt="">
-								</div>
-								<div class="name">
-									{{item.name}}
-								</div>
-								<div class="title">
-									网罗市场最新应用，更快了解最新应用
-								</div>
-								<a href="//s.w7.cc" class="btn btn-primary">去应用市场</a>
-							</div>
-						</div>
-						<div class="right-box">
-							<div class="app-item" ng-repeat="app in item.list">
-								<div class="app-item-box">
-									<div class="info">
-										<div class="logo">
-											<img ng-src="{{app.cdn_logo}}" alt="">
-										</div>
-										<div class="text-over">
-											<div class="name text-over" ng-bind="app.title"></div>
-											<div class="time" ng-bind="'下载次数' + app.down_count"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- 推荐应用 end -->
-	<!--new end-->
 </div>
 <!--end 系统管理首页-->
-
 <script type="text/javascript">
 	$(function(){
-		$('.we7-store-search .js-show-search').click(function() {
-			$(this).addClass('active')
-		})
-		$('body').on('click', function(event) {
-			var target = $(event.target);
-			if (!target.hasClass('js-show-search')
-					&& !target.parents('.js-show-search').length) {
-						$('.we7-store-search .js-show-search').removeClass('active');
-			}
-		});
 		angular.module('systemApp').value('config', {
-			'frame': "{FRAME}",
-			'notices': "{php echo !empty($notices) ? json_encode($notices) : 'null'}",
-			'systemUpgradeUrl' : "{php echo url('home/welcome/get_system_upgrade')}",
-			'upgradeModulesUrl': "{php echo url('home/welcome/get_upgrade_modules')}",
-			'moduleStatisticsUrl': "{php echo url('home/welcome/get_module_statistics')}",
-			'ignoreUpdateUrl' : "{php echo url('home/welcome/ignore_update_module')}",
-			'getWorkerOrderUrl' : "{php echo url('home/welcome/get_workerorder')}",
-			'apiLink': '//api.w7.cc',
-			'moduleNotInstalledUrl' : "{php echo url('module/manage-system/not_installed')}",
-			'links': {
-				'accountApi': "{php echo url('statistics/account/get_account_api')}",
-				'removeUnstallModuleUrl' : "{php echo url('module/manage-system/recycle_post')}",
-			},
+			notices: {php echo !empty($notices) ? json_encode($notices) : 'null'},
+			systemUpgradeUrl : "{php echo url('home/welcome/get_system_upgrade')}",
+			upgradeModulesUrl: "{php echo url('home/welcome/get_upgrade_modules')}",
+			moduleStatisticsUrl: "{php echo url('home/welcome/get_module_statistics')}",
+			ignoreUpdateUrl : "{php echo url('home/welcome/ignore_update_module')}",
 		});
 		angular.bootstrap($('.js-system-welcome'), ['systemApp']);
 	});
-</script>
+</script>	
 {template 'common/footer'}

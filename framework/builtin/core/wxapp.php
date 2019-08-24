@@ -16,9 +16,7 @@ class CoreModuleWxapp extends WeModuleWxapp {
 		$this->result(0, '', $paydata);
 	}
 
-	/**
-	 * 获取支付结果.
-	 */
+	
 	public function doPagePayResult() {
 		global $_GPC, $_W;
 		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => safe_gpc_string($_GPC['module_name']), 'tid' => safe_gpc_string($_GPC['orderid'])));

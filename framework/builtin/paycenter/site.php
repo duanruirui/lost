@@ -1,7 +1,7 @@
 <?php
 /**
- * 收银台
- * @author WeEngine Team
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 class PaycenterModuleSite extends WeModuleSite {
@@ -13,7 +13,7 @@ class PaycenterModuleSite extends WeModuleSite {
 			if(is_array($session)) {
 				load()->model('user');
 				$user = user_single(array('uid'=>$session['uid']));
-				if(is_array($user) && $session['hash'] === $user['hash']) {
+				if(is_array($user) && $session['hash'] == md5($user['password'] . $user['salt'])) {
 					$clerk = pdo_get('activity_clerks', array('uniacid' => $_W['uniacid'], 'uid' => $user['uid']));
 					if(empty($clerk)) {
 						message('您没有管理该店铺的权限', referer(), 'error');
@@ -70,7 +70,7 @@ class PaycenterModuleSite extends WeModuleSite {
 			}
 			$cookie = array();
 			$cookie['uid'] = $user['uid'];
-			$cookie['hash'] = $user['hash'];
+			$cookie['hash'] = md5($user['password'] . $user['salt']);
 			$session = base64_encode(json_encode($cookie));
 			isetcookie('_pc_session', $session, !empty($_GPC['rember']) ? 7 * 86400 : 0, true);
 			message(error(0, ''), '', 'ajax');
@@ -99,11 +99,7 @@ class PaycenterModuleSite extends WeModuleSite {
 		include $this->template('home');
 	}
 	
-	/** 
-	* 
-	* @param $period 时间周期,默认0为今日营收,-1为昨日营收,-7为七日营收
-	* @return $revenus 营收数额
-	*/
+	
 	public function revenue($period) {
 		global $_W;
 		if($period == '0') {

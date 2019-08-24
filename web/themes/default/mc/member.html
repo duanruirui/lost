@@ -10,39 +10,56 @@
 		<i class="wi wi-info-sign"></i> 会员的总积分 = 账户积分 + 账户贡献. 会员所在的会员组是根据 "总积分的多少" 和 "会员组的变更规则" (<根据总积分多少自动升价> 或 <根据总积分多少只升不降>) 自动匹配.<br>
 	</strong></p>
 </div>
-<div class="search-box we7-margin-bottom" ng-app="member" ng-controller="display" ng-cloak>
-	<form action="./index.php" method="get" class="search-form" role="form">
-		<input type="hidden" name="c" value="mc">
-		<input type="hidden" name="a" value="member">
-		<input type="hidden" name="version_id" value="{$_GPC['version_id']}">
-		<select name="groupid" class="pull-left we7-margin-right-sm">
-			<option value="" >所属用户组</option>
-			{loop $groups $group}
-			<option value="{$group['groupid']}"{if $group['groupid'] == $_GPC['groupid']} selected="selected"{/if}>{$group['title']}</option>
-			{/loop}
-		</select>
-		<div class="pull-left we7-margin-right-sm">
-			<div class="input-group">
-				<div class="input-group-btn">
-					<select class="form-control" name="search_mod" ng-model="searchMod">
-						<option value="2" {if 2 == $_GPC['search_mod']} selected="selected"{/if}>精准</option>
-						<option value="1" {if 1 == $_GPC['search_mod']} selected="selected"{/if}>模糊</option>
+<div class="panel we7-panel" ng-app="member" ng-controller="display" ng-cloak>
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body we7-padding">
+		<form action="./index.php" method="get" class="we7-form" role="form">
+			<input type="hidden" name="c" value="mc">
+			<input type="hidden" name="a" value="member">
+			<div class="form-group">
+				<label class="col-sm-2 control-label">昵称/姓名/手机号码/openid</label>
+				<div class="col-sm-5">
+					<div class="input-group">
+						<div class="input-group-btn">
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+								{{ searchMod == 2 ? '模糊' : '精准' }}
+							<span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu" role="menu" style="width: 10px;">
+							<li><a href="javascript:;" ng-click="setSearchMod('2')">模糊</a></li>
+							<li><a href="javascript:;" ng-click="setSearchMod('1')">精准</a></li>
+						</ul>
+							</div>
+						<input type="text" class="form-control" name="username" value="{$_GPC['username']}" />
+						<input type="text" name="search_mod" ng-model="searchMod" style="display:none;"/>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">注册时间</label>
+				<div class="col-sm-5">
+					{php echo tpl_form_field_daterange('datelimit', array('start' => $_GPC['datelimit']['start'],'end' => $_GPC['datelimit']['end']), false)}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">所属用户组</label>
+				<div class="col-sm-5">
+					<select name="groupid" class="form-control">
+						<option value="" selected="selected">不限</option>
+						{loop $groups $group}
+						<option value="{$group['groupid']}"{if $group['groupid'] == $_GPC['groupid']} selected="selected"{/if}>{$group['title']}</option>
+						{/loop}
 					</select>
 				</div>
-				<input type="text" class="form-control" placeholder="昵称/姓名/手机号码/openid" name="username" value="{$_GPC['username']}" />
+				<div class="pull-right col-sm-5">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					<input type="hidden" name="token" value="{$_W['token']}"/>
+					<input class="btn btn-primary" type="submit" name="export_submit" id="export_submit" value="导出">
+					<a href="{php echo url('mc/member/add');}" class="btn btn-primary">添加会员</a>
+				</div>
 			</div>
-		</div>
-		<div class="pull-left we7-margin-right-sm">
-			{php echo tpl_form_field_daterange('datelimit', array('start' => $_GPC['datelimit']['start'],'end' => $_GPC['datelimit']['end']), false)}
-		</div>
-		<div class="pull-left">
-			<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
-			<input type="hidden" name="token" value="{$_W['token']}"/>
-			<input class="btn btn-primary" type="submit" name="export_submit" id="export_submit" value="导出">
-			
-		</div>
-	</form>
-	<a href="{php echo url('mc/member/add');}" class="btn btn-primary">添加会员</a>
+		</form>
+	</div>
 </div>
 <script>
 	angular.module('member', []).controller('display', function($scope) {
@@ -96,7 +113,7 @@
 					<td style="overflow:visible;">
 						<div class="link-group">
 							<a href="{php echo url('mc/member/base_information',array('uid' => $li['uid']))}">管理设置</a>
-							<a href="javascript:void(0);" onclick="delMcMember('{php echo url("mc/member/del",array("uid" => $li["uid"]))}')" title="删除" class="">删除</a>
+							<a href="{php echo url('mc/member/del',array('uid' => $li['uid']))}" onclick="return confirm('确定删除会员吗?')" title="删除" class="">删除</a>
 						</div>
 					</td>
 				</tr>
@@ -113,15 +130,6 @@
 		{$pager}
 	</div>
 </form>
-<script>
-	function delMcMember(url) {
-		util.confirm(function () {
-			window.location.href = url;
-		}, function () {
-			return false;
-		}, '确认删除吗?');
-	}
-</script>
 {/if}
 
 {if $do == 'add'}
@@ -349,7 +357,7 @@
 			<td>
 				{{ creditSetting[tactics.activity].title }}
 			</td>
-			<td >
+			<td class="text-center">
 				<div class="link-group"><a href="javascript:;" ng-click="editCreditTactics('activity')">更改</a></div>
 			</td>
 		</tr>
@@ -358,7 +366,7 @@
 			<td>
 				{{ creditSetting[tactics.currency].title }}
 			</td>
-			<td >
+			<td class="text-center">
 				<div class="link-group"><a href="javascript:;" ng-click="editCreditTactics('currency')">更改</a></div>
 			</td>
 		</tr>

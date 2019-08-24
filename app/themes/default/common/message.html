@@ -1,4 +1,4 @@
-{php define('MUI', true);}
+{php define(MUI, true);}
 {template 'common/header'}
 	{if strexists($msg, 'SQL Error:')}
 	<div class="mui-content-padded">
@@ -16,7 +16,9 @@
 	</div>
 	{else}
 	<script type="text/javascript">
+	<!--
 		util.message('{$msg}', '{$redirect}', '{$type}');
+	//-->
 	</script>
 	{/if}
 {template 'common/footer'}

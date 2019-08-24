@@ -112,7 +112,7 @@
 <script>
 require(['underscore'], function() {
 	angular.module('fansApp').value('config', {
-		'chatLogs' : {php echo !empty($chat_record) ? json_encode($chat_record) : '[]'},
+		'chatLogs' : {php echo !empty($chat_record) ? json_encode($chat_record) : 'null'},
 		'endurl' : "{php echo url('mc/chats/endchats', array('openid' => $openid))}",
 		'sendurl' : "{php echo url('mc/chats/send', array('openid' => $openid))}"
 	});

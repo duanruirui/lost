@@ -1,7 +1,7 @@
 <?php
 /**
- * 用户管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -14,15 +14,22 @@ $_W['page']['title'] = '用户列表 - 用户管理';
 $founders = explode(',', $_W['config']['setting']['founder']);
 
 if ($do == 'display') {
+	$founder_groups = user_founder_group();
+
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 
 	$users_table = table('users');
 	$users_table->searchWithFounder(ACCOUNT_MANAGE_GROUP_VICE_FOUNDER);
 
-	$username = trim($_GPC['username']);
-	if (!empty($username)) {
-		$users_table->searchWithName($username);
+	$search = safe_gpc_string($_GPC['search']);
+	if (!empty($search)) {
+		$users_table->searchWithNameOrMobile($search);
+	}
+
+	$group_id = intval($_GPC['groupid']);
+	if (!empty($group_id)) {
+		$users_table->searchWithGroupId($group_id);
 	}
 
 	$users_table->searchWithPage($pindex, $psize);
@@ -34,7 +41,7 @@ if ($do == 'display') {
 }
 
 if ($do == 'del') {
-	if (!$_W['isajax'] || !$_W['ispost']) {
+	if (!$_W['isajax'] || !$_W['ispost'] || !in_array($_W['uid'], $founders)) {
 		iajax(-1, '非法操作！', url('founder/display'));
 	}
 	$uid = intval($_GPC['uid']);

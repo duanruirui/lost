@@ -1,17 +1,18 @@
 <?php
 /**
- * 默认入口
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('module');
+load()->model('wxapp');
 
 $dos = array('display');
 $do = in_array($do, $dos) ? $do : 'display';
 
 $module_name = trim($_GPC['m']);
-$modulelist = uni_modules();
+$modulelist = uni_modules(false);
 $module = $_W['current_module'] = $modulelist[$module_name];
 define('IN_MODULE', $module_name);
 if(empty($module)) {
@@ -39,8 +40,9 @@ if ($do == 'display') {
 		$insert_data['settings'] = iserializer($data);
 		$insert_data['uniacid'] = $_W['uniacid'];
 		$insert_data['module'] = $module_name;
-		$setting = table('uni_account_modules')->isSettingExists($module_name);
-		if (!$setting) {
+
+		$settings = pdo_get('uni_account_modules', array('uniacid' => $_W['uniacid'], 'module' => $module_name), 'settings');
+		if (empty($settings)) {
 			$insert_data['enabled'] = 1;
 			pdo_insert('uni_account_modules', $insert_data);
 		} else {

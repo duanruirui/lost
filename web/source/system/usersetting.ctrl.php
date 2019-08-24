@@ -1,7 +1,7 @@
 <?php
 /**
- * 用户注册设置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -18,8 +18,12 @@ if(empty($settings) || !is_array($settings)) {
 if ($do == 'login') {
 	$_W['page']['title'] = '用户登录/注册设置 - 登录设置';
 	if (checksubmit('submit')) {
-		$settings['verifycode'] = intval($_GPC['verifycode']);
-		$settings['welcome_link'] = intval($_GPC['welcome_link']);
+		
+			$settings['verifycode'] = intval($_GPC['verifycode']);
+			$settings['oauth_bind'] = intval($_GPC['oauth_bind']);
+		
+		$settings['mobile_status'] = intval($_GPC['mobile_status']);
+		$settings['login_type'] = intval($_GPC['login_type']);
 
 		setting_save($settings, 'copyright');
 		itoast('更新设置成功！', '', 'success');
@@ -30,7 +34,7 @@ if ($do == 'binding') {
 	$_W['page']['title'] = '用户登录/注册设置 - 绑定设置';
 	if (checksubmit('submit')) {
 		$settings['bind'] = safe_gpc_string($_GPC['bind']);
-		$settings['oauth_bind'] = intval($_GPC['oauth_bind']);
+		$settings['welcome_link'] = intval($_GPC['welcome_link']);
 
 		setting_save($settings, 'copyright');
 		itoast('更新设置成功！', '', 'success');

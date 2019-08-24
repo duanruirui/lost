@@ -1,12 +1,14 @@
 <?php
 /**
- * 伪静态
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 $dos = array('display');
 $do = in_array($do, $dos) ? $do : 'display';
+
+$_W['page']['title'] = '伪静态';
 
 if ($do == 'display') {
 	if (!empty($_W['account']['setting']['default_module'])) {

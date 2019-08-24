@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/app/source/auth/login.ctrl.php : v 7d004557b58a : 2015/03/24 07:18:12 : RenChao $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 $openid = $_W['openid'];
@@ -12,7 +12,7 @@ $setting = uni_setting($_W['uniacid'], array('uc', 'passport'));
 $uc_setting = $setting['uc'] ? $setting['uc'] : array();
 $ltype = empty($setting['passport']['type']) ? 'hybird' : $setting['passport']['type'];
 $audit = @intval($setting['passport']['audit']);
-$item = is_array($setting['passport']) && !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'random';
+$item = !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'random';
 $type = trim($_GPC['type']) ? trim($_GPC['type']) : 'email';
 $forward = url('mc');
 if(!empty($_GPC['forward'])) {
@@ -23,20 +23,19 @@ if($do == 'mobile_exist') {
 	if($_W['ispost'] && $_W['isajax']) {
 		$type = safe_gpc_string($_GPC['find_mode']);
 		$info = safe_gpc_string($_GPC['mobile']);
-		$member_table = table('mc_members');
+		$member_table = table('member');
 		switch ($type) {
 			case 'mobile':
 				$member_table->searchWithMobile($info);
 				break;
 			case 'email':
-				$member_table->searchWithEmail($info);
+				$member_table->searchWithMemberEmail($info);
 				break;
 			default:
-				$member_table->searchWithMobileOrEmail($info);
+				$member_table->searchWithRandom($info);
 				break;
 		}
-		$member_table->searchWithUniacid($_W['uniacid']);
-		$is_exist = $member_table->get();
+		$is_exist = $member_table->searchWithMember();
 		if (!empty($is_exist)) {
 			message(error(1, ''), '', 'ajax');
 		} else {
@@ -44,7 +43,6 @@ if($do == 'mobile_exist') {
 		}
 	}
 }
-
 if(!empty($_W['member']) && (!empty($_W['member']['mobile']) || !empty($_W['member']['email']))) {
 	header('location: ' . $forward);
 	exit;
@@ -56,9 +54,6 @@ if($do == 'basic') {
 		$mode = trim($_GPC['mode']);
 		if (empty($username)) {
 			message('用户名不能为空', '', 'error');
-		}
-		if (empty($mode) || !in_array($mode, array('code', 'basic'))) {
-			message('非法操作，请刷新页面重试！', '', 'error');
 		}
 		if (empty($password)) {
 			if ($mode == 'code') {

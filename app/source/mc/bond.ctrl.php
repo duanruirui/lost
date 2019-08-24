@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -41,13 +41,13 @@ if ($do == 'pay_password') {
 	}
 }
 
-/*积分记录*/
+
 if ($do == 'credits') {
 	$where = '';
 	$params = array(':uid' => $_W['member']['uid']);
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 15;
-	/*默认显示时间*/
+	
 	$period = intval($_GPC['period']);
 	if ($period == '1') {
 		$starttime = date('Ym01',strtotime(0));
@@ -62,11 +62,11 @@ if ($do == 'credits') {
 	$where = ' AND `createtime` >= :starttime AND `createtime` < :endtime';
 	$params[':starttime'] = strtotime($starttime);
 	$params[':endtime'] = strtotime($endtime);
-	/*获取用户名字和头像*/
+	
 	$sql = 'SELECT `realname`, `avatar` FROM ' . tablename('mc_members') . " WHERE `uid` = :uid";
 	$user = pdo_fetch($sql, array(':uid' => $_W['member']['uid']));
 	if ($_GPC['credittype']) {
-		/*获取充值订单记录*/
+		
 		if ($_GPC['type'] == 'order') {
 			$sql = 'SELECT * FROM ' . tablename('mc_credits_recharge') . " WHERE `uid` = :uid $where LIMIT " . ($pindex - 1) * $psize. ',' . $psize;
 			$orders = pdo_fetchall($sql, $params);
@@ -78,7 +78,7 @@ if ($do == 'credits') {
 				}
 				unset($value);
 			}
-			/*订单数据分页*/
+			
 			$ordersql = 'SELECT COUNT(*) FROM ' .tablename('mc_credits_recharge') . "WHERE `uid` = :uid {$where}";
 			$total = pdo_fetchcolumn($ordersql, $params);
 			$orderpager = pagination($total, $pindex, $psize, '', array('before' => 0, 'after' => 0, 'ajaxcallback' => ''));
@@ -89,7 +89,7 @@ if ($do == 'credits') {
 		$params[':credit_type'] = safe_gpc_string($_GPC['credittype']);
 	}
 
-	/*获取总支出收入情况*/
+	
 	$sql = 'SELECT `num` FROM ' . tablename('mc_credits_record') . " WHERE `uid` = :uid $where";
 	$nums = pdo_fetchall($sql, $params);
 	$pay = $income = 0;
@@ -104,7 +104,7 @@ if ($do == 'credits') {
 		$pay = number_format($pay, 2);
 		$income = number_format($income, 2);
 	}
-	/*获取交易记录*/
+	
 	$sql = 'SELECT * FROM ' . tablename('mc_credits_record') . " WHERE `uid` = :uid {$where} ORDER BY `createtime` DESC LIMIT " . ($pindex - 1) * $psize.','. $psize;
 	$data = pdo_fetchall($sql, $params);
 	foreach ($data as $key=>$value) {
@@ -121,7 +121,7 @@ if ($do == 'credits') {
 		$data[$key]['remark'] = str_replace('credit2', '余额', $data[$key]['remark']);
 		$data[$key]['remark'] = empty($data[$key]['remark']) ? '未记录' : $data[$key]['remark'];
 	}
-	/*数据分页*/
+	
 	$pagesql = 'SELECT COUNT(*) FROM ' .tablename('mc_credits_record') . "WHERE `uid` = :uid {$where}";
 	$total = pdo_fetchcolumn($pagesql, $params);
 	$pager = pagination($total, $pindex, $psize, '', array('before' => 0, 'after' => 0, 'ajaxcallback' => ''));
@@ -293,8 +293,7 @@ if ($do == 'binding_account') {
 		if (empty($_GPC['password'])) {
 			message('请输入您的密码', '', 'error');
 		}
-		//根据后台设置的参数进行判断
-		if($item == 'email') {
+				if($item == 'email') {
 			if (preg_match(REGULAR_EMAIL, $username)) {
 				$data['email'] = $username;
 			} else {
@@ -349,8 +348,7 @@ if ($do == 'binding_account') {
 					'openid' => $_W['openid'],
 				));
 
-				//删除之前的帐号信息，转称资料，积分数据
-				$member_old = mc_fetch($_W['member']['uid']);
+								$member_old = mc_fetch($_W['member']['uid']);
 				$member_new = mc_fetch($member['uid']);
 				if (!empty($member_old) && !empty($member_new)) {
 					$ignore = array('email', 'password', 'uid', 'uniacid', 'salt', 'credit1', 'credit2', 'credit3','credit4','credit5');
@@ -370,12 +368,10 @@ if ($do == 'binding_account') {
 					pdo_update('mc_members', $profile_update, array('uid' => $member['uid'], 'uniacid' => $_W['uniacid']));
 					cache_build_memberinfo($member['uid']);
 					pdo_delete('mc_members', array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-					//转换各种券的信息
-					pdo_update('coupon_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+										pdo_update('coupon_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 					pdo_update('activity_exchange_trades', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 					pdo_update('activity_exchange_trades_shipping', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
-					//积分变更日志信息
-					pdo_update('mc_credits_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+										pdo_update('mc_credits_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 					pdo_update('mc_card_members', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 				}
 				message('绑定已有账号成功', url('mc/home'), 'success');

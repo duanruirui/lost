@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 $_W['page']['title'] = '系统-流量主';
 $dos = array('flow_control', 'finance_info', 'register_flow', 'display', 'account_list', 'ad_type_get', 'content_provider');
@@ -146,8 +146,7 @@ if ($do == 'account_list') {
 	if(!empty($list)) {
 		foreach($list as $unia => &$account) {
 			$account_details = uni_accounts($account['uniacid']);
-			//公众号列表只取默认acid
-			$account['details'][$account['default_acid']] = $account_details[$account['default_acid']];
+						$account['details'][$account['default_acid']] = $account_details[$account['default_acid']];
 			$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
 			$account['setmeal'] = uni_setmeal($account['uniacid']);
 			if (!empty($flow_uniaccount_list[$unia])) {
@@ -169,7 +168,7 @@ if ($do == 'flow_control') {
 	$current_account = uni_fetch($_GPC['uniacid']);
 	load() -> model('account');
 	$_W['uniacid'] = $_GPC['uniacid'];
-	$installedmodulelist = uni_modules();
+	$installedmodulelist = uni_modules(false);
 	foreach ($installedmodulelist as $val) {
 		if ($val['issystem'] == 0 && $val['enabled'] == 1) {
 			$path = '../addons/' . $val['name'];

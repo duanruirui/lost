@@ -1,5 +1,5 @@
 {template 'common/header'}
-<ul class="we7-page-tab hidden">
+<ul class="we7-page-tab">
 	<li {if $do == 'base'}class="active"{/if}><a href="{php echo url('user/profile')}">我的账户</a></li>
 	<li {if $do == 'bind'}class="active"{/if}><a href="{php echo url('user/profile/bind')}">账号绑定</a></li>
 </ul>
@@ -34,7 +34,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td class="table-label"><span class="wi wi-account" style="font-size: 32px; color: #00bb00;"></span></td>
+		<td class="table-label"><span class="wi wi-wechat" style="font-size: 32px; color: #00bb00;"></span></td>
 		<td>{{bindwechat.third_nickname}}</td>
 		<td>
 			<div class="link-group">
@@ -48,10 +48,7 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" id="myModalLabel">
-						<span ng-if="bindmobile.third_type != 3">绑定手机号</span>
-						<span ng-if="bindmobile.third_type == 3">解绑手机号</span>
-					</h4>
+					<h4 class="modal-title" id="myModalLabel">绑定手机号</h4>
 				</div>
 				<div class="modal-body material-content clearfix">
 					<div class="form-group input-group">

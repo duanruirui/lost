@@ -1,9 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/article/__init.php : v e6e8708cee3c : 2015/09/01 04:17:08 : yanghf $
- *
- * account 所有操作在GW界面进行
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');

@@ -1,7 +1,7 @@
 {template 'common/header'}
 <ol class="breadcrumb we7-breadcrumb">
-	<a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i> </a>
-	<li><a href="{php echo url('account/manage')}">平台管理</a></li>
+	<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
+	<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}">APP管理</a></li>
 	<li>APP设置</li>
 </ol>
 <div class="media media-wechat-setting">
@@ -21,11 +21,11 @@
 <div class="clearfix"></div>
 <div class="btn-group we7-btn-group wechat-edit-group">
 	
-
-	
-		{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER}
+		{if $state == ACCOUNT_MANAGE_NAME_FOUNDER || $state == ACCOUNT_MANAGE_NAME_OWNER || $state == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
 		<a href="{php echo url('account/post/base', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}" class="btn btn-default {if $do == 'base'} active{/if}">基础信息</a>
 		{/if}
+	
+
 	
 
 	<a href="{php echo url('account/post-user/edit', array('uniacid' => $account['uniacid'], 'acid' => $account['acid'], 'account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL))}" class="btn btn-default {if $action == 'post-user' && $do == 'edit'} active{/if}">使用者管理</a>
@@ -61,7 +61,7 @@
 			</td>
 			<td class="text-right">
 				<div class="link-group">
-					<a href="./index.php?c=phoneapp&a=version&do=home&version_id={{version.id}}">进入</a>
+					<a href="./index.php?c=phoneapp&a=display&do=switch&uniacid={{version.uniacid}}&version_id={{version.id}}">进入</a>
 					<a href="./index.php?c=phoneapp&a=manage&do=create_display&uniacid={{version.uniacid}}&version_id={{version.id}}" >修改</a>
 					<a href="javascript:;" class="del" ng-click="delPhoneappVersion(version.id)">删除</a>
 				</div>

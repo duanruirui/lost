@@ -2,11 +2,7 @@
 
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 是否可创建PC
- * @param $uid
- * @return bool
- */
+
 function webapp_can_create($uid) {
 	if(user_is_founder($uid)) {
 		return true;

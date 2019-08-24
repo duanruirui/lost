@@ -1,15 +1,11 @@
 <?php
 
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * User: fanyk
- * Date: 2017/10/28
- * Time: 14:58.
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 class UploadedFile extends SplFileInfo {
-	/**
-	 * @var int[]
-	 */
+	
 	private static $errors = array(
 		UPLOAD_ERR_OK,
 		UPLOAD_ERR_INI_SIZE,
@@ -21,36 +17,22 @@ class UploadedFile extends SplFileInfo {
 		UPLOAD_ERR_EXTENSION,
 	);
 
-	/**
-	 * 上传文件名
-	 * @var string
-	 */
+	
 	private $clientFilename;
 
-	/**
-	 * //上传的mimeType
-	 * @var string
-	 */
+	
 	private $clientMediaType;
 
-	/**
-	 * @var int
-	 */
+	
 	private $error;
 
-	/**
-	 * @var null|string
-	 */
+	
 	private $file;
 
-	/**
-	 * @var bool
-	 */
+	
 	private $moved = false;
 
-	/**
-	 * @var int
-	 */
+	
 	private $size;
 
 	public function __construct(
@@ -70,13 +52,7 @@ class UploadedFile extends SplFileInfo {
 		}
 	}
 
-	/**
-	 * Depending on the value set file or stream variable.
-	 *
-	 * @param mixed $streamOrFile
-	 *
-	 * @throws InvalidArgumentException
-	 */
+	
 	private function setStreamOrFile($streamOrFile) {
 		if (is_string($streamOrFile)) {
 			$this->file = $streamOrFile;
@@ -87,11 +63,7 @@ class UploadedFile extends SplFileInfo {
 		}
 	}
 
-	/**
-	 * @param int $error
-	 *
-	 * @throws InvalidArgumentException
-	 */
+	
 	private function setError($error) {
 		if (false === is_int($error)) {
 			throw new InvalidArgumentException(
@@ -108,11 +80,7 @@ class UploadedFile extends SplFileInfo {
 		$this->error = $error;
 	}
 
-	/**
-	 * @param int $size
-	 *
-	 * @throws InvalidArgumentException
-	 */
+	
 	private function setSize($size) {
 		if (false === is_int($size)) {
 			throw new InvalidArgumentException(
@@ -123,29 +91,17 @@ class UploadedFile extends SplFileInfo {
 		$this->size = $size;
 	}
 
-	/**
-	 * @param mixed $param
-	 *
-	 * @return boolean
-	 */
+	
 	private function isStringOrNull($param) {
 		return in_array(gettype($param), array('string', 'NULL'));
 	}
 
-	/**
-	 * @param mixed $param
-	 *
-	 * @return boolean
-	 */
+	
 	private function isStringNotEmpty($param) {
 		return is_string($param) && false === empty($param);
 	}
 
-	/**
-	 * @param string|null $clientFilename
-	 *
-	 * @throws InvalidArgumentException
-	 */
+	
 	private function setClientFilename($clientFilename) {
 		if (false === $this->isStringOrNull($clientFilename)) {
 			throw new InvalidArgumentException(
@@ -156,11 +112,7 @@ class UploadedFile extends SplFileInfo {
 		$this->clientFilename = $clientFilename;
 	}
 
-	/**
-	 * @param string|null $clientMediaType
-	 *
-	 * @throws InvalidArgumentException
-	 */
+	
 	private function setClientMediaType($clientMediaType) {
 		if (false === $this->isStringOrNull($clientMediaType)) {
 			throw new InvalidArgumentException(
@@ -171,25 +123,17 @@ class UploadedFile extends SplFileInfo {
 		$this->clientMediaType = $clientMediaType;
 	}
 
-	/**
-	 * Return true if there is no upload error.
-	 *
-	 * @return boolean
-	 */
+	
 	public function isOk() {
 		return $this->error === UPLOAD_ERR_OK;
 	}
 
-	/**
-	 * @return boolean
-	 */
+	
 	public function isMoved() {
 		return $this->moved;
 	}
 
-	/**
-	 * @throws RuntimeException if is moved or not ok
-	 */
+	
 	private function validateActive() {
 		if (false === $this->isOk()) {
 			throw new RuntimeException('Cannot retrieve stream due to upload error');
@@ -221,80 +165,42 @@ class UploadedFile extends SplFileInfo {
 		}
 	}
 
-	/**
-	 * {@inheritdoc}
-	 *
-	 * @return int|null The file size in bytes or null if unknown.
-	 */
+	
 	public function getSize() {
 		return $this->size;
 	}
 
-	/**
-	 * {@inheritdoc}
-	 *  上传错误码
-	 * @see http://php.net/manual/en/features.file-upload.errors.php
-	 *
-	 * @return int One of PHP's UPLOAD_ERR_XXX constants.
-	 */
+	
 	public function getError() {
 		return $this->error;
 	}
 
-	/**
-	 * {@inheritdoc}
-	 *
-	 * @return string|null The filename sent by the client or null if none
-	 *					 was provided.
-	 */
+	
 	public function getClientFilename() {
 		return $this->clientFilename;
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
+	
 	public function getClientMediaType() {
 		return $this->clientMediaType;
 	}
 
-	/**
-	 *
-	 * 是否是图片
-	 * @return bool
-	 *
-	 * @since version
-	 */
+	
 	public function isImage() {
 		return $this->isOk() && in_array($this->clientMediaType, array());
 	}
 
-	/**
-	 *
-	 * @since version
-	 */
+	
 	public function clientExtension() {
 		return pathinfo($this->getClientFilename(), PATHINFO_EXTENSION);
 	}
 
-	/**
-	 *  是否允许指定的后缀
-	 * @param $ext
-	 *
-	 * @return bool
-	 *
-	 * @since version
-	 */
+	
 	public function allowExt($ext) {
 		return $this->clientExtension() === $ext;
 	}
 
-	/**
-	 * 获取内容
-	 * @return bool|string
-	 *
-	 * @since version
-	 */
+	
 	public function getContent() {
 		return file_get_contents($this->file);
 	}
@@ -309,13 +215,7 @@ class UploadedFile extends SplFileInfo {
 		return $files;
 	}
 
-	/**
-	 *  从数组中创建文件.
-	 *
-	 * @param $file
-	 *
-	 * @return array|UploadedFile
-	 */
+	
 	private static function create($file) {
 		if (is_array($file['tmp_name'])) {
 			return static::createArrayFile($file);
@@ -324,13 +224,7 @@ class UploadedFile extends SplFileInfo {
 		return static::createUploadedFile($file);
 	}
 
-	/**
-	 *  如果传的是多个文件.
-	 *
-	 * @param $files
-	 *
-	 * @return array
-	 */
+	
 	public static function createArrayFile($files) {
 		$data = array();
 		foreach (array_keys($files['tmp_name']) as $key) {

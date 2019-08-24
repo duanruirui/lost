@@ -2,7 +2,7 @@
 <span class="font-lg">{$_W['account']['name']}</span>
 
 
-{if $_W['account']->typeSign == 'account'}
+{if $_W['account']['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $_W['account']['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH}
 	{if $_W['account']['level'] == 1 || $_W['account']['level'] == 3}
 		<span class="label label-primary">订阅号</span>{if $_W['account']['level'] == 3}<span class="label label-primary">已认证</span>{/if}
 	{/if}
@@ -14,8 +14,14 @@
 			<i class="wi wi-warning-sign"></i>未接入微信公众号
 			<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid']))}">立即接入</a>
 		</span>
+		{/if}
+		<span class="pull-right"><a href="{php echo url('account/display', array('type' => 'all'))}" class="color-default we7-margin-left"><i class="wi wi-cut color-default"></i>切换平台</a></span>
+	{if permission_account_user_role($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OPERATOR}
+		<span class="pull-right"><a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid']))}"><i class="wi wi-appsetting"></i>公众号设置</a></span>
 	{/if}
-{elseif $_W['account']->typeSign == 'xzapp'}
+	<span class="pull-right"><a href="{php echo url('utility/emulator');}" target="_blank"><i class="wi wi-iphone"></i>模拟测试</a></span>
+
+{elseif $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_NORMAL || $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_AUTH}
 	{if $_W['account']['level'] == 1}
 		<span class="label label-primary">个人</span>
 	{elseif $_W['account']['level'] == 2}
@@ -34,18 +40,17 @@
 			<a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid'], 'account_type' => ACCOUNT_TYPE_XZAPP_NORMAL))}">立即接入</a>
 		</span>
 	{/if}
-{/if}
 
-<span class="pull-right">
-	<a href="{php echo url('account/display', array('type' => 'all'))}" class="color-default we7-margin-left">
-		<i class="wi wi-cut-account color-default"></i>切换平台
-	</a>
-</span>
-{if $_W['role'] != ACCOUNT_MANAGE_NAME_OPERATOR}
-<span class="pull-right"><a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['account']['acid'], 'account_type' => $_W['account']['type']))}">
-	<i class="wi wi-appsetting"></i>{php echo $_W['account']->typeName}设置</a>
-</span>
-{/if}
-{if $_W['account']->typeSign == 'account'}
-<span class="pull-right"><a href="{php echo url('utility/emulator');}" target="_blank"><i class="wi wi-iphone"></i>模拟测试</a></span>
+	<span class="pull-right">
+		<a href="{php echo url('account/display', array('type' => 'all'))}" class="color-default we7-margin-left">
+			<i class="wi wi-cut color-default"></i>切换平台
+		</a>
+	</span>
+
+	{if permission_account_user_role($_W['uid'], $_W['uniacid']) != ACCOUNT_MANAGE_NAME_OPERATOR}
+		<span class="pull-right"><a href="{php echo url('account/post', array('uniacid' => $_W['account']['uniacid'], 'acid' => $_W['acid'], 'account_type' => ACCOUNT_TYPE_XZAPP_NORMAL))}">
+				<i class="wi wi-appsetting"></i>熊掌号设置</a>
+		</span>
+	{/if}
+
 {/if}

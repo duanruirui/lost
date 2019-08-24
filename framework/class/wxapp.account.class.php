@@ -1,7 +1,7 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -37,11 +37,7 @@ class WxappAccount extends WeAccount {
 		return $response = $this->requestApi($url);
 	}
 
-	/**
-	 * 微擎系统对来自微信公众平台请求的安全校验
-	 *
-	 * @see WeAccount::checkSign()
-	 */
+	
 	public function checkSign() {
 		$token = $this->account['token'];
 		$signkey = array($token, $_GET['timestamp'], $_GET['nonce']);
@@ -51,11 +47,7 @@ class WxappAccount extends WeAccount {
 		return $signString == $_GET['signature'];
 	}
 
-	/**
-	 *
-	 * @param string $encryptData 待解密的数据
-	 * @param string $vi
-	 */
+	
 	public function pkcs7Encode($encrypt_data, $iv) {
 		$key = base64_decode($_SESSION['session_key']);
 		$result = aes_pkcs7_decode($encrypt_data, $key, $iv);
@@ -109,12 +101,7 @@ class WxappAccount extends WeAccount {
 		return array();
 	}
 	
-	/**
-	 * 获取永久二维码
-	 * @param unknown $path
-	 * @param string $width
-	 * @param array $option
-	 */
+	
 	public function getCodeLimit($path, $width = '430', $option = array()) {
 		if (!preg_match('/[0-9a-zA-Z\&\/\:\=\?\-\.\_\~\@]{1,128}/', $path)) {
 			return error(1, '路径值不合法');

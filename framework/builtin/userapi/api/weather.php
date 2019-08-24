@@ -8,7 +8,7 @@ if(!$ret) {
 $city = $matchs[1];
 $response = array();
 
-$url = 'https://way.jd.com/he/freeweather?city=%s&appkey=e61ea08206439db9cb30910865faad7c';
+$url = 'https://way.jd.com/he/freeweather?city=%s&appkey=f8a020a5d840f7a24997c9561b7d3da3';
 $obj = weather_http_request($url, $city);
 
 $data = $city . '今日天气：' . $obj['cond']['txt'] . PHP_EOL .

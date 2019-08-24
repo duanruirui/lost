@@ -75,7 +75,19 @@ class Prpcrypt
 	{
 
 		try {
-			$decrypted = openssl_decrypt($aesCipher, 'AES-128-CBC', $this->key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $aesIV);
+			if (empty($aesIV)) {
+				$mcrypt_mode = MCRYPT_MODE_ECB;
+			} else {
+				$mcrypt_mode = MCRYPT_MODE_CBC;
+			}
+			$module = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', $mcrypt_mode, '');
+			
+			@mcrypt_generic_init($module, $this->key, $aesIV);
+
+			//解密
+			$decrypted = mdecrypt_generic($module, $aesCipher);
+			mcrypt_generic_deinit($module);
+			mcrypt_module_close($module);
 		} catch (Exception $e) {
 			return array(ErrorCode::$IllegalBuffer, null);
 		}

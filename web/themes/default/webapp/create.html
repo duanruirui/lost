@@ -1,8 +1,8 @@
 {template 'common/header'}
 <div class="account-list-add-step">
 	<ol class="breadcrumb we7-breadcrumb">
-		<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
-		<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL))}">PC列表</a></li>
+		<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i> </a>
+		<li><a href="{url 'account/manage'}">PC列表</a></li>
 		<li>新建PC</li>
 	</ol>
 	<div class="we7-step">
@@ -10,6 +10,13 @@
 
 		</ul>
 	</div>
+	{if count($errors) > 0}
+		{loop $errors $val}
+			{loop $val $mes}
+				{$mes}
+			{/loop}
+		{/loop}
+	{/if}
 	<form action="{php echo url('webapp/manage/create')}" method="post" class="we7-form">
 		<!--第二步:基本信息-->
 		<div class="form-group">

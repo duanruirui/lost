@@ -1,46 +1,52 @@
 {template 'common/header'}
+<div class="we7-page-title">
+	退款参数设置
+</div>
 <ul class="we7-page-tab">
-	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-	<li {if $action == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
-	{/if}
-	{/loop}
+	<li {if $action == 'payment'} class="active"{/if}>
+	<a href="{php echo url('profile/payment/display')}">支付配置</a>
+	</li>
+	<li {if $action == 'refund'} class="active"{/if}>
+	<a href="{php echo url('profile/refund/display')}">退款配置</a>
+	</li>
 </ul>
 <div class="main" id="js-profile-refund" ng-controller="refundCtrl">
 	<form id="form21" action="" method="post" class="we7-form form" enctype="multipart/form-data">
-		<table class="we7-table table-hover table-form">
-			<col width="150px"/>
-			<col />
-			<col width="150px"/>
-			<tr>
-				<th colspan="4">微信退款设置</th>
-			</tr>
-			<tr>
-				<td>微信退款</td>
-				<td class="color-gray"></td>
-				<td class="color-gray">{{ wechat_refund.switch == 1 ? '开启' :  '关闭' }}</td>
-				<td class="text-right">
-					<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#wechat_refund">修改</a></div>
-				</td>
-			</tr>
-		</table>
+		<div class="panel-body">
+			<table class="we7-table table-hover table-form">
+				<col width="150px"/>
+				<col />
+				<col width="150px"/>
+				<tr>
+					<th colspan="4">微信退款设置</th>
+				</tr>
+				<tr>
+					<td>微信退款</td>
+					<td class="color-gray"></td>
+					<td class="color-gray">{{ wechat_refund.switch == 1 ? '开启' :  '关闭' }}</td>
+					<td class="text-right">
+						<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#wechat_refund">修改</a></div>
+					</td>
+				</tr>
+			</table>
 
-		<table class="we7-table table-hover table-form">
-			<col width="150px"/>
-			<col />
-			<col width="150px"/>
-			<tr>
-				<th colspan="4">支付宝退款设置</th>
-			</tr>
-			<tr>
-				<td>支付宝退款</td>
-				<td class="color-gray"></td>
-				<td class="color-gray">{{ ali_refund.switch == 1 ? '开启' :  '关闭' }}</td>
-				<td class="text-right">
-					<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#ali_refund">修改</a></div>
-				</td>
-			</tr>
-		</table>
+			<table class="we7-table table-hover table-form">
+				<col width="150px"/>
+				<col />
+				<col width="150px"/>
+				<tr>
+					<th colspan="4">支付宝退款设置</th>
+				</tr>
+				<tr>
+					<td>支付宝退款</td>
+					<td class="color-gray"></td>
+					<td class="color-gray">{{ ali_refund.switch == 1 ? '开启' :  '关闭' }}</td>
+					<td class="text-right">
+						<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#ali_refund">修改</a></div>
+					</td>
+				</tr>
+			</table>
+		</div>
 	</form>
 	<div class="modal fade" id="ali_refund" tabindex="-1" role="dialog" aria-hidden="true" ng-cloak>
 		<div class="we7-modal-dialog modal-dialog">
@@ -51,9 +57,6 @@
 						<div class="modal-title">支付宝退款设置</div>
 					</div>
 					<div class="modal-body">
-						<div class="alert alert-warning">
-							商户私钥生成教程 <a href="//openclub.alipay.com/read.php?tid=2177&fid=46" class="color-default" target="_blank">去查看</a>
-						</div>
 						<div class="we7-form">
 							<div class="form-group">
 								<label for="" class="control-label col-sm-3"><span class="pull-right">支付宝退款设置</span></label>

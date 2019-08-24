@@ -1,7 +1,7 @@
 <?php
 /**
- * 二维码
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -11,9 +11,8 @@ load()->func('communication');
 load()->model('setting');
 
 $dos = array('display', 'post', 'list', 'del', 'extend', 'SubDisplay', 'check_scene_str', 'down_qr', 'change_status');
-$do = in_array($do, $dos) ? $do : 'list';
+$do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'list';
 
-//检测场景字符串是否重复
 if ($do == 'check_scene_str') {
 	$scene_str = trim($_GPC['scene_str']);
 	$is_exist = pdo_fetchcolumn('SELECT id FROM ' . tablename('qrcode') . ' WHERE uniacid = :uniacid AND acid = :acid AND scene_str = :scene_str AND model = 2', array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid'], ':scene_str' => $scene_str));
@@ -24,7 +23,7 @@ if ($do == 'check_scene_str') {
 }
 
 if ($do == 'list') {
-	permission_check_account_user('platform_qr_qr');
+	$_W['page']['title'] = '二维码管理 - 高级功能';
 	$wheresql = " WHERE uniacid = :uniacid AND acid = :acid AND type = 'scene'";
 	$param = array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']);
 	$keyword = trim($_GPC['keyword']);
@@ -56,8 +55,7 @@ if ($do == 'list') {
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('qrcode') . $wheresql, $param);
 	$pager = pagination($total, $pindex, $psize);
 
-	//删除过期二维码
-	pdo_query("UPDATE ".tablename('qrcode')." SET status = '0' WHERE uniacid = '{$_W['uniacid']}' AND model = '1' AND createtime < '{$_W['timestamp']}' - expire");
+		pdo_query("UPDATE ".tablename('qrcode')." SET status = '0' WHERE uniacid = '{$_W['uniacid']}' AND model = '1' AND createtime < '{$_W['timestamp']}' - expire");
 	template('platform/qr-list');
 }
 
@@ -65,8 +63,8 @@ if ($do == 'del') {
 	if ($_GPC['scgq']) {
 		$list = pdo_fetchall("SELECT id FROM ".tablename('qrcode')." WHERE uniacid = :uniacid AND acid = :acid AND status = '0' AND type='scene'", array(':uniacid' => $_W['uniacid'], ':acid' => $_W['acid']), 'id');
 		if (!empty($list)) {
-			pdo_delete('qrcode', array('id' => array_keys($list), 'uniacid' => $_W['uniacid']));
-			pdo_delete('qrcode_stat', array('id' => array_keys($list), 'uniacid' => $_W['uniacid']));
+			pdo_delete('qrcode', array('id' => array_keys($list)));
+			pdo_delete('qrcode_stat', array('id' => array_keys($list)));
 		}
 		itoast('执行成功<br />删除二维码：'.count($list), url('platform/qr/list'),'success');
 	} else {
@@ -78,9 +76,10 @@ if ($do == 'del') {
 }
 
 if ($do == 'post') {
+	$_W['page']['title'] = '生成二维码 - 二维码管理 - 高级功能';
+
 	if (checksubmit('submit')){
-		//二维码结构定义
-		$barcode = array(
+				$barcode = array(
 			'expire_seconds' => '',
 			'action_name' => '',
 			'action_info' => array(
@@ -89,9 +88,9 @@ if ($do == 'post') {
 		);
 		$qrctype = intval($_GPC['qrc-model']);
 		$acid = intval($_W['acid']);
-		$uniacccount = WeAccount::createByUniacid();
+		$uniacccount = WeAccount::create($acid);
 		$id = intval($_GPC['id']);
-		$keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));
+		$keyword_id = intval(trim(htmlspecialchars_decode($_GPC['reply']['reply_keyword']), "\""));;
 		$keyword = pdo_get('rule_keyword', array('id' => $keyword_id), array('content'));
 		if (!empty($id)) {
 			$update = array(
@@ -149,8 +148,7 @@ if ($do == 'post') {
 		$row = pdo_fetch("SELECT * FROM ".tablename('qrcode')." WHERE uniacid = {$_W['uniacid']} AND id = '{$id}'");
 		$rid = pdo_get('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $row['keyword']), array('rid'));
 		$rid = $rid['rid'];
-		//触发的关键字，module_build_form()函数使用，因为一个规则可能对应多个关键字
-		$setting_keyword = $row['keyword'];
+				$setting_keyword = $row['keyword'];
 	}
 	template('platform/qr-post');
 }
@@ -161,7 +159,7 @@ if ($do == 'extend') {
 		$qrcrow = pdo_fetch("SELECT * FROM ".tablename('qrcode')." WHERE uniacid = :uniacid AND id = :id LIMIT 1", array(':uniacid' => $_W['uniacid'], ':id' => $id));
 		$update = array();
 		if ($qrcrow['model'] == 1) {
-			$uniacccount = WeAccount::createByUniacid();
+			$uniacccount = WeAccount::create($qrcrow['acid']);
 			$barcode['action_info']['scene']['scene_id'] = $qrcrow['qrcid'];
 			$barcode['expire_seconds'] = 2592000;
 			$barcode['action_name'] = 'QR_SCENE';
@@ -185,26 +183,20 @@ if ($do == 'display' || $do == 'change_status') {
 }
 
 if ($do == 'display') {
-	permission_check_account_user('platform_qr_statistics');
+	$_W['page']['title'] = '扫描统计 - 二维码管理 - 高级功能';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 30;
-	$qrcode_table = table('qrcode_stat');
+	$qrcode_table = table('qrcode');
 	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP -  86399 * 30 : strtotime($_GPC['time']['start']);
 	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP + 6*86400 : strtotime($_GPC['time']['end']) + 86399;
 
-	$qrcode_table->searchWithTime($starttime, $endtime);
+	$qrcode_table->searchTime($starttime, $endtime);
 	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
-		$qrcode_table->searchWithKeyword($keyword);
+		$qrcode_table->searchKeyword($keyword);
 	}
 	$qrcode_table->searchWithPage($pindex, $psize);
-	$qrcode_table->searchWithUniacid($_W['uniacid']);
-	if (!empty($status)) {
-		$qrcode_table->groupby('qid');
-		$qrcode_table->groupby('openid');
-		$qrcode_table->groupby('type');
-	}
-	$list = $qrcode_table->orderby('createtime', 'DESC')->getall();
+	$list = $qrcode_table->qrcodeStaticList($status);
 	$total = $count = $qrcode_table->getLastQueryTotal();
 
 	if (!empty($list)) {
@@ -215,10 +207,8 @@ if ($do == 'display') {
 			}
 		}
 		unset($qrcode);
-		$mc_mapping_fans_table = table('mc_mapping_fans');
-		$mc_mapping_fans_table->searchWithUniacid($_W['uniacid']);
-		$mc_mapping_fans_table->searchWithOpenid($openid);
-		$nickname = $mc_mapping_fans_table->getall('openid');
+		$fans_table = table('fans');
+		$nickname = $fans_table->fansAll($openid);
 	}
 	$pager = pagination($total, $pindex, $psize);
 	template('platform/qr-display');
@@ -241,5 +231,5 @@ if ($do == 'change_status') {
 	if ($update) {
 		iajax(0, '');
 	}
-	iajax(-1, '更新成功!', url('platform/qr/display'));
+	iajax(-1, '更新失败', url('platform/qr/display'));
 }

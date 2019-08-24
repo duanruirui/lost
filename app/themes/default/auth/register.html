@@ -5,7 +5,16 @@
 		$(document).on('input propertychange', '.js-mobile-val', function(){
 			var mobile_value = $(this).val();
 			if (mobile_value.length == '11') {
-				$('.js-check-mobile').addClass('send-code');
+				$.post("{php echo url('auth/login/mobile_exist')}", {'mobile' : mobile_value}, function(data) {
+					data = $.parseJSON(data);
+					if (data.message.errno == '1') {
+						$('.js-check-mobile').removeClass('send-code');
+						util.toast('手机号已注册', '', 'error');
+						return;
+					} else if (data.message.errno == '2'){
+						$('.js-check-mobile').addClass('send-code');
+					}
+				});
 			} else {
 				$('.js-check-mobile').removeClass('send-code');
 			}
@@ -40,18 +49,18 @@
 			var params = {};
 			params.receiver = username;
 			params.uniacid = uniacid;
-            $.post('../web/index.php?c=utility&a=verifycode', params, function(dat) {
-                if(dat.message.errno == 0) {
-                    util.toast('发送验证码成功');
-                    $('.codeverify .mui-text-success').text(username);
-                    $('.sendcode').hide();
-                    $('.codeverify').show();
-                } else {
-                    util.toast('发送验证码失败', '', 'error');
-                    $('.sendcode').show();
-                    $('.codeverify').hide();
-                }
-            }, "json");
+			$.post('../web/index.php?c=utility&a=verifycode', params).success(function(dat){
+				if(dat == 'success') {
+					util.toast('发送验证码成功');
+					$('.codeverify .mui-text-success').text(username);
+					$('.sendcode').hide();
+					$('.codeverify').show();
+				} else {
+					util.toast('发送验证码失败', '', 'error');
+					$('.sendcode').show();
+					$('.codeverify').hide();
+				}
+			});
 		});
 		$(document).on('click', '.js-code', function() {
 			var username = $('#register-code input[name="username"]').val();

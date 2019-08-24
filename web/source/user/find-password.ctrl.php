@@ -1,46 +1,75 @@
 <?php
 /**
- * 验证手机号
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('user');
 load()->model('setting');
-load()->model('utility');
-$dos = array('valid_mobile', 'set_password', 'success');
-$do = in_array($do, $dos) ? $do : '';
+
+$dos = array('find_password', 'valid_mobile', 'valid_code', 'set_password', 'success');
+$do = in_array($do, $dos) ? $do : 'find_password';
 
 $setting_sms_sign = setting_load('site_sms_sign');
 $find_password_sign = !empty($setting_sms_sign['site_sms_sign']['find_password']) ? $setting_sms_sign['site_sms_sign']['find_password'] : '';
 
-if (!empty($do)) {
-	$mobile = safe_gpc_string($_GPC['receiver']);
-	$find_mobile = user_check_mobile($mobile);
-	if (is_error($find_mobile)) {
-		iajax($find_mobile['errno'], $find_mobile['message']);
+$mobile = safe_gpc_string($_GPC['mobile']);
+if (in_array($do, array('valid_mobile', 'valid_code', 'set_password'))) {
+	if (empty($mobile)) {
+		iajax(-1, '手机号不能为空');
+	}
+	if (!preg_match(REGULAR_MOBILE, $mobile)) {
+		iajax(-1, '手机号格式不正确');
+	}
+
+	$user_profile = table('users');
+	$find_mobile = $user_profile->userProfileMobile($mobile);
+	if (empty($find_mobile)) {
+		iajax(-1, '手机号不存在');
 	}
 }
-
-
 if ($do == 'valid_mobile') {
-	iajax(0, '手机号正确.');
+	iajax(0, '本地校验成功');
 }
 
-if ($do == 'set_password') {
+if ($do == 'valid_code') {
 	if ($_W['isajax'] && $_W['ispost']) {
-		$code = safe_gpc_string($_GPC['code']);
+		$code = trim($_GPC['code']);
+		$image_verify =trim($_GPC['verify']);
+
 		if (empty($code)) {
 			iajax(-1, '短信验证码不能为空');
 		}
 
-		$verify_res = utility_smscode_verify(0, $mobile, $code);
-		if (is_error($verify_res)) {
-			iajax($verify_res['errno'], $verify_res['message']);
+		if (empty($image_verify)) {
+			iajax(-1, '图形验证码不能为空');
 		}
 
-		$password = safe_gpc_string($_GPC['password']);
-		$repassword = safe_gpc_string($_GPC['repassword']);
+		$captcha = checkcaptcha($image_verify);
+		if (empty($captcha)) {
+			iajax(-1, '图形验证码错误,请重新获取');
+		}
+
+		$user_table = table('users');
+		$code_info = $user_table->userVerifyCode($mobile, $code);
+		if (empty($code_info)) {
+			iajax(-1, '短信验证码不正确');
+		}
+		if ($code_info['createtime'] + 120 < TIMESTAMP) {
+			iajax(-1, '短信验证码已过期，请重新获取');
+		}
+
+		iajax(0, '');
+	} else {
+		iajax(-1, '非法请求');
+	}
+}
+
+if ($do == 'set_password') {
+	if ($_W['isajax'] && $_W['ispost']) {
+		$password = $_GPC['password'];
+		$repassword = $_GPC['repassword'];
 		if (empty($password) || empty($repassword)) {
 			iajax(-1, '密码不能为空');
 		}
@@ -50,16 +79,15 @@ if ($do == 'set_password') {
 		}
 
 		$user_info = user_single($find_mobile['uid']);
-		$password = user_password($password, $find_mobile['uid']);
+		$password = user_hash($password, $user_info['salt']);
 		if ($password == $user_info['password']) {
-			iajax(-2, '密码未做更改');
+			iajax(-2, '不能使用最近使用的密码');
 		}
 		$result = pdo_update('users', array('password' => $password), array('uid' => $user_info['uid']));
-		if ($result) {
+		if (empty($result)) {
 			iajax(0, '设置密码成功');
-		} else {
-			iajax(-1, '密码设置失败！');
 		}
+		iajax(0);
 	}
 }
 template('user/find-password');

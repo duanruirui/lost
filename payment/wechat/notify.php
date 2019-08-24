@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/payment/wechat/notify.php : v a4b6a17a6d8a : 2015/09/14 08:41:00 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 define('IN_MOBILE', true);
 require '../../framework/bootstrap.inc.php';
@@ -57,8 +57,7 @@ if(is_array($setting['payment'])) {
 			$facilitator_setting = uni_setting($wechat['service'], array('payment'));
 			$wechat['signkey'] = $facilitator_setting['payment']['wechat_facilitator']['signkey'];
 		} else {
-			$wechat['signkey'] = ($wechat['version'] == 1) ? $wechat['key'] : (!empty($wechat['apikey']) ? $wechat['apikey'] : $wechat['signkey']);  //todo 临时解决方案
-		}
+			$wechat['signkey'] = ($wechat['version'] == 1) ? $wechat['key'] : (!empty($wechat['apikey']) ? $wechat['apikey'] : $wechat['signkey']);  		}
 		$sign = strtoupper(md5($string1 . "key={$wechat['signkey']}"));
 		if($sign == $get['sign']) {
 			$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
@@ -68,8 +67,7 @@ if(is_array($setting['payment'])) {
 			if (intval($wechat['switch']) == PAYMENT_WECHAT_TYPE_SERVICE) {
 				$get['openid'] = $log['openid'];
 			}
-			//此处判断微信请求消息金额必须与系统发起的金额一致
-			if(!empty($log) && $log['status'] == '0' && (($get['total_fee'] / 100) == $log['card_fee'])) {
+						if(!empty($log) && $log['status'] == '0' && (($get['total_fee'] / 100) == $log['card_fee'])) {
 				$log['tag'] = iunserializer($log['tag']);
 				$log['tag']['transaction_id'] = $get['transaction_id'];
 				$log['uid'] = $log['tag']['uid'];

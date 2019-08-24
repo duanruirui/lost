@@ -1,6 +1,7 @@
 <?php 
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [美仑授权系统 System] Copyright (c) 2018 WEBY.CC
+ * 美仑授权系统 is NOT a free software, it under the license terms, visited http://www.weby.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,12 +10,12 @@ load()->model('setting');
 
 $dos = array(
 	'auth',
+	'callback',
 	'build',
 	'init',
 	'schema',
 	'download',
 	'module.query',
-	'module.bought',
 	'module.info',
 	'module.build',
 	'module.setting.cloud',
@@ -28,6 +29,16 @@ $dos = array(
 );
 $do = in_array($do, $dos) ? $do : '';
 
+
+if($do == 'callback') {
+	$secret = $_GPC['token'];
+	if(!empty($secret)) {
+			$site = json_decode(base64_decode($secret),true);
+			setting_save($site, 'site');
+			exit("1");
+	}
+}
+
 if($do != 'auth') {
 	if(is_error(cloud_prepare())) {
 		exit('cloud service is unavailable.');
@@ -37,12 +48,14 @@ if($do != 'auth') {
 $post = file_get_contents('php://input');
 
 if($do == 'auth') {
+	$secret = random(32);
 	$auth = @json_decode(base64_decode($post), true);
-	if (empty($auth)) {
-		exit('推送的站点数据有误');
+	if(empty($auth)) {
+		exit;
 	}
-	setting_save($auth, 'site');
-	exit('success');
+	$auth['secret'] = $secret;
+	cache_write('cloud:auth:transfer', $auth);
+	exit($secret);
 }
 
 if($do == 'build') {
@@ -77,21 +90,15 @@ if($do == 'download') {
 	$ret = iunserializer($data);
 	$gz = function_exists('gzcompress') && function_exists('gzuncompress');
 	$file = base64_decode($ret['file']);
+
 	if($gz) {
 		$file = gzuncompress($file);
 	}
 	
-	$_W['setting']['site']['token'] = authcode(cache_load(cache_system_key('cloud_transtoken')), 'DECODE');
+	//$_W['setting']['site']['token'] = authcode(cache_load('cloud:transtoken'), 'DECODE');
 	$string = (md5($file) . $ret['path'] . $_W['setting']['site']['token']);
 	if(!empty($_W['setting']['site']['token']) && md5($string) === $ret['sign']) {
-		//模块和微官网模板无需先放在data下，系统文件需放在data下以防升级时文件没有更新完而报错
-		//$path = IA_ROOT . $ret['path'];
-		if (strpos($ret['path'], '/web/') === 0 || strpos($ret['path'], '/framework/') === 0) {
-			$patch_path = sprintf('%s/data/patch/upgrade/%s', IA_ROOT, date('Ymd'));
-		} else {
-			$patch_path = IA_ROOT;
-		}
-		$path = $patch_path . $ret['path'];
+		$path = IA_ROOT . $ret['path'];
 		load()->func('file');
 		@mkdirs(dirname($path));
 		file_put_contents($path, $file);
@@ -100,10 +107,10 @@ if($do == 'download') {
 			exit('success');
 		}
 	}
-	exit('failed');
+	exit("failed$post ".$_W['setting']['site']['token']);
 }
 
-if(in_array($do, array('module.query', 'module.bought', 'module.info', 'module.build', 'theme.query', 'theme.info', 'theme.build', 'application.build'))) {
+if(in_array($do, array('module.query', 'module.info', 'module.build', 'theme.query', 'theme.info', 'theme.build', 'application.build'))) {
 	$dat = __secure_decode($post);
 	if(!empty($dat)) {
 		$secret = random(32);
@@ -117,14 +124,73 @@ if(in_array($do, array('module.query', 'module.bought', 'module.info', 'module.b
 
 if ($do == 'module.setting.cloud') {
 	$data = __secure_decode($post);
-	$data = iunserializer($data);
+	$data = unserialize($data);
 	$setting = $data['setting'];
 	$uniacid = $data['acid'];
+	
+	foreach ($data['struct'] as $name => $type) {
+		if ($type == 'image') {
+			$url = $setting[$name];
+			if (empty($url)) {
+				$setting[$name] = '';
+			} else {
+				$attach = cloud_resource_to_local($uniacid, 'image', $url);
+				if (!is_error($attach)) {
+					$setting[$name] = $attach['attachment'];
+				} else {
+					echo "单图上传(字段: {$name})中图片本地化失败. ";
+					exit;
+				}
+			}
+		} elseif ($type == 'richtext'){
+			$content = $setting[$name];
+			if (empty($content)) {
+				$setting[$name] = '';
+				continue;
+			}
+			preg_match_all('/src=&quot;(\S*)&quot;/', $content, $matches);
+			if ($matches[1]) {
+				$new_urls = array();
+				foreach ($matches[1] as $url) {
+					$attach = cloud_resource_to_local($uniacid, 'image', $url);
+					if (!is_error($attach)) {
+						$new_urls[] = $attach['url'];;
+					} else {
+						echo "富文本(字段 {$name})中图片本地化失败";
+						exit;
+					}
+				};
+				$setting[$name] = str_replace($matches[1], $new_urls, $setting[$name]);
+			} else {
+				$setting[$name] = $content;
+			}
+		} elseif ($type == 'images'){
+			if (empty($setting[$name])) {
+				$setting[$name] = array();
+				continue;
+			}
+			foreach ($setting[$name] as $idx => $url) {
+				if (empty($url)) {
+					$setting[$name][$idx] = '';
+					continue;
+				} else {
+					$attach = cloud_resource_to_local($uniacid, 'image', $url);
+					if (!is_error($attach)) {
+						$setting[$name][$idx] = $attach['attachment'];
+					} else {
+						echo "多图上传(字段 {$name})中图片本地化失败";
+						exit;
+					}
+				}
+			}
+		}
+	}
+	
 	$_W['uniacid'] = $data['acid'];
 	$module = WeUtility::createModule($data['module']);
 	$module->saveSettings($setting);
-	cache_delete(cache_system_key('module_info', array('module_name' => $data['module'])));
-	cache_delete(cache_system_key('module_setting', array('module_name' => $data['module'], 'uniacid' => $_W['uniacid'])), $setting);
+	cache_write("modulesetting:{$data['acid']}:{$data['module']}", $setting);
+	
 	echo 'success';
 	exit;
 }

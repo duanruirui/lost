@@ -1,7 +1,7 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -11,10 +11,7 @@ class WxappTable extends AccountTable {
 	protected $tableName ='wxapp_versions';
 	private $version_table = 'wxapp_versions';
 	
-	/**
-	 * 获取小程序最新的4个版本
-	 * @param int $uniacid
-	 */
+	
 	public function latestVersion($uniacid) {
 		if (empty($uniacid)) {
 			return array();

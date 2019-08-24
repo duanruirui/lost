@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('module');
@@ -10,8 +10,15 @@ if (!empty($_W['uid'])) {
 	exit;
 }
 
-/*获取站点配置信息*/
+
 $settings = $_W['setting'];
+
+	if (!empty($settings['site_welcome_module'])) {
+		$site = WeUtility::createModuleSystemWelcome($settings['site_welcome_module']);
+		if (!is_error($site)) {
+			exit($site->systemWelcomeDisplay());
+		}
+	}
 
 $copyright = $settings['copyright'];
 $copyright['slides'] = iunserializer($copyright['slides']);

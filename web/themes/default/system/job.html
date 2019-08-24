@@ -1,11 +1,13 @@
 {template 'common/header'}
-<!-- <ul class="we7-page-tab">
+<div class="we7-page-title">查看日志</div>
+<ul class="we7-page-tab">
 	<li><a href="{php echo url('utility/job/display');}">任务列表</a></li>
-</ul> -->
+
+</ul>
 <div class="clearfix" ng-controller="we7job-base-controller" id="we7job">
 
-	<div class="pull-right we7-margin-bottom" >
-		<a class="btn btn-primary" href="{php echo url('system/job/clear')}">清除已完成任务</a>
+	<div class="right" style="padding-bottom: 10px; float: right;">
+		<a class="btn btn-default" href="{php echo url('system/job/clear')}">清除已完成任务</a>
 	</div>
 
 	<table class="table we7-table table-hover">

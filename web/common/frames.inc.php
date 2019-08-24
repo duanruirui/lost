@@ -1,283 +1,762 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
-global $_W;
 
 $we7_system_menu = array();
-$we7_system_menu['welcome'] = array(
-	'title' => '首页',
-	'icon' => 'wi wi-home',
-	'url' => url('home/welcome/system', array('page' => 'home')),
-	'section' => array(),
-);
 
 $we7_system_menu['platform'] = array(
-	'title' => '平台入口',
+	'title' => '平台',
 	'icon' => 'wi wi-platform',
-	'dimension' => 2,
 	'url' => url('account/display/platform'),
 	'section' => array(),
 );
 
+$we7_system_menu['account'] = array(
+	'title' => '公众号',
+	'icon' => 'wi wi-white-collar',
+	'url' => url('home/welcome/platform'),
+	'section' => array(
+		'platform_plus' => array(
+			'title' => '增强功能',
+			'menu' => array(
+				'platform_reply' => array(
+					'title' => '自动回复',
+					'url' => url('platform/reply'),
+					'icon' => 'wi wi-reply',
+					'permission_name' => 'platform_reply',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+						ACCOUNT_TYPE_XZAPP_NORMAL,
+						ACCOUNT_TYPE_XZAPP_AUTH,
+					),
+					'sub_permission' => array(
+																																																																													),
+				),
+				'platform_menu' => array(
+					'title' => '自定义菜单',
+					'url' => url('platform/menu/post'),
+					'icon' => 'wi wi-custommenu',
+					'permission_name' => 'platform_menu',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+						ACCOUNT_TYPE_XZAPP_NORMAL,
+						ACCOUNT_TYPE_XZAPP_AUTH,
+					),
+				),
+				'platform_qr' => array(
+					'title' => '二维码/转化链接',
+					'url' => url('platform/qr'),
+					'icon' => 'wi wi-qrcode',
+					'permission_name' => 'platform_qr',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+					),
+					'sub_permission' => array(
+																																																					),
+				),
+				'platform_mass_task' => array(
+					'title' => '定时群发',
+					'url' => url('platform/mass'),
+					'icon' => 'wi wi-crontab',
+					'permission_name' => 'platform_mass_task',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+						ACCOUNT_TYPE_XZAPP_NORMAL,
+						ACCOUNT_TYPE_XZAPP_AUTH,
+					),
+				),
+				'platform_material' => array(
+					'title' => '素材/编辑器',
+					'url' => url('platform/material'),
+					'icon' => 'wi wi-redact',
+					'permission_name' => 'platform_material',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+						ACCOUNT_TYPE_XZAPP_NORMAL,
+						ACCOUNT_TYPE_XZAPP_AUTH,
+					),
+					'sub_permission' => array(
+						array(
+							'title' => '添加/编辑',
+							'url' => url('platform/material-post'),
+							'permission_name' => 'material_post',
+						),
+						array(
+							'title' => '删除',
+							'permission_name' => 'platform_material_delete',
+						),
+					),
+				),
+				'platform_site' => array(
+					'title' => '微官网-文章',
+					'url' => url('site/multi/display'),
+					'icon' => 'wi wi-home',
+					'permission_name' => 'platform_site',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+					),
+					'sub_permission' => array(
+																																																					),
+				)
+			),
+		),
+		'platform_module' => array(
+			'title' => '应用模块',
+			'menu' => array(),
+			'is_display' => true,
+		),
+		'mc' => array(
+			'title' => '粉丝',
+			'menu' => array(
+				'mc_fans' => array(
+					'title' => '粉丝管理',
+					'url' => url('mc/fans'),
+					'icon' => 'wi wi-fansmanage',
+					'permission_name' => 'mc_fans',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+						ACCOUNT_TYPE_XZAPP_NORMAL,
+						ACCOUNT_TYPE_XZAPP_AUTH,
+					),
+				),
+				'mc_member' => array(
+					'title' => '会员管理',
+					'url' => url('mc/member'),
+					'icon' => 'wi wi-fans',
+					'permission_name' => 'mc_member',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+						ACCOUNT_TYPE_XZAPP_NORMAL,
+						ACCOUNT_TYPE_XZAPP_AUTH,
+					),
+				)
+			),
+		),
+		'profile' => array(
+			'title' => '配置',
+			'menu' => array(
+				'profile' => array(
+					'title' => '参数配置',
+					'url' => url('profile/passport'),
+					'icon' => 'wi wi-parameter-setting',
+					'permission_name' => 'profile_setting',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+					),
+				),
+				'payment' => array(
+					'title' => '支付参数',
+					'url' => url('profile/payment'),
+					'icon' => 'wi wi-pay-setting',
+					'permission_name' => 'profile_pay_setting',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+					),
+				),
+				'app_module_link' => array(
+					'title' => "数据同步",
+					'url' => url('profile/module-link-uniacid'),
+					'is_display' => 1,
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'profile_app_module_link_uniacid',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+					),
+				),
+				
+				'bind_domain' => array(
+					'title' => '域名绑定',
+					'url' => url('profile/bind-domain'),
+					'icon' => 'wi wi-bind-domain',
+					'permission_name' => 'profile_bind_domain',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+					),
+				),
+				
+			),
+		),
+		
+		'statistics' => array(
+			'title' => '统计',
+			'menu' => array(
+				'statistics_app' => array(
+					'title' => '访问统计',
+					'url' => url('statistics/app'),
+					'icon' => 'wi wi-statistical',
+					'permission_name' => 'statistics_app',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+					),
+				),
+				'statistics_fans' => array(
+					'title' => '用户统计',
+					'url' => url('statistics/fans'),
+					'icon' => 'wi wi-statistical',
+					'permission_name' => 'statistics_fans',
+					'is_display' => array(
+						ACCOUNT_TYPE_OFFCIAL_NORMAL,
+						ACCOUNT_TYPE_OFFCIAL_AUTH,
+					),
+				),
+			),
+		),
+		
+	),
+);
+
+$we7_system_menu['wxapp'] = array(
+	'title' => '小程序',
+	'icon' => 'wi wi-small-routine',
+	'url' => url('wxapp/display/home'),
+	'section' => array(
+		'wxapp_entrance' => array(
+			'title' => '小程序入口',
+			'menu' => array(
+				'module_entrance_link' => array(
+					'title' => "入口页面",
+					'url' => url('wxapp/entrance-link'),
+					'is_display' => 1,
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'wxapp_entrance_link',
+				),
+			),
+			'is_display' => true,
+		),
+		'wxapp_module' => array(
+			'title' => '应用',
+			'menu' => array(),
+			'is_display' => true,
+		),
+		'mc' => array(
+			'title' => '粉丝',
+			'menu' => array(
+				'wxapp_member' => array(
+					'title' => '会员',
+					'url' => url('mc/member'),
+					'is_display' => 1,
+					'icon' => 'wi wi-fans',
+					'permission_name' => 'wxapp_member',
+				)
+			),
+		),
+		'wxapp_profile' => array(
+			'title' => '配置',
+			'menu' => array(
+				'wxapp_module_link' => array(
+					'title' => "数据同步",
+					'url' => url('wxapp/module-link-uniacid'),
+					'is_display' => 1,
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'wxapp_module_link_uniacid',
+				),
+				'wxapp_payment' => array(
+					'title' => '支付参数',
+					'url' => url('wxapp/payment'),
+					'is_display' => 1,
+					'icon' => 'wi wi-appsetting',
+					'permission_name' => 'wxapp_payment',
+				),
+				'front_download' => array(
+					'title' => '上传微信审核',
+					'url' => url('wxapp/front-download'),
+					'is_display' => 1,
+					'icon' => 'wi wi-examine',
+					'permission_name' => 'wxapp_front_download',
+				),
+				'parameter_setting' => array(
+					'title' => '参数配置',
+					'url' => url('profile/remote'),
+					'is_display' => 1,
+					'icon' => 'wi wi-parameter-setting',
+					'permission_name' => 'wxapp_setting',
+				),
+				'wxapp_platform_material' => array(
+					'title' => '素材管理',
+					'is_display' => 0,
+					'permission_name' => 'wxapp_platform_material',
+					'sub_permission' => array(
+						array(
+							'title' => '删除',
+							'permission_name' => 'wxapp_platform_material_delete',
+						),
+					),
+				),
+			)
+		),
+		
+		'statistics' => array(
+			'title' => '统计',
+			'menu' => array(
+				'statistics_fans' => array(
+					'title' => '访问统计',
+					'url' => url('wxapp/statistics'),
+					'icon' => 'wi wi-statistical',
+					'permission_name' => 'statistics_fans',
+					'is_display' => array(
+						ACCOUNT_TYPE_APP_NORMAL,
+						ACCOUNT_TYPE_APP_AUTH,
+						ACCOUNT_TYPE_WXAPP_WORK,
+					),
+				),
+			),
+		),
+		
+	),
+);
+
+$we7_system_menu['webapp'] = array(
+	'title' => 'PC',
+	'icon' => 'wi wi-pc',
+	'url' => url('webapp/home/display'),
+	'section' => array(
+		'platform_module' => array(
+			'title' => '应用模块',
+			'menu' => array(),
+			'is_display' => true,
+		),
+		'mc' => array(
+			'title' => '粉丝',
+			'menu' => array(
+				'mc_member' => array(
+					'title' => '会员管理',
+					'url' => url('mc/member'),
+					'icon' => 'wi wi-fans',
+					'permission_name' => 'mc_member',
+				)
+			),
+		),
+		'webapp' => array(
+			'title' => '配置',
+			'menu' => array(
+				'webapp_module_link' => array(
+					'title' => "数据同步",
+					'url' => url('webapp/module-link-uniacid'),
+					'is_display' => 1,
+					'icon' => 'wi wi-data-synchro',
+					'permission_name' => 'webapp_module_link_uniacid',
+				),
+				'webapp_rewrite' => array(
+					'title' => '伪静态',
+					'url' => url('webapp/rewrite'),
+					'icon' => 'wi wi-rewrite',
+					'permission_name' => 'webapp_rewrite',
+				),
+				
+				'webapp_bind_domain' => array(
+					'title' => '域名访问设置',
+					'url' => url('webapp/bind-domain'),
+					'icon' => 'wi wi-bind-domain',
+					'permission_name' => 'webapp_bind_domain',
+				),
+				
+			),
+		),
+	),
+);
+
+$we7_system_menu['phoneapp'] = array(
+	'title' => 'APP',
+	'icon' => 'wi wi-white-collar',
+	'url' => url('phoneapp/display/home'),
+	'section' => array(
+		'phoneapp_module' => array(
+			'title' => '应用',
+			'menu' => array(),
+			'is_display' => true,
+		),
+		'phoneapp_profile' => array(
+			'title' => '配置',
+			'menu' => array(
+				'front_download' => array(
+					'title' => '下载APP',
+					'url' => url('phoneapp/front-download'),
+					'is_display' => 1,
+					'icon' => 'wi wi-examine',
+					'permission_name' => 'phoneapp_front_download',
+				)
+			)
+		)
+	),
+);
+
+$we7_system_menu['xzapp'] = array(
+	'title' => '熊掌号',
+	'icon' => 'wi wi-white-collar',
+	'url' => url('xzapp/home/display'),
+	'section' => array(
+		'platform_module' => array(
+			'title' => '应用模块',
+			'menu' => array(),
+			'is_display' => true,
+		),
+	),
+);
+
 $we7_system_menu['module'] = array(
-	'title' => '应用入口',
+	'title' => '应用',
 	'icon' => 'wi wi-apply',
-	'dimension' => 2,
-	'url' => url('module/display/switch_last_module'),
+	'url' => url('module/display'),
 	'section' => array(),
 );
 
-$we7_system_menu['account_manage'] = array(
-	'title' => '平台管理',
-	'icon' => 'wi wi-platform-manage',
-	'dimension' => 2,
-	'url' => url('account/manage'),
-	'section' => array(
-		'account_manage' => array(
-			'title' => '平台管理',
-			'menu' => array(
-				'account_manage_display' => array(
-					'title' => '平台列表',
-					'url' => url('account/manage'),
-					'permission_name' => 'account_manage_display',
-					'sub_permission' => array(
-						array(
-							'title' => '帐号停用',
-							'permission_name' => 'account_manage_stop',
-						),
-					),
-				),
-				'account_manage_recycle' => array(
-					'title' => '回收站',
-					'url' => url('account/recycle'),
-					'permission_name' => 'account_manage_recycle',
-					'sub_permission' => array(
-						array(
-							'title' => '帐号删除',
-							'permission_name' => 'account_manage_delete',
-						),
-						array(
-							'title' => '帐号恢复',
-							'permission_name' => 'account_manage_recover',
-						),
-					),
-				),
-				'account_manage_system_platform' => array(
-					'title' => ' 微信开放平台',
-					'url' => url('system/platform'),
-					'permission_name' => 'account_manage_system_platform',
-				),
-				'account_manage_expired_message' => array(
-					'title' => ' 自定义到期提示',
-					'url' => url('account/expired-message'),
-					'permission_name' => 'account_manage_expired_message',
-				),
-			),
-		),
-	),
-);
-
-$we7_system_menu['module_manage'] = array(
-	'title' => '应用管理',
-	'icon' => 'wi wi-module-manage',
-	'dimension' => 2,
-	'url' => url('module/manage-system/installed'),
-	'section' => array(
-		'module_manage' => array(
-			'title' => '应用管理',
-			'menu' => array(
-				'module_manage_installed' => array(
-					'title' => '已安装列表',
-					'url' => url('module/manage-system/installed'),
-					'permission_name' => 'module_manage_installed',
-					'sub_permission' => array(),
-				),
-				'module_manage_stoped' => array(
-					'title' => '已停用列表',
-					'url' => url('module/manage-system/recycle', array('type' => MODULE_RECYCLE_INSTALL_DISABLED)),
-					'permission_name' => 'module_manage_stoped',
-					'sub_permission' => array(),
-				),
-				'module_manage_not_installed' => array(
-					'title' => '未安装列表',
-					'url' => url('module/manage-system/not_installed'),
-					'permission_name' => 'module_manage_not_installed',
-					'sub_permission' => array(),
-				),
-				'module_manage_recycle' => array(
-					'title' => '回收站',
-					'url' => url('module/manage-system/recycle', array('type' => MODULE_RECYCLE_UNINSTALL_IGNORE)),
-					'permission_name' => 'module_manage_recycle',
-					'sub_permission' => array(),
-				),
-				'module_manage_subscribe' => array(
-					'title' => '订阅管理',
-					'url' => url('module/manage-system/subscribe'),
-					'permission_name' => 'module_manage_subscribe',
-					'sub_permission' => array(),
-				),
-			),
-		),
-	),
-);
-
-$we7_system_menu['user_manage'] = array(
-	'title' => '用户管理',
-	'icon' => 'wi wi-user-group',
-	'dimension' => 2,
-	'url' => url('user/display'),
-	'section' => array(
-		'user_manage' => array(
-			'title' => '用户管理',
-			'menu' => array(
-				'user_manage_display' => array(
-					'title' => '普通用户',
-					'url' => url('user/display'),
-					'permission_name' => 'user_manage_display',
-					'sub_permission' => array(),
-				),
-				
-				'user_manage_clerk' => array(
-					'title' => '店员管理',
-					'url' => url('user/display', array('type' => 'clerk')),
-					'permission_name' => 'user_manage_clerk',
-					'sub_permission' => array(),
-				),
-				'user_manage_check' => array(
-					'title' => '审核用户',
-					'url' => url('user/display', array('type' => 'check')),
-					'permission_name' => 'user_manage_check',
-					'sub_permission' => array(),
-				),
-				'user_manage_recycle' => array(
-					'title' => '回收站',
-					'url' => url('user/display', array('type' => 'recycle')),
-					'permission_name' => 'user_manage_recycle',
-					'sub_permission' => array(),
-				),
-				'user_manage_fields' => array(
-					'title' => '用户属性设置',
-					'url' => url('user/fields/display'),
-					'permission_name' => 'user_manage_fields',
-					'sub_permission' => array(),
-					'founder' => true,
-				),
-				'user_manage_expire' => array(
-					'title' => '用户过期设置',
-					'url' => url('user/expire'),
-					'permission_name' => 'user_manage_expire',
-					'sub_permission' => array(),
-					'founder' => true,
-				),
-			),
-		),
-	),
-);
-
-$we7_system_menu['permission'] = array(
-	'title' => '权限组',
-	'icon' => 'wi wi-userjurisdiction',
-	'dimension' => 2,
-	'url' => url('module/group'),
-	'section' => array(
-		'permission' => array(
-			'title' => '权限组',
-			'menu' => array(
-				'permission_module_group' => array(
-					'title' => '应用权限组',
-					'url' => url('module/group'),
-					'permission_name' => 'permission_module_group',
-					'sub_permission' => array(),
-				),
-				'permission_create_account_group' => array(
-					'title' => '账号权限组',
-					'url' => url('user/create-group'),
-					'permission_name' => 'permission_create_account_group',
-					'sub_permission' => array(),
-				),
-				'permission_user_group' => array(
-					'title' => '用户权限组合',
-					'url' => url('user/group'),
-					'permission_name' => 'permission_user_group',
-					'sub_permission' => array(),
-				),
-				
-			),
-		),
-	),
-);
-
 $we7_system_menu['system'] = array(
-	'title' => '系统功能',
+	'title' => '系统',
 	'icon' => 'wi wi-setting',
-	'dimension' => 3,
-	'url' => user_is_founder($_W['uid'], true) ? url('article/notice') : url('system/updatecache'),
+	'url' => url('home/welcome/system'),
 	'section' => array(
-		'article' => array(
-			'title' => '站内公告',
+		'wxplatform' => array(
+			'title' => '公众号',
 			'menu' => array(
-				'system_article' => array(
-					'title' => '站内公告',
-					'url' => url('article/notice'),
-					'icon' => 'wi wi-article',
-					'permission_name' => 'system_article',
+				'system_account' => array(
+					'title' => ' 微信公众号',
+					'url' => url('account/manage', array('account_type' => '1')),
+					'icon' => 'wi wi-wechat',
+					'permission_name' => 'system_account',
 					'sub_permission' => array(
 						array(
-							'title' => '公告列表',
-							'permission_name' => 'system_article_notice_list',
+							'title' => '公众号管理设置',
+							'permission_name' => 'system_account_manage',
 						),
 						array(
-							'title' => '公告分类',
-							'permission_name' => 'system_article_notice_category',
+							'title' => '添加公众号',
+							'permission_name' => 'system_account_post',
+						),
+						array(
+							'title' => '公众号停用',
+							'permission_name' => 'system_account_stop',
+						),
+						array(
+							'title' => '公众号回收站',
+							'permission_name' => 'system_account_recycle',
+						),
+						array(
+							'title' => '公众号删除',
+							'permission_name' => 'system_account_delete',
+						),
+						array(
+							'title' => '公众号恢复',
+							'permission_name' => 'system_account_recover',
 						),
 					),
 				),
-			),
-			'founder' => true
-		),
-		'system_template' => array(
-			'title' => '模板',
-			'menu' => array(
+				'system_module' => array(
+					'title' => '公众号应用',
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_ACCOUNT_NAME)),
+					'icon' => 'wi wi-wx-apply',
+					'permission_name' => 'system_module',
+				),
 				'system_template' => array(
 					'title' => '微官网模板',
 					'url' => url('system/template'),
 					'icon' => 'wi wi-wx-template',
 					'permission_name' => 'system_template',
 				),
-			),
-			'founder' => true
+				'system_platform' => array(
+					'title' => ' 微信开放平台',
+					'url' => url('system/platform'),
+					'icon' => 'wi wi-exploitsetting',
+					'permission_name' => 'system_platform',
+				),
+			)
 		),
-		'sms' => array(
-			'title' => '短信',
+		'module' => array(
+			'title' => '小程序',
 			'menu' => array(
-				'system_cloud_sms' => array(
-					'title' => '短信管理',
-					'url' => url('cloud/sms'),
-					'icon' => 'wi wi-sms',
-					'permission_name' => 'system_cloud_sms',
+				'system_wxapp' => array(
+					'title' => '微信小程序',
+					'url' => url('account/manage', array('account_type' => '4')),
+					'icon' => 'wi wi-wxapp',
+					'permission_name' => 'system_wxapp',
+					'sub_permission' => array(
+						array(
+							'title' => '小程序管理设置',
+							'permission_name' => 'system_wxapp_manage',
+						),
+						array(
+							'title' => '添加小程序',
+							'permission_name' => 'system_wxapp_post',
+						),
+						array(
+							'title' => '小程序停用',
+							'permission_name' => 'system_wxapp_stop',
+						),
+						array(
+							'title' => '小程序回收站',
+							'permission_name' => 'system_wxapp_recycle',
+						),
+						array(
+							'title' => '小程序删除',
+							'permission_name' => 'system_wxapp_delete',
+						),
+						array(
+							'title' => '小程序恢复',
+							'permission_name' => 'system_wxapp_recover',
+						),
+					),
 				),
-				'system_cloud_sms_sign' => array(
-					'title' => '短信签名',
-					'url' => url('cloud/sms-sign'),
-					'icon' => 'wi wi-sms-sign',
-					'permission_name' => 'system_cloud_sms_sign',
-					'is_display' => false,
+				'system_module_wxapp' => array(
+					'title' => '小程序应用',
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_WXAPP_NAME)),
+					'icon' => 'wi wi-wxapp-apply',
+					'permission_name' => 'system_module_wxapp',
 				),
-				'system_sms_mass' => array(
-					'title' => '短信群发',
-					'url' => url('cloud/sms-mass'),
-					'icon' => 'wi wi-sms-sign',
-					'permission_name' => 'system_cloud_sms_mass',
-					'is_display' => false,
+			)
+		),
+		
+		'welcome' => array(
+			'title' => '系统首页',
+			'menu' => array(
+				'system_welcome' => array(
+					'title' => '系统首页应用',
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_SYSTEMWELCOME_NAME)),
+					'icon' => 'wi wi-wxapp',
+					'permission_name' => 'system_welcome',
 				)
 			),
 			'founder' => true
 		),
 		
+		'webapp' => array(
+			'title' => 'PC',
+			'menu' => array(
+				'system_webapp' => array(
+					'title' => 'PC',
+					'url' => url('account/manage', array('account_type' => ACCOUNT_TYPE_WEBAPP_NORMAL)),
+					'icon' => 'wi wi-pc',
+					'permission_name' => 'system_webapp',
+					'sub_permission' => array(
+					),
+				),
+				'system_module_webapp' => array(
+					'title' => 'PC应用',
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_WEBAPP_NAME)),
+					'icon' => 'wi wi-pc-apply',
+					'permission_name' => 'system_module_webapp',
+				),
+			)
+		),
+		'phoneapp' => array(
+			'title' => 'APP',
+			'menu' => array(
+				'system_phoneapp' => array(
+					'title' => 'APP',
+					'url' => url('account/manage', array('account_type' => ACCOUNT_TYPE_PHONEAPP_NORMAL)),
+					'icon' => 'wi wi-app',
+					'permission_name' => 'system_phoneapp',
+					'sub_permission' => array(
+					),
+				),
+				'system_module_phoneapp' => array(
+					'title' => 'APP应用',
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_PHONEAPP_NAME)),
+					'icon' => 'wi wi-app-apply',
+					'permission_name' => 'system_module_phoneapp',
+				),
+			)
+		),
+		'xzapp' => array(
+			'title' => '熊掌号',
+			'menu' => array(
+				'system_xzapp' => array(
+					'title' => '熊掌号',
+					'url' => url('account/manage', array('account_type' => ACCOUNT_TYPE_XZAPP_NORMAL)),
+					'icon' => 'wi wi-xzapp',
+					'permission_name' => 'system_xzapp',
+					'sub_permission' => array(
+					),
+				),
+				'system_module_xzapp' => array(
+					'title' => '熊掌号应用',
+					'url' => url('module/manage-system', array('support' => MODULE_SUPPORT_XZAPP_NAME)),
+					'icon' => 'wi wi-xzapp-apply',
+					'permission_name' => 'system_module_xzapp',
+				),
+			)
+		),
 
+		'user' => array(
+			'title' => '帐户/用户',
+			'menu' => array(
+				'system_my' => array(
+					'title' => '我的帐户',
+					'url' => url('user/profile'),
+					'icon' => 'wi wi-user',
+					'permission_name' => 'system_my',
+				),
+				'system_user' => array(
+					'title' => '用户管理',
+					'url' => url('user/display'),
+					'icon' => 'wi wi-user-group',
+					'permission_name' => 'system_user',
+					'sub_permission' => array(
+						array(
+							'title' => '编辑用户',
+							'permission_name' => 'system_user_post',
+						),
+						array(
+							'title' => '审核用户',
+							'permission_name' => 'system_user_check',
+						),
+						array(
+							'title' => '店员管理',
+							'permission_name' => 'system_user_clerk',
+						),
+						array(
+							'title' => '用户回收站',
+							'permission_name' => 'system_user_recycle',
+						),
+						array(
+							'title' => '用户属性设置',
+							'permission_name' => 'system_user_fields',
+						),
+						array(
+							'title' => '用户属性设置-编辑字段',
+							'permission_name' => 'system_user_fields_post',
+						),
+						array(
+							'title' => '用户注册设置',
+							'permission_name' => 'system_user_registerset',
+						),
+					),
+				),
+				
+				'system_user_founder_group' => array(
+					'title' => '副创始人组',
+					'url' => url('founder/display'),
+					'icon' =>'wi wi-co-founder',
+					'permission_name' =>'system_founder_manage',
+					'sub_permission' => array(
+						array(
+							'title' => '添加创始人组',
+							'permission_name' => 'system_founder_group_add',
+						),
+						array(
+							'title' => '编辑创始人组',
+							'permission_name' => 'system_founder_group_post',
+						),
+						array(
+							'title' => '删除创始人组',
+							'permission_name' => 'system_founder_group_del',
+						),
+						array(
+							'title' => '添加创始人',
+							'permission_name' => 'system_founder_user_add',
+						),
+						array(
+							'title' => '编辑创始人',
+							'permission_name' => 'system_founder_user_post',
+						),
+						array(
+							'title' => '删除创始人',
+							'permission_name' => 'system_founder_user_del',
+						),
+					),
+				),
+				
+			)
+		),
+		'permission' => array(
+			'title' => '权限管理',
+			'menu' => array(
+				'system_module_group' => array(
+					'title' => '应用权限组',
+					'url' => url('module/group'),
+					'icon' => 'wi wi-appjurisdiction',
+					'permission_name' => 'system_module_group',
+					'sub_permission' => array(
+						array(
+							'title' => '添加应用权限组',
+							'permission_name' => 'system_module_group_add',
+						),
+						array(
+							'title' => '编辑应用权限组',
+							'permission_name' => 'system_module_group_post',
+						),
+						array(
+							'title' => '删除应用权限组',
+							'permission_name' => 'system_module_group_del',
+						),
+					),
+				),
+				'system_user_group' => array(
+					'title' => '用户权限组',
+					'url' => url('user/group'),
+					'icon' => 'wi wi-userjurisdiction',
+					'permission_name' => 'system_user_group',
+					'sub_permission' => array(
+						array(
+							'title' => '添加用户组',
+							'permission_name' => 'system_user_group_add',
+						),
+						array(
+							'title' => '编辑用户组',
+							'permission_name' => 'system_user_group_post',
+						),
+						array(
+							'title' => '删除用户组',
+							'permission_name' => 'system_user_group_del',
+						),
+					),
+				),
+			)
+		),
+		'article' => array(
+			'title' => '文章/公告',
+			'menu' => array(
+				'system_article' => array(
+					'title' => '文章管理',
+					'url' => url('article/news'),
+					'icon' => 'wi wi-article',
+					'permission_name' => 'system_article_news',
+				),
+				'system_article_notice' => array(
+					'title' => '公告管理',
+					'url' => url('article/notice'),
+					'icon' => 'wi wi-notice',
+					'permission_name' => 'system_article_notice',
+				)
+			)
+		),
+		'message' => array(
+			'title' => '消息提醒',
+			'menu' => array(
+				'system_message_notice' => array(
+					'title' => '消息提醒',
+					'url' => url('message/notice'),
+					'icon' => 'wi wi-bell',
+					'permission_name' => 'system_message_notice',
+				)
+			)
+		),
+		
+		'system_statistics' => array(
+			'title' => '统计',
+			'menu' => array(
+				'system_account_analysis' => array(
+					'title' => 	'访问统计',
+					'url' => url('statistics/account'),
+					'icon' => 'wi wi-statistical',
+					'permission_name' => 'system_account_analysis',
+				),
+			)
+		),
 		
 		'cache' => array(
 			'title' => '缓存',
@@ -294,9 +773,8 @@ $we7_system_menu['system'] = array(
 );
 
 $we7_system_menu['site'] = array(
-	'title' => '站点设置',
+	'title' => '站点',
 	'icon' => 'wi wi-system-site',
-	'dimension' => 3,
 	'url' => url('cloud/upgrade'),
 	'section' => array(
 		'cloud' => array(
@@ -320,6 +798,7 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-diagnose',
 					'permission_name' => 'system_cloud_diagnose',
 				),
+
 			)
 		),
 		'setting' => array(
@@ -374,7 +853,7 @@ $we7_system_menu['site'] = array(
 					'permission_name' => 'system_setting_thirdlogin',
 				),
 				'system_setting_oauth' => array(
-					'title' => '全局借用权限',
+					'title' => 'oauth全局设置',
 					'url' => url('system/oauth'),
 					'icon' => 'wi wi-oauth',
 					'permission_name' => 'system_setting_oauth',
@@ -414,14 +893,9 @@ $we7_system_menu['site'] = array(
 					'icon' => 'wi wi-bom',
 					'permission_name' => 'system_utility_bom',
 				),
-				'system_utility_check' => array(
-					'title' => '系统常规检测',
-					'url' => url('system/check'),
-					'icon' => 'wi wi-bom',
-					'permission_name' => 'system_utility_check',
-				),
 			)
 		),
+
 		'backjob'=> array(
 			'title' => '后台任务',
 			'menu'=> array(
@@ -437,952 +911,24 @@ $we7_system_menu['site'] = array(
 	'founder' => true,
 );
 
-$we7_system_menu['myself'] = array(
-	'title' => '我的账户',
-	'icon' => 'wi wi-bell',
-	'dimension' => 2,
-	'url' => url('user/profile'),
-	'section' => array(),
-);
 
-$we7_system_menu['message'] = array(
-	'title' => '消息管理',
-	'icon' => 'wi wi-bell',
-	'dimension' => 2,
-	'url' => url('message/notice'),
-	'section' => array(
-		'message' => array(
-			'title' => '消息管理',
-			'menu' => array(
-				'message_notice' => array(
-					'title' => '消息提醒',
-					'url' => url('message/notice'),
-					'permission_name' => 'message_notice',
-				),
-				'message_setting' => array(
-					'title' => '消息设置',
-					'url' => url('message/notice/setting'),
-					'permission_name' => 'message_setting',
-				),
-				'message_wechat_setting' => array(
-					'title' => '微信提醒设置',
-					'url' => url('message/notice/wechat_setting'),
-					'permission_name' => 'message_wechat_setting',
-					'founder' => true,
-				),
-			),
-		),
-	),
-);
-
-$we7_system_menu['account'] = array(
-	'title' => '公众号',
-	'icon' => 'wi wi-white-collar',
-	'dimension' => 3,
-	'url' => url('home/welcome/platform'),
-	'section' => array(
-		'platform' => array(
-			'title' => '增强功能',
-			'menu' => array(
-				'platform_reply' => array(
-					'title' => '自动回复',
-					'url' => url('platform/reply'),
-					'icon' => 'wi wi-reply',
-					'permission_name' => 'platform_reply',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-					),
-					'sub_permission' => array(
-						'platform_reply_keyword' => array(
-							'title' => '关键字自动回复',
-							'url' => url('platform/reply', array('m' => 'keyword')),
-							'permission_name' => 'platform_reply_keyword',
-							'active' => 'keyword',
-						),
-						'platform_reply_special' => array(
-							'title' => '非关键字自动回复',
-							'url' => url('platform/reply', array('m' => 'special')),
-							'permission_name' => 'platform_reply_special',
-							'active' => 'special',
-						),
-						'platform_reply_welcome' => array(
-							'title' => '首次访问自动回复',
-							'url' => url('platform/reply', array('m' => 'welcome')),
-							'permission_name' => 'platform_reply_welcome',
-							'active' => 'welcome',
-						),
-						'platform_reply_default' => array(
-							'title' => '默认回复',
-							'url' => url('platform/reply', array('m' => 'default')),
-							'permission_name' => 'platform_reply_default',
-							'active' => 'default',
-						),
-						'platform_reply_service' => array(
-							'title' => '常用服务',
-							'url' => url('platform/reply', array('m' => 'service')),
-							'permission_name' => 'platform_reply_service',
-							'active' => 'service',
-						),
-						'platform_reply_userapi' => array(
-							'title' => '自定义接口回复',
-							'url' => url('platform/reply', array('m' => 'userapi')),
-							'permission_name' => 'platform_reply_userapi',
-							'active' => 'userapi',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'platform_reply_setting' => array(
-							'title' => '回复设置',
-							'url' => url('profile/reply-setting'),
-							'permission_name' => 'platform_reply_setting',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-					),
-				),
-				'platform_menu' => array(
-					'title' => '自定义菜单',
-					'url' => url('platform/menu/post'),
-					'icon' => 'wi wi-custommenu',
-					'permission_name' => 'platform_menu',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-					),
-					'sub_permission' => array(
-						'platform_menu_default' => array(
-							'title' => '默认菜单',
-							'url' => url('platform/menu/post'),
-							'permission_name' => 'platform_menu_default',
-							'active' => 'post',
-						),
-						'platform_menu_conditional' => array(
-							'title' => '个性化菜单',
-							'url' => url('platform/menu/display', array('type' => MENU_CONDITIONAL)),
-							'permission_name' => 'platform_menu_conditional',
-							'active' => 'display',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-					),
-				),
-				'platform_qr' => array(
-					'title' => '二维码/转化链接',
-					'url' => url('platform/qr'),
-					'icon' => 'wi wi-qrcode',
-					'permission_name' => 'platform_qr',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-					),
-					'sub_permission' => array(
-						'platform_qr_qr' => array(
-							'title' => '二维码',
-							'url' => url('platform/qr/list'),
-							'permission_name' => 'platform_qr_qr',
-							'active' => 'list',
-						),
-						'platform_qr_statistics' => array(
-							'title' => '二维码扫描统计',
-							'url' => url('platform/qr/display'),
-							'permission_name' => 'platform_qr_statistics',
-							'active' => 'display',
-						),
-					),
-				),
-				'platform_masstask' => array(
-					'title' => '定时群发',
-					'url' => url('platform/mass'),
-					'icon' => 'wi wi-crontab',
-					'permission_name' => 'platform_masstask',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-					),
-					'sub_permission' => array(
-						'platform_masstask_post' => array(
-							'title' => '定时群发',
-							'url' => url('platform/mass/post'),
-							'permission_name' => 'platform_masstask_post',
-							'active' => 'post',
-						),
-						'platform_masstask_send' => array(
-							'title' => '群发记录',
-							'url' => url('platform/mass/send'),
-							'permission_name' => 'platform_masstask_send',
-							'active' => 'send',
-						),
-					),
-				),
-				'platform_material' => array(
-					'title' => '素材/编辑器',
-					'url' => url('platform/material'),
-					'icon' => 'wi wi-redact',
-					'permission_name' => 'platform_material',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-					),
-					'sub_permission' => array(
-						'platform_material_news' => array(
-							'title' => '图文',
-							'url' => url('platform/material', array('type' => 'news')),
-							'permission_name' => 'platform_material_news',
-							'active' => 'news',
-						),
-						'platform_material_image' => array(
-							'title' => '图片',
-							'url' => url('platform/material', array('type' => 'image')),
-							'permission_name' => 'platform_material_image',
-							'active' => 'image',
-						),
-						'platform_material_voice' => array(
-							'title' => '语音',
-							'url' => url('platform/material', array('type' => 'voice')),
-							'permission_name' => 'platform_material_voice',
-							'active' => 'voice',
-						),
-						'platform_material_video' => array(
-							'title' => '视频',
-							'url' => url('platform/material', array('type' => 'video')),
-							'permission_name' => 'platform_material_video',
-							'active' => 'video',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'platform_material_delete' => array(
-							'title' => '删除',
-							'permission_name' => 'platform_material_delete',
-							'is_display' => false,
-						),
-					),
-				),
-				'platform_site' => array(
-					'title' => '微官网-文章',
-					'url' => url('site/multi'),
-					'icon' => 'wi wi-home',
-					'permission_name' => 'platform_site',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-					),
-					'sub_permission' => array(
-						'platform_site_multi' => array(
-							'title' => '微官网',
-							'url' => url('site/multi/display'),
-							'permission_name' => 'platform_site_multi',
-							'active' => 'multi',
-						),
-						'platform_site_style' => array(
-							'title' => '微官网模板',
-							'url' => url('site/style/template'),
-							'permission_name' => 'platform_site_style',
-							'active' => 'style',
-						),
-						'platform_site_article' => array(
-							'title' => '文章管理',
-							'url' => url('site/article/display'),
-							'permission_name' => 'platform_site_article',
-							'active' => 'article',
-						),
-						'platform_site_category' => array(
-							'title' => '文章分类管理',
-							'url' => url('site/category/display'),
-							'permission_name' => 'platform_site_category',
-							'active' => 'category',
-						),
-					),
-				),
-			),
-			'permission_display' => array(
-				ACCOUNT_TYPE_OFFCIAL_NORMAL,
-				ACCOUNT_TYPE_OFFCIAL_AUTH,
-				ACCOUNT_TYPE_XZAPP_NORMAL,
-				ACCOUNT_TYPE_XZAPP_AUTH,
-			),
-		),
-		'platform_module' => array(
-			'title' => '应用模块',
-			'menu' => array(),
-			'is_display' => true,
-		),
-		'mc' => array(
-			'title' => '粉丝',
-			'menu' => array(
-				'mc_fans' => array(
-					'title' => '粉丝管理',
-					'url' => url('mc/fans'),
-					'icon' => 'wi wi-fansmanage',
-					'permission_name' => 'mc_fans',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-					),
-					'sub_permission' => array(
-						'mc_fans_display' => array(
-							'title' => '全部粉丝',
-							'url' => url('mc/fans/display'),
-							'permission_name' => 'mc_fans_display',
-							'active' => 'display',
-						),
-						'mc_fans_fans_sync_set' => array(
-							'title' => '粉丝同步设置',
-							'url' => url('mc/fans/fans_sync_set'),
-							'permission_name' => 'mc_fans_fans_sync_set',
-							'active' => 'fans_sync_set',
-						),
-					),
-				),
-				'mc_member' => array(
-					'title' => '会员管理',
-					'url' => url('mc/member', array('version_id' => $_GPC['version_id'])),
-					'icon' => 'wi wi-fans',
-					'permission_name' => 'mc_member',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-						ACCOUNT_TYPE_WEBAPP_NORMAL,
-					),
-					'sub_permission' => array(
-						'mc_member_diaplsy' => array(
-							'title' => '会员管理',
-							'url' => url('mc/member/display'),
-							'permission_name' => 'mc_member_diaplsy',
-							'active' => 'display',
-						),
-						'mc_member_group' => array(
-							'title' => '会员组',
-							'url' => url('mc/group/display'),
-							'permission_name' => 'mc_member_group',
-							'active' => 'display',
-						),
-						'mc_member_uc' => array(
-							'title' => '会员中心',
-							'url' => url('site/editor/uc'),
-							'permission_name' => 'mc_member_uc',
-							'active' => 'uc',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'mc_member_quickmenu' => array(
-							'title' => '快捷菜单',
-							'url' => url('site/editor/quickmenu'),
-							'permission_name' => 'mc_member_quickmenu',
-							'active' => 'quickmenu',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'mc_member_register_seting' => array(
-							'title' => '注册设置',
-							'url' => url('mc/member/register_setting'),
-							'permission_name' => 'mc_member_register_seting',
-							'active' => 'register_setting',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'mc_member_credit_setting' => array(
-							'title' => '积分设置',
-							'url' => url('mc/member/credit_setting'),
-							'permission_name' => 'mc_member_credit_setting',
-							'active' => 'credit_setting',
-						),
-						'mc_member_fields' => array(
-							'title' => '会员字段管理',
-							'url' => url('mc/fields/list'),
-							'permission_name' => 'mc_member_fields',
-							'active' => 'list',
-						),
-					),
-				),
-				'mc_message' => array(
-					'title' => '留言管理',
-					'url' => url('mc/message'),
-					'icon' => 'wi wi-message',
-					'permission_name' => 'mc_message',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-					),
-				)
-			),
-			'permission_display' => array(
-				ACCOUNT_TYPE_OFFCIAL_NORMAL,
-				ACCOUNT_TYPE_OFFCIAL_AUTH,
-				ACCOUNT_TYPE_XZAPP_NORMAL,
-				ACCOUNT_TYPE_XZAPP_AUTH,
-				ACCOUNT_TYPE_WEBAPP_NORMAL,
-			),
-		),
-		'profile' => array(
-			'title' => '配置',
-			'menu' => array(
-				'profile_setting' => array(
-					'title' => '参数配置',
-					'url' => url('profile/remote'),
-					'icon' => 'wi wi-parameter-setting',
-					'permission_name' => 'profile_setting',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-						ACCOUNT_TYPE_WEBAPP_NORMAL,
-					),
-					'sub_permission' => array(
-						'profile_setting_remote' => array(
-							'title' => '远程附件',
-							'url' => url('profile/remote/display'),
-							'permission_name' => 'profile_setting_remote',
-							'active' => 'display',
-						),
-						'profile_setting_passport' => array(
-							'title' => '借用权限',
-							'url' => url('profile/passport/oauth'),
-							'permission_name' => 'profile_setting_passport',
-							'active' => 'oauth',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'profile_setting_tplnotice' => array(
-							'title' => '微信通知设置',
-							'url' => url('profile/tplnotice/list'),
-							'permission_name' => 'profile_setting_tplnotice',
-							'active' => 'list',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'profile_setting_notify' => array(
-							'title' => '邮件通知参数',
-							'url' => url('profile/notify/mail'),
-							'permission_name' => 'profile_setting_notify',
-							'active' => 'mail',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'profile_setting_uc_setting' => array(
-							'title' => 'UC站点整合',
-							'url' => url('profile/common/uc_setting'),
-							'permission_name' => 'profile_setting_uc_setting',
-							'active' => 'uc_setting',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-						'profile_setting_upload_file' => array(
-							'title' => '上传JS接口文件',
-							'url' => url('profile/common/upload_file'),
-							'permission_name' => 'profile_setting_upload_file',
-							'active' => 'upload_file',
-							'is_display' => array(
-								ACCOUNT_TYPE_OFFCIAL_NORMAL,
-								ACCOUNT_TYPE_OFFCIAL_AUTH,
-							),
-						),
-					),
-				),
-				'profile_payment' => array(
-					'title' => '支付参数',
-					'url' => url('profile/payment'),
-					'icon' => 'wi wi-pay-setting',
-					'permission_name' => 'profile_payment',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-					),
-					'sub_permission' => array(
-						'profile_payment_pay' => array(
-							'title' => '支付配置',
-							'url' => url('profile/payment'),
-							'permission_name' => 'profile_payment_pay',
-							'active' => 'payment',
-						),
-						'profile_payment_refund' => array(
-							'title' => '退款配置',
-							'url' => url('profile/refund/display'),
-							'permission_name' => 'profile_payment_refund',
-							'active' => 'refund',
-						),
-					),
-				),
-				'profile_app_module_link' => array(
-					'title' => "数据同步",
-					'url' => url('profile/module-link-uniacid'),
-					'is_display' => 1,
-					'icon' => 'wi wi-data-synchro',
-					'permission_name' => 'profile_app_module_link_uniacid',
-					'is_display' => array(
-						ACCOUNT_TYPE_OFFCIAL_NORMAL,
-						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
-					),
-				),
-				
-				'webapp_module_link' => array(
-					'title' => "数据同步",
-					'url' => url('profile/module-link-uniacid'),
-					'is_display' => 1,
-					'icon' => 'wi wi-data-synchro',
-					'permission_name' => 'webapp_module_link',
-					'is_display' => array(
-						ACCOUNT_TYPE_WEBAPP_NORMAL,
-					),
-				),
-				'webapp_rewrite' => array(
-					'title' => '伪静态',
-					'url' => url('webapp/rewrite'),
-					'icon' => 'wi wi-rewrite',
-					'permission_name' => 'webapp_rewrite',
-					'is_display' => array(
-						ACCOUNT_TYPE_WEBAPP_NORMAL,
-					),
-				),
-				
-			),
-			'permission_display' => array(
-				ACCOUNT_TYPE_OFFCIAL_NORMAL,
-				ACCOUNT_TYPE_OFFCIAL_AUTH,
-				ACCOUNT_TYPE_XZAPP_NORMAL,
-				ACCOUNT_TYPE_XZAPP_AUTH,
-				ACCOUNT_TYPE_WEBAPP_NORMAL,
-			),
-		),
-		
-	),
-);
-
-$we7_system_menu['wxapp'] = array(
-	'title' => '微信小程序',
-	'icon' => 'wi wi-small-routine',
-	'dimension' => 3,
-	'url' => url('wxapp/display/home'),
-	'section' => array(
-		'wxapp_entrance' => array(
-			'title' => '小程序入口',
-			'menu' => array(
-				'module_entrance_link' => array(
-					'title' => "入口页面",
-					'url' => url('wxapp/entrance-link'),
-					'is_display' => array(
-						ACCOUNT_TYPE_APP_NORMAL,
-						ACCOUNT_TYPE_APP_AUTH,
-						ACCOUNT_TYPE_WXAPP_WORK,
-					),
-					'icon' => 'wi wi-data-synchro',
-					'permission_name' => 'wxapp_entrance_link',
-				),
-			),
-			'permission_display' => array(
-				ACCOUNT_TYPE_APP_NORMAL,
-				ACCOUNT_TYPE_APP_AUTH,
-				ACCOUNT_TYPE_WXAPP_WORK,
-			)
-		),
-		'platform_module' => array(
-			'title' => '应用',
-			'menu' => array(),
-			'is_display' => true,
-		),
-		'mc' => array(
-			'title' => '粉丝',
-			'menu' => array(
-				'mc_member' => array(
-					'title' => '会员',
-					'url' => url('mc/member'),
-					'is_display' => array(
-						ACCOUNT_TYPE_APP_NORMAL,
-						ACCOUNT_TYPE_APP_AUTH,
-						ACCOUNT_TYPE_WXAPP_WORK,
-					),
-					'icon' => 'wi wi-fans',
-					'permission_name' => 'mc_wxapp_member',
-					'sub_permission' => array(
-						'mc_member_diaplsy' => array(
-							'title' => '会员管理',
-							'url' => url('mc/member/display'),
-							'permission_name' => 'mc_member_diaplsy',
-							'active' => 'display',
-						),
-						'mc_member_group' => array(
-							'title' => '会员组',
-							'url' => url('mc/group/display'),
-							'permission_name' => 'mc_member_group',
-							'active' => 'display',
-						),
-						'mc_member_credit_setting' => array(
-							'title' => '积分设置',
-							'url' => url('mc/member/credit_setting'),
-							'permission_name' => 'mc_member_credit_setting',
-							'active' => 'credit_setting',
-						),
-						'mc_member_fields' => array(
-							'title' => '会员字段管理',
-							'url' => url('mc/fields/list'),
-							'permission_name' => 'mc_member_fields',
-							'active' => 'list',
-						),
-					),
-				)
-			),
-			'permission_display' => array(
-				ACCOUNT_TYPE_APP_NORMAL,
-				ACCOUNT_TYPE_APP_AUTH,
-				ACCOUNT_TYPE_WXAPP_WORK,
-			)
-		),
-		'wxapp_profile' => array(
-			'title' => '配置',
-			'menu' => array(
-				'wxapp_profile_module_link_uniacid' => array(
-					'title' => "数据同步",
-					'url' => url('wxapp/module-link-uniacid'),
-					'is_display' => array(
-						ACCOUNT_TYPE_APP_NORMAL,
-						ACCOUNT_TYPE_APP_AUTH,
-						ACCOUNT_TYPE_WXAPP_WORK,
-						ACCOUNT_TYPE_PHONEAPP_NORMAL,
-						ACCOUNT_TYPE_ALIAPP_NORMAL,
-						ACCOUNT_TYPE_BAIDUAPP_NORMAL,
-						ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
-					),
-					'icon' => 'wi wi-data-synchro',
-					'permission_name' => 'wxapp_profile_module_link_uniacid',
-				),
-				'wxapp_profile_payment' => array(
-					'title' => '支付参数',
-					'url' => url('wxapp/payment'),
-					'is_display' => array(
-						ACCOUNT_TYPE_APP_NORMAL,
-						ACCOUNT_TYPE_APP_AUTH,
-						ACCOUNT_TYPE_WXAPP_WORK,
-					),
-					'icon' => 'wi wi-appsetting',
-					'permission_name' => 'wxapp_profile_payment',
-					'sub_permission' => array(
-						'wxapp_payment_pay' => array(
-							'title' => '支付参数',
-							'url' => url('wxapp/payment/display'),
-							'permission_name' => 'wxapp_payment_pay',
-							'active' => 'payment',
-						),
-						'wxapp_payment_refund' => array(
-							'title' => '退款配置',
-							'url' => url('wxapp/refund/display'),
-							'permission_name' => 'wxapp_payment_refund',
-							'active' => 'refund',
-						),
-					),
-				),
-				'wxapp_profile_front_download' => array(
-					'title' => $_W['account']['type_sign'] == 'wxapp' ? '上传微信审核' : '下载程序包',
-					'url' => $_W['account']['type_sign'] == 'phoneapp' ? url('phoneapp/front-download') : url('wxapp/front-download'),
-					'is_display' => 1,
-					'icon' => 'wi wi-examine',
-					'permission_name' => 'wxapp_profile_front_download',
-				),
-				'wxapp_profile_domainset' => array(
-					'title' => '域名设置',
-					'url' => url('wxapp/domainset', array('version_id' => $_GPC['version_id'])),
-					'is_display' => array(
-						ACCOUNT_TYPE_APP_NORMAL,
-						ACCOUNT_TYPE_APP_AUTH,
-						ACCOUNT_TYPE_WXAPP_WORK,
-					),
-					'icon' => 'wi wi-examine',
-					'permission_name' => 'wxapp_profile_domainset',
-				),
-				'profile_setting_remote' => array(
-					'title' => '参数配置',
-					'url' => url('profile/remote'),
-					'is_display' => array(
-						ACCOUNT_TYPE_APP_NORMAL,
-						ACCOUNT_TYPE_APP_AUTH,
-						ACCOUNT_TYPE_WXAPP_WORK,
-						ACCOUNT_TYPE_PHONEAPP_NORMAL,
-						ACCOUNT_TYPE_ALIAPP_NORMAL,
-						ACCOUNT_TYPE_BAIDUAPP_NORMAL,
-						ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
-					),
-					'icon' => 'wi wi-parameter-setting',
-					'permission_name' => 'profile_setting_remote',
-				),
-				'wxapp_profile_platform_material' => array(
-					'title' => '素材管理',
-					'is_display' => 0,
-					'permission_name' => 'wxapp_profile_platform_material',
-					'sub_permission' => array(
-						array(
-							'title' => '删除',
-							'permission_name' => 'wxapp_profile_platform_material_delete',
-						),
-					),
-				),
-			),
-			'permission_display' => array(
-				ACCOUNT_TYPE_APP_NORMAL,
-				ACCOUNT_TYPE_APP_AUTH,
-				ACCOUNT_TYPE_WXAPP_WORK,
-				ACCOUNT_TYPE_PHONEAPP_NORMAL,
-				ACCOUNT_TYPE_ALIAPP_NORMAL,
-				ACCOUNT_TYPE_BAIDUAPP_NORMAL,
-				ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
-			)
-		),
-		'statistics' => array(
-			'title' => '统计',
-			'menu' => array(
-				'statistics_visit' => array(
-					'title' => '访问统计',
-					'url' => $_W['account']['type_sign'] == 'wxapp' ? url('wxapp/statistics') : url('statistics/app'),
-					'icon' => 'wi wi-statistical',
-					'permission_name' => 'statistics_visit_wxapp',
-					'is_display' => array(
-						ACCOUNT_TYPE_APP_NORMAL,
-						ACCOUNT_TYPE_APP_AUTH,
-						ACCOUNT_TYPE_WXAPP_WORK,
-						ACCOUNT_TYPE_PHONEAPP_NORMAL,
-						ACCOUNT_TYPE_ALIAPP_NORMAL,
-						ACCOUNT_TYPE_BAIDUAPP_NORMAL,
-						ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
-					),
-					'sub_permission' => array(
-						'statistics_visit_app' => array(
-							'title' => 'app端访问统计信息',
-							'url' => url('statistics/app/display'),
-							'permission_name' => 'statistics_visit_app',
-							'active' => 'app',
-						),
-						'statistics_visit_site' => array(
-							'title' => '所有用户访问统计',
-							'url' => url('statistics/site/current_account'),
-							'permission_name' => 'statistics_visit_site',
-							'active' => 'site',
-						),
-						'statistics_visit_setting' => array(
-							'title' => '访问统计设置',
-							'url' => url('statistics/setting/display'),
-							'permission_name' => 'statistics_visit_setting',
-							'active' => 'setting',
-						),
-					),
-				),
-			),
-			'permission_display' => array(
-				ACCOUNT_TYPE_APP_NORMAL,
-				ACCOUNT_TYPE_APP_AUTH,
-				ACCOUNT_TYPE_WXAPP_WORK,
-				ACCOUNT_TYPE_PHONEAPP_NORMAL,
-				ACCOUNT_TYPE_ALIAPP_NORMAL,
-				ACCOUNT_TYPE_BAIDUAPP_NORMAL,
-				ACCOUNT_TYPE_TOUTIAOAPP_NORMAL,
-			)
-		),
-	),
-);
-
-$we7_system_menu['webapp'] = array(
-	'title' => 'PC',
-	'icon' => 'wi wi-pc',
-	'url' => url('webapp/home/display'),
-	'section' => array(),
-);
-
-$we7_system_menu['phoneapp'] = array(
-	'title' => 'APP',
-	'icon' => 'wi wi-white-collar',
-	'url' => url('phoneapp/display/home'),
-	'section' => array(
-		'platform_module' => array(
-			'title' => '应用',
-			'menu' => array(),
-			'is_display' => true,
-		),
-		'phoneapp_profile' => array(
-			'title' => '配置',
-			'menu' => array(
-				'profile_phoneapp_module_link' => array(
-					'title' => "数据同步",
-					'url' => url('wxapp/module-link-uniacid'),
-					'is_display' => array(
-						ACCOUNT_TYPE_PHONEAPP_NORMAL,
-					),
-					'icon' => 'wi wi-data-synchro',
-					'permission_name' => 'profile_phoneapp_module_link',
-				),
-				'front_download' => array(
-					'title' => '下载APP',
-					'url' => url('phoneapp/front-download'),
-					'is_display' => true,
-					'icon' => 'wi wi-examine',
-					'permission_name' => 'phoneapp_front_download',
-				)
-			),
-			'is_display' => true,
-			'permission_display' => array(
-				ACCOUNT_TYPE_PHONEAPP_NORMAL,
-			)
-		)
-	),
-);
-
-$we7_system_menu['xzapp'] = array(
-	'title' => '熊掌号',
-	'icon' => 'wi wi-xzapp',
-	'url' => url('xzapp/home/display'),
-	'section' => array(
-		'platform_module' => array(
-			'title' => '应用模块',
-			'menu' => array(),
-			'is_display' => true,
-		),
-	),
-);
-$we7_system_menu['aliapp'] = array(
-	'title' => '支付宝小程序',
-	'icon' => 'wi wi-aliapp',
-	'url' => url('miniapp/display/home'),
-	'section' => array(
-		'platform_module' => array(
-			'title' => '应用',
-			'menu' => array(),
-			'is_display' => true,
-		),
-	),
-);
-
-$we7_system_menu['baiduapp'] = array(
-	'title' => '百度小程序',
-	'icon' => 'wi wi-baiduapp',
-	'url' => url('miniapp/display/home'),
-	'section' => array(
-		'platform_module' => array(
-			'title' => '应用',
-			'menu' => array(),
-			'is_display' => true,
-		),
-	),
-);
-
-$we7_system_menu['toutiaoapp'] = array(
-	'title' => '头条小程序',
-	'icon' => 'wi wi-toutiaoapp',
-	'url' => url('miniapp/display/home'),
-	'section' => array(
-		'platform_module' => array(
-			'title' => '应用',
-			'menu' => array(),
-			'is_display' => true,
-		),
-	),
-);
-
-/*$we7_system_menu['advertisement'] = array (
-	'title' => '广告联盟',
-	'icon' => 'wi wi-advert',
-	'url' => url('advertisement/content-provider'),
-	'section' => array(
-		'advertisement' => array(
-			'title' => '常用系统工具',
-			'menu' => array(
-				'advertisement-content-provider' => array(
-					'title' => '流量主',
-					'url' => url('advertisement/content-provider/account_list'),
-					'icon' => 'wi wi-flow',
-					'permission_name' => 'advertisement_content-use',
-				),
-				'advertisement-content-create' => array(
-					'title' => '广告主',
-					'url' => url('advertisement/content-provider/content_provider'),
-					'icon' => 'wi wi-adgroup',
-					'permission_name' => 'advertisement_content-create',
-				),
-			)
-		),
-	),
-	'founder' => true,
-);*/
-
-$we7_system_menu['appmarket'] = array(
-	'title' => '市场',
-	'icon' => 'wi wi-market',
-	'url' => 'http://s.w7.cc',
-	'section' => array(),
-	'blank' => true,
-	'founder' => true,
-);
-
-
-
-$we7_system_menu['workorder'] = array(
-	'title' => '工单',
-	'icon' => 'wi wi-bell',
-	'dimension' => 2,
-	'url' => url('system/workorder/display'),
-	'section' => array(
-		'workorder'=> array(
-			'title' => '工单系统',
-			'menu'=> array(
-				'system_workorder'=> array(
-					'title' => '工单系统',
-					'url' => url('system/workorder/display'),
-					'icon' => 'wi wi-system-work',
-					'permission_name' => 'system_workorder',
-				),
-			),
-		),
-	),
-	'founder' => true,
-);
 
 $we7_system_menu['help'] = array(
-	'title' => '帮助',
+	'title' => '系统帮助',
 	'icon' => 'wi wi-market',
 	'url' => url('help/display'),
 	'section' => array(),
-
+	'blank' => false,
 );
 
-$we7_system_menu['custom_help'] = array(
-	'title' => '本站帮助',
-	'icon' => 'wi wi-market',
-	'url' => url('help/display/custom'),
-	'section' => array(),
-);
+
+
+	$we7_system_menu['store'] = array(
+		'title' => '商城',
+		'icon' => 'wi wi-store',
+		'url' => url('home/welcome/ext', array('m' => 'store')),
+		'section' => array(),
+	);
+
 
 return $we7_system_menu;

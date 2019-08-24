@@ -1,7 +1,7 @@
 <?php
 /**
- * 自定义菜单
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -11,6 +11,7 @@ load()->model('material');
 
 $dos = array('display', 'delete', 'refresh', 'post', 'push', 'copy', 'current_menu');
 $do = in_array($do, $dos) ? $do : 'display';
+$_W['page']['title'] = $_W['account']['type_name'] . ' - 自定义菜单';
 
 if($_W['isajax']) {
 	if(!empty($_GPC['method'])) {
@@ -18,9 +19,7 @@ if($_W['isajax']) {
 	}
 }
 
-
 if($do == 'display') {
-	permission_check_account_user('platform_menu_conditional');
 	set_time_limit(0);
 
 	$type = !empty($_GPC['type']) ? intval($_GPC['type']) : MENU_CURRENTSELF;
@@ -85,7 +84,6 @@ if ($do == 'copy') {
 }
 
 if ($do == 'post') {
-	permission_check_account_user('platform_menu_default');
 	$type = intval($_GPC['type']);
 	$id = intval($_GPC['id']);
 	$copy = intval($_GPC['copy']);
@@ -112,6 +110,7 @@ if ($do == 'post') {
 				foreach ($menu['data']['button'] as &$button) {
 					if (!empty($button['url'])) {
 						$button['url'] = preg_replace('/(.*)redirect_uri=(.*)&response_type(.*)wechat_redirect/', '$2', $button['url']);
+						$button['url'] = urldecode($button['url']);
 					}
 					if (empty($button['sub_button'])) {
 						if ($button['type'] == 'media_id') {
@@ -123,6 +122,7 @@ if ($do == 'post') {
 						foreach ($button['sub_button'] as &$subbutton) {
 							if (!empty($subbutton['url'])) {
 								$subbutton['url'] = preg_replace('/(.*)redirect_uri=(.*)&response_type(.*)wechat_redirect/', '$2', $subbutton['url']);
+								$subbutton['url'] = urldecode($subbutton['url']);
 							}
 							if ($subbutton['type'] == 'media_id') {
 								$subbutton['type'] = 'click';
@@ -167,8 +167,7 @@ if ($do == 'post') {
 		$_GPC['group']['title'] = trim($_GPC['group']['title']);
 		$_GPC['group']['type'] = intval($_GPC['group']['type']) == 0 ? 1 : intval($_GPC['group']['type']);
 		$post = $_GPC['group'];
-		//检测菜单组名称
-		if (empty($post['title'])) {
+				if (empty($post['title'])) {
 			iajax(-1, '请填写菜单组名称！', '');
 		}
 		$check_title_exist_condition = array(
@@ -182,8 +181,7 @@ if ($do == 'post') {
 		if (!empty($check_title_exist)) {
 			iajax(-1, '菜单组名称已存在，请重新命名！', '');
 		}
-		//判断是否有菜单显示对象提交,默认菜单和个性化菜单唯一区别就是有无菜单显示对象
-		if ($post['type'] == MENU_CONDITIONAL && empty($post['matchrule'])) {
+				if ($post['type'] == MENU_CONDITIONAL && empty($post['matchrule'])) {
 			iajax(-1, '请选择菜单显示对象', '');
 		}
 		if (!empty($post['button'])) {
@@ -206,9 +204,9 @@ if ($do == 'post') {
 		}
 
 		$is_conditional = $post['type'] == MENU_CONDITIONAL ? true : false;
-		$account_api = WeAccount::createByUniacid();
-		$menu = $account_api->menuBuild($post, $is_conditional);
 		if ($_GPC['submit_type'] == 'publish' || $is_conditional) {
+			$account_api = WeAccount::create();
+			$menu = $account_api->menuBuild($post, $is_conditional);
 			$result = $account_api->menuCreate($menu);
 		} else {
 			$result = true;
@@ -216,8 +214,7 @@ if ($do == 'post') {
 		if (is_error($result)) {
 			iajax($result['errno'], $result['message']);
 		} else {
-			// 将$menu中 tag_id 再转为 group_id
-			if ($post['matchrule']['group_id'] != -1) {
+						if ($post['matchrule']['group_id'] != -1) {
 				$menu['matchrule']['groupid'] = $menu['matchrule']['tag_id'];
 				unset($menu['matchrule']['tag_id']);
 			}

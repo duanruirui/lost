@@ -1,6 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 namespace We7\Table\Modules;
 
@@ -18,8 +19,6 @@ class Bindings extends \We7Table {
 		'url',
 		'icon',
 		'displayorder',
-		'multilevel',
-		'parent',
 	);
 	protected $default = array(
 		'module' => '',
@@ -30,16 +29,10 @@ class Bindings extends \We7Table {
 		'state' => '',
 		'direct' => 0,
 		'url' => '',
-		'icon' => 'wi wi-appsetting',
+		'icon' => 'fa fa-puzzle-piece',
 		'displayorder' => 0,
-		'multilevel' => '',
-		'parent' => '',
 	);
-
-	public function searchWithModuleEntry($modulename, $entry) {
-		return $this->query->where('module', $modulename)->where('entry', $entry);
-	}
-
+	
 	public function deleteByName($modulename) {
 		return $this->query->where('module', $modulename)->delete();
 	}
@@ -50,13 +43,5 @@ class Bindings extends \We7Table {
 	
 	public function isCallExists($modulename, $entry, $call) {
 		return $this->query->where('module', $modulename)->where('entry', $entry)->where('call', $call)->exists();
-	}
-
-	public function getByEntryDo($modulename, $entry, $do) {
-		return $this->query->where('module', $modulename)->where('entry', $entry)->where('do', $do)->get();
-	}
-
-	public function getByEntryCall($modulename, $entry, $call) {
-		return $this->query->where('module', $modulename)->where('entry', $entry)->where('call', $call)->get();
 	}
 }

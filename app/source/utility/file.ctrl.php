@@ -1,12 +1,9 @@
 <?php
 /**
- * 上传图片
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
-
-load()->func('file');
 
 $do   = in_array($_GPC['do'], array('upload', 'delete')) ? $_GPC['do'] : 'upload';
 $type = in_array($_GPC['type'], array('image','audio')) ? $_GPC['type'] : 'image';
@@ -15,37 +12,35 @@ $result = array('error' => 1, 'message' => '');
 if ($do == 'delete') {
 	if ($type = 'image') {
 		$id = intval($_GPC['id']);
-		if (empty($id)) {
-			return message($result, '', 'ajax');
-		}
+		if (!empty($id)) {
+			$attachment = pdo_get('core_attachment', array('id' => $id), array('attachment', 'uniacid', 'uid'));
+			if (!empty($attachment)) {
+				if ($attachment['uniacid'] != $_W['uniacid'] || empty($_W['openid']) || (!empty($_W['fans']) && $attachment['uid'] != $_W['fans']['from_user']) || (!empty($_W['member']) && $attachment['uid'] != $_W['member']['uid'])) {
+					return message(error(1, '无权删除！'), '', 'ajax');
+				}
+				load()->func('file');
+				if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+					$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
+				}
+				if ($_W['setting']['remote']['type']) {
+					$result = file_remote_delete($attachment['attachment']);
+				} else {
+					$result = file_delete($attachment['attachment']);
+				}
+				if (!is_error($result)) {
+					pdo_delete('core_attachment', array('id' => $id));
+				}
+				if (!is_error($result)) {
+					return message(error('0'), '', 'ajax');
+				} else {
+					return message(error(1, $result['message']), '', 'ajax');
+				}
+			} else {
+				return message(error(1, '图片不存在或已删除！'), '', 'ajax');
+			}
 
-		$attachment = pdo_get('core_attachment', array('id' => $id, 'uniacid' => $_W['uniacid']), array('attachment', 'uniacid', 'uid'));
-		if (empty($attachment)) {
-			return message(error(1, '图片不存在或已删除！'), '', 'ajax');
 		}
-
-		if (empty($_W['openid']) || (!empty($_W['fans']) && $attachment['uid'] != $_W['fans']['from_user']) || (!empty($_W['member']) && $attachment['uid'] != $_W['member']['uid'])) {
-			return message(error(1, '无权删除！'), '', 'ajax');
-		}
-
-		$uni_remote_setting = uni_setting_load('remote');
-		if (!empty($uni_remote_setting['remote']['type'])) {
-			$_W['setting']['remote'] = $uni_remote_setting['remote'];
-		}
-		if ($_W['setting']['remote']['type']) {
-			$result = file_remote_delete($attachment['attachment']);
-		} else {
-			$result = file_delete($attachment['attachment']);
-		}
-		if (!is_error($result)) {
-			pdo_delete('core_attachment', array('id' => $id, 'uniacid' => $_W['uniacid']));
-		}
-		if (!is_error($result)) {
-			return message(error('0'), '', 'ajax');
-		} else {
-			return message(error(1, $result['message']), '', 'ajax');
-		}
-
+		return message($result, '', 'ajax');
 	}
 }
 if ($do == 'upload') {
@@ -56,6 +51,7 @@ if ($do == 'upload') {
 			'id' => 'id',
 			'error' => array('code' => 1, 'message'=>''),
 		);
+		load()->func('file');
 		if (empty($_FILES['file']['tmp_name'])) {
 			$binaryfile = file_get_contents('php://input', 'r');
 			if (!empty($binaryfile)) {
@@ -78,7 +74,7 @@ if ($do == 'upload') {
 				$result['error']['message'] = '上传失败，请重试！';
 				die(json_encode($result));
 			}
-			if (!file_is_image($_FILES['file']['tmp_name'])) {
+			if (!file_is_image($_FILES['file']['name'])) {
 				$result['message'] = '上传失败, 请重试.';
 				die(json_encode($result));
 			}
@@ -94,9 +90,7 @@ if ($do == 'upload') {
 			$pathname = $file['path'];
 			$fullname = ATTACHMENT_ROOT . '/' . $pathname;
 
-			$thumb = empty($setting['thumb']) || $ext == 'gif' ? 0 : 1; // 是否使用缩略
-			$width = intval($setting['width']); // 缩略尺寸
-			if ($thumb == 1 && $width > 0 && (!isset($_GPC['thumb']) || (isset($_GPC['thumb']) && !empty($_GPC['thumb'])))) {
+			$thumb = empty($setting['thumb']) ? 0 : 1; 			$width = intval($setting['width']); 			if ($thumb == 1 && $width > 0 && (!isset($_GPC['thumb']) || (isset($_GPC['thumb']) && !empty($_GPC['thumb'])))) {
 				$thumbnail = file_image_thumb($fullname, '', $width);
 				@unlink($fullname);
 				if (is_error($thumbnail)) {
@@ -122,9 +116,8 @@ if ($do == 'upload') {
 			$info['height'] = $size[1];
 			
 			setting_load('remote');
-			$uni_remote_setting = uni_setting_load('remote');
-			if (!empty($uni_remote_setting['remote']['type'])) {
-				$_W['setting']['remote'] = $uni_remote_setting['remote'];
+			if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+				$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
 			}
 			if (!empty($_W['setting']['remote']['type'])) {
 				$remotestatus = file_remote_upload($pathname);

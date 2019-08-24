@@ -1,8 +1,7 @@
 <?php
 /**
- * 图文回复处理类
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -13,8 +12,7 @@ class NewsModuleProcessor extends WeModuleProcessor {
 		$sql = "SELECT * FROM " . tablename('news_reply') . " WHERE rid = :id AND parent_id = -1 ORDER BY displayorder DESC, id ASC LIMIT 8";
 		$commends = pdo_fetchall($sql, array(':id' => $rid));
 		if (empty($commends)) {
-			//此处是兼容写法。
-			$sql = "SELECT * FROM " . tablename('news_reply') . " WHERE rid = :id AND parent_id = 0 ORDER BY RAND()";
+						$sql = "SELECT * FROM " . tablename('news_reply') . " WHERE rid = :id AND parent_id = 0 ORDER BY RAND()";
 			$main = pdo_fetch($sql, array(':id' => $rid));
 			if(empty($main['id'])) {
 				return false;

@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -68,9 +68,7 @@ if(empty($type)) {
 }
 
 if(!empty($type)) {
-	$log = pdo_getall('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']), array(), '', 'plid asc', 1);//混合支付会有两条paylog记录,所以使用getall
-	$log = empty($log) ? $log : $log[0];
-
+	$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
 	if(!empty($log) && ($type != 'credit' && !empty($_GPC['notify'])) && $log['status'] != '0') {
 		message('这个订单已经支付成功, 不需要重复支付.');
 	}
@@ -100,27 +98,17 @@ if(!empty($type)) {
 
 	if($type != 'delivery') {
 		if ($_GPC['mix_pay']) {
-			$has_mix_credit_log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid'], 'type' => 'credit'));
-			if ($_GPC['mix_pay'] == 'true' && empty($has_mix_credit_log)) {
-				$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
-				$credtis = mc_credit_fetch($_W['member']['uid']);
-				if ($credtis[$setting['creditbehaviors']['currency']] > 0 && in_array('mix', $dos) && $credtis[$setting['creditbehaviors']['currency']] < $log['card_fee']) {
-					$mix_credit_log = $log;
-					unset($mix_credit_log['plid']);
-					$mix_credit_log['uniontid'] = date('YmdHis') . $moduleid . random(8,1);
-					$mix_credit_log['type'] = 'credit';
-					$mix_credit_log['fee'] = $credtis[$setting['creditbehaviors']['currency']];
-					$mix_credit_log['card_fee'] = $credtis[$setting['creditbehaviors']['currency']];
-					pdo_insert('core_paylog', $mix_credit_log);
-					$mixed_fee = $log['fee'] - $credtis[$setting['creditbehaviors']['currency']];
-				}
-			} elseif ($_GPC['mix_pay'] == 'false' && $has_mix_credit_log) {
-				pdo_delete('core_paylog', array('plid' => $has_mix_credit_log['plid']));
-				$mixed_fee = $log['fee'] + $has_mix_credit_log['fee'];
-			}
-			if (!empty($mixed_fee)) {
-				$record['card_fee'] = $record['fee'] = $log['card_fee'] = $log['fee'] = $mixed_fee;
-				$record['uniontid'] = $log['uniontid'] = date('YmdHis') . $moduleid . random(8,1);
+			$setting = uni_setting($_W['uniacid'], array('creditbehaviors'));
+			$credtis = mc_credit_fetch($_W['member']['uid']);
+			if ($credtis[$setting['creditbehaviors']['currency']] > 0 && in_array('mix', $dos) && $credtis[$setting['creditbehaviors']['currency']] < $log['card_fee']) {
+				$mix_credit_log = $log;
+				unset($mix_credit_log['plid']);
+				$mix_credit_log['uniontid'] = date('YmdHis') . $moduleid . random(8,1);
+				$mix_credit_log['type'] = 'credit';
+				$mix_credit_log['fee'] = $credtis[$setting['creditbehaviors']['currency']];
+				$mix_credit_log['card_fee'] = $credtis[$setting['creditbehaviors']['currency']];
+				pdo_update('core_paylog', array('fee' => $log['card_fee'] - $credtis[$setting['creditbehaviors']['currency']], 'card_fee' => $log['card_fee'] - $credtis[$setting['creditbehaviors']['currency']]), array('plid' => $log['plid']));
+				pdo_insert('core_paylog', $mix_credit_log);
 			}
 		}
 		$we7_coupon_info = module_fetch('we7_coupon');
@@ -184,7 +172,7 @@ if(!empty($type)) {
 
 	if ($type == 'wechat') {
 		if(!empty($log['plid'])) {
-			$tag = iunserializer($log['tag']);
+			$tag = array();
 			$tag['acid'] = $_W['acid'];
 			$tag['uid'] = $_W['member']['uid'];
 			pdo_update('core_paylog', array('openid' => $_W['openid'], 'tag' => iserializer($tag)), array('plid' => $log['plid']));
@@ -196,8 +184,7 @@ if(!empty($type)) {
 		if (!empty($oauth_url)) {
 			$callback = $oauth_url . "payment/wechat/pay.php?i={$_W['uniacid']}&auth={$auth}&ps={$sl}";
 		}
-		//如果有借用支付，则需要通过网页授权附带用户Openid跳转至支付，否则直接跳转
-		$proxy_pay_account = payment_proxy_pay_account();
+				$proxy_pay_account = payment_proxy_pay_account();
 		if (!is_error($proxy_pay_account)) {
 			$forward = $proxy_pay_account->getOauthCodeUrl(urlencode($callback), 'we7sid-'.$_W['session_id']);
 			header('Location: ' . $forward);
@@ -233,8 +220,7 @@ if(!empty($type)) {
 			}
 			$log['openid'] = $uid;
 		}
-		//如果是return返回的话，处理相应付款操作
-		if(empty($_GPC['notify'])) {
+				if(empty($_GPC['notify'])) {
 			if(!empty($log) && $log['status'] == '0') {
 				if($credtis[$setting['creditbehaviors']['currency']] < $ps['fee']) {
 					message("余额不足以支付, 需要 {$ps['fee']}, 当前 {$credtis[$setting['creditbehaviors']['currency']]}");
@@ -267,9 +253,6 @@ if(!empty($type)) {
 					} else {
 						$grant_credit_nums = $is_grant_credit['message'];
 					}
-					if (!empty($params['grant_credit1_num'])) {
-						$grant_credit_nums += intval($params['grant_credit1_num']);
-					}
 					mc_notice_credit2($_W['openid'], $_W['member']['uid'], $fee, $grant_credit_nums, '线上消费');
 				}
 				$site = WeUtility::createModuleSite($log['module']);
@@ -289,10 +272,8 @@ if(!empty($type)) {
 						$ret['weid'] = $log['weid'];
 						$ret['uniacid'] = $log['uniacid'];
 						$ret['acid'] = $log['acid'];
-						//支付成功后新增是否使用优惠券信息【需要模块去处理】
-						$ret['is_usecard'] = $log['is_usecard'];
-						$ret['card_type'] = $log['card_type']; //区分是系统优惠券还是微信卡券
-						$ret['card_fee'] = $log['card_fee'];
+												$ret['is_usecard'] = $log['is_usecard'];
+						$ret['card_type'] = $log['card_type']; 						$ret['card_fee'] = $log['card_fee'];
 						$ret['card_id'] = $log['card_id'];
 
 						echo '<iframe style="display:none;" src="'.murl('mc/cash/credit', array('notify' => 'yes', 'params' => $_GPC['params'], 'code' => $_GPC['code'], 'coupon_id' => $_GPC['coupon_id']), true, true).'"></iframe>';
@@ -318,10 +299,8 @@ if(!empty($type)) {
 					$ret['weid'] = $log['weid'];
 					$ret['uniacid'] = $log['uniacid'];
 					$ret['acid'] = $log['acid'];
-					//支付成功后新增是否使用优惠券信息【需要模块去处理】
-					$ret['is_usecard'] = $log['is_usecard'];
-					$ret['card_type'] = $log['card_type']; //区分是系统优惠券还是微信卡券
-					$ret['card_fee'] = $log['card_fee'];
+										$ret['is_usecard'] = $log['is_usecard'];
+					$ret['card_type'] = $log['card_type']; 					$ret['card_fee'] = $log['card_fee'];
 					$ret['card_id'] = $log['card_id'];
 					$site->$method($ret);
 				}
@@ -358,13 +337,10 @@ if(!empty($type)) {
 					$ret['from'] = 'return';
 					$ret['tid'] = $log['tid'];
 					$ret['user'] = $log['openid'];
-					$ret['fee'] = $log['fee']; //原价
-					$ret['weid'] = $log['weid'];
+					$ret['fee'] = $log['fee']; 					$ret['weid'] = $log['weid'];
 					$ret['uniacid'] = $log['uniacid'];
-					//支付成功后新增是否使用优惠券信息【需要模块去处理】
-					$ret['is_usecard'] = $log['is_usecard'];
-					$ret['card_type'] = $log['card_type']; //区分是系统优惠券还是微信卡券
-					$ret['card_fee'] = $log['card_fee'];
+										$ret['is_usecard'] = $log['is_usecard'];
+					$ret['card_type'] = $log['card_type']; 					$ret['card_fee'] = $log['card_fee'];
 					$ret['card_id'] = $log['card_id'];
 					exit($site->$method($ret));
 				}

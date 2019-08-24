@@ -1,32 +1,21 @@
 <?php
 /**
- * 图片处理类.
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- *  用法示例:
- *  Image::create('/a.jpg')->resize(50, 50)->crop(10, 5, 4)->saveTo('/b.jpg')
- * Class Image.
- */
+
 class Image {
 	private $src;
-	private $actions = array(); //操作数组 支持resize crop
-	// resize 数据
-	private $resize_width = 0;
+	private $actions = array(); 		private $resize_width = 0;
 	private $resize_height = 0;
 
 	private $image = null;
 	private $imageinfo = array();
-	//裁剪数据
-	//裁剪的宽度
-	private $crop_width = 0;
-	//裁剪的高度
-	private $crop_height = 0;
-	// 裁剪的位置 //9宫格
-	private $crop_position = 1;
+			private $crop_width = 0;
+		private $crop_height = 0;
+		private $crop_position = 1;
 
 	private $ext = '';
 
@@ -67,8 +56,7 @@ class Image {
 		}
 		$this->crop_width = $width;
 		$this->crop_height = $height;
-		//9宫格裁剪
-		$this->crop_position = min(intval($position), 9);
+				$this->crop_position = min(intval($position), 9);
 
 		return $this;
 	}
@@ -89,14 +77,7 @@ class Image {
 		return file_is_image($this->src) && $this->getExt() == 'gif';
 	}
 
-	/**
-	 *  保存.
-	 *
-	 * @param $path
-	 * @param $quality 0 不压缩 压缩比 0--100 gif 不压缩
-	 *
-	 * @since version
-	 */
+	
 	public function saveTo($path, $quality = null) {
 		$path = safe_gpc_path($path);
 		if (empty($path)) {
@@ -132,8 +113,7 @@ class Image {
 		if (is_null($quality)) {
 			return null;
 		}
-		// 不要让越界
-		$quality = min($quality, 100);
+				$quality = min($quality, 100);
 		if ($this->isJPEG()) {
 			return $quality * 0.75;
 		}
@@ -145,8 +125,7 @@ class Image {
 	}
 
 	protected function handle() {
-		//创建资源
-		if (!function_exists('gd_info')) {
+				if (!function_exists('gd_info')) {
 			return false;
 		}
 		$this->image = $this->createResource();
@@ -165,9 +144,7 @@ class Image {
 		return true;
 	}
 
-	/**
-	 * 裁剪图片.
-	 */
+	
 	protected function doCrop($src_image) {
 		list($dst_x, $dst_y) = $this->getCropDestPoint();
 		if (version_compare(PHP_VERSION, '5.5.0') >= 0) {
@@ -183,13 +160,7 @@ class Image {
 		return $new_image;
 	}
 
-	/**
-	 *  缩略图.
-	 *
-	 * @param $src_image
-	 *
-	 * @return resource
-	 */
+	
 	protected function doResize($src_image) {
 		$newimage = $this->modify($src_image, $this->resize_width, $this->resize_height,
 			$this->imageinfo[0], $this->imageinfo[1]);
@@ -199,21 +170,7 @@ class Image {
 		return $newimage;
 	}
 
-	/**
-	 *  修改图片.
-	 *
-	 * @param $src_image
-	 * @param $width
-	 * @param $height
-	 * @param $src_width
-	 * @param $src_height
-	 * @param int $dst_x
-	 * @param int $dst_y
-	 * @param int $src_x
-	 * @param int $src_y
-	 *
-	 * @return resource
-	 */
+	
 	protected function modify($src_image, $width, $height, $src_width,
 							  $src_height, $dst_x = 0, $dst_y = 0, $src_x = 0, $src_y = 0) {
 		$image = imagecreatetruecolor($width, $height);
@@ -253,15 +210,7 @@ class Image {
 		return null;
 	}
 
-	/**
-	 * 转为base64.
-	 *
-	 * @param string $prefix
-	 *
-	 * @return string
-	 *
-	 * @since version
-	 */
+	
 	public function toBase64($prefix = 'data:image/%s;base64,') {
 		$filename = tempnam('tmp', 'base64');
 		$prefix = sprintf($prefix, $this->getExt());
@@ -276,18 +225,12 @@ class Image {
 		return $prefix . $base64;
 	}
 
-	/**
-	 * 获取元素裁剪 坐标.
-	 *
-	 * @return array
-	 */
+	
 	private function getCropDestPoint() {
-		//图片的原始宽高
-		$s_width = $this->imageinfo[0];
+				$s_width = $this->imageinfo[0];
 		$s_height = $this->imageinfo[1];
 		$dst_x = $dst_y = 0;
-		// 处理裁剪的宽高
-		if ($this->crop_width == '0' || $this->crop_width > $s_width) {
+				if ($this->crop_width == '0' || $this->crop_width > $s_width) {
 			$this->crop_width = $s_width;
 		}
 		if ($this->crop_height == '0' || $this->crop_height > $s_height) {

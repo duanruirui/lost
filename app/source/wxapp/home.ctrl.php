@@ -1,11 +1,10 @@
 <?php
 /**
- * 小程序的接口文件
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$.
-*/
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ */
 defined('IN_IA') or exit('Access Denied');
-load()->model('miniapp');
+load()->model('wxapp');
 load()->model('mc');
 $dos = array('nav', 'slide', 'commend', 'wxapp_web', 'wxappweb_pay', 'wxappweb_pay_result', 'package_app', 'go_paycenter', 'oauth', 'credit_info');
 $do = in_array($_GPC['do'], $dos) ? $_GPC['do'] : 'nav';
@@ -38,13 +37,11 @@ if ($do == 'nav') {
 	}
 	message(error(0, $slide), '', 'ajax');
 } elseif ($do == 'commend') {
-	//获取一级分类
-	$category = pdo_getall('site_category', array(
+		$category = pdo_getall('site_category', array(
 		'uniacid' => $_W['uniacid'],
 		'multiid' => $multiid,
 	), array('id', 'name', 'parentid'), '', 'displayorder DESC');
-	//一级分类不能添加文章，推荐时获取到其子类
-	if (!empty($category)) {
+		if (!empty($category)) {
 		foreach ($category as $id => &$category_row) {
 			if (empty($category_row['parentid'])) {
 				$condition['pcate'] = $category_row['id'];
@@ -66,13 +63,11 @@ if ($do == 'nav') {
 
 if ($do == 'wxapp_web') {
 	$version = trim($_GPC['v']);
-	$version_info = miniapp_version_by_version($version);
+	$version_info = wxapp_version_by_version($version);
 	$url = $_GPC['url'];
 	if (empty($url)) {
-		//无需查询绑定域名 因为本do方法就是根据小程序域名访问的
-		if (count($version_info['modules']) > 1) {
-			$url = murl('wxapp/home/package_app', array('v'=>$version));//多模块打包入口
-		} else {
+				if (count($version_info['modules']) > 1) {
+			$url = murl('wxapp/home/package_app', array('v'=>$version));		} else {
 			if (!empty($version_info['modules'])) {
 				foreach ($version_info['modules'] as $module) {
 					if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {
@@ -89,14 +84,13 @@ if ($do == 'wxapp_web') {
 		header('Location:' . $url);
 		exit;
 	}
-	//跳转到错误页面
-	message('找不到模块入口', 'refresh', 'error');
+		message('找不到模块入口', 'refresh', 'error');
 }
 
 
 if ($do == 'package_app') {
 	$version = trim($_GPC['v']);
-	$version_info = miniapp_version_by_version($version);
+	$version_info = wxapp_version_by_version($version);
 
 	$version_info['modules'] = array_map(function($module) {
 		 $module['url'] = murl('entry', array('eid'=>$module['defaultentry']), true, true);

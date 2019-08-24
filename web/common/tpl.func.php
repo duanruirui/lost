@@ -1,21 +1,11 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/common/tpl.func.php : v 8b6dd7b5a696 : 2015/09/17 03:20:11 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 【表单控件】: 日期控件
- *
- * @param string $name
- * 		表单名称
- * @param string $value
- * 		默认为当前日期时间
- * @param boolean $withtime
- * 		是否显示时间(时分),默认为不显示
- * @return form input string
- */
+
 function _tpl_form_field_date($name, $value = '', $withtime = false) {
 	$s = '';
 	$withtime = empty($withtime) ? false : true;
@@ -42,15 +32,9 @@ function _tpl_form_field_date($name, $value = '', $withtime = false) {
 	return $s;
 }
 
-/**
- * 【表单控件】: 系统链接选择器
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @param array $options 选择器样式配置信息
- * @return string
- */
+
 function tpl_form_field_link($name, $value = '', $options = array()) {
-	global $_GPC, $_W;
+	global $_GPC;
 	if(!empty($options)) {
 		foreach ($options as $key => $val){
 			$options .= $key.':'.$val.',';
@@ -58,10 +42,8 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 	}
 	$s = '';
 	if (!defined('TPL_INIT_LINK')) {
-		$s .= '
+		$s = '
 		<script type="text/javascript">
-			window.HOST_TYPE = "2";
-			window.BMap_loadScriptTime = (new Date).getTime();
 			function showLinkDialog(elm) {
 				var ipt = $(elm).parent().parent().parent().prev();
 				util.linkBrowser(function(href){
@@ -157,12 +139,7 @@ function tpl_form_field_link($name, $value = '', $options = array()) {
 	return $s;
 }
 
-/**
- * 【表单控件】:
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @return string
- */
+
 function tpl_form_module_link($name) {
 	$s = '';
 	if (!defined('TPL_INIT_module')) {
@@ -191,12 +168,7 @@ function tpl_form_module_link($name) {
 	return $s;
 }
 
-/**
- * 【表单控件】: Emoji表情选择器
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @return string
- */
+
 function tpl_form_field_emoji($name, $value = '') {
 	$s = '';
 	if (!defined('TPL_INIT_EMOJI')) {
@@ -230,12 +202,7 @@ function tpl_form_field_emoji($name, $value = '') {
 	return $s;
 }
 
-/**
- * 【表单控件】: 拾色器 (获取 HTML 色彩代码)
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @return string
- */
+
 function tpl_form_field_color($name, $value = '') {
 	$s = '';
 	if (!defined('TPL_INIT_COLOR')) {
@@ -274,12 +241,7 @@ function tpl_form_field_color($name, $value = '') {
 	return $s;
 }
 
-/**
- * 【表单控件】: 系统图标选择器
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @return string
- */
+
 function tpl_form_field_icon($name, $value='') {
 	if(empty($value)){
 		$value = 'fa fa-external-link';
@@ -317,23 +279,7 @@ function tpl_form_field_icon($name, $value='') {
 	return $s;
 }
 
-/**
- * 【表单控件】: 图片上传与选择控件
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @param string $default 默认显示的缩略图
- * @param array $options 图片上传配置信息
- * <pre>
- * 		$options['width'] = '';
- * 		$options['height'] = '';
- * 		$options['global'] = '';// 是否显示 global 目录（公共目录）
- * 		$options['extras'] = array(
- * 			&nbsp;'image'=> 缩略图img标签的自定义属性及属性值 ,
- * 			&nbsp;'text'=> input 标签的自定义属性及属性值
- * 		)
- * </pre>
- * @return string
- */
+
 function tpl_form_field_image($name, $value = '', $default = '', $options = array()) {
 	global $_W;
 	if (empty($default)) {
@@ -343,12 +289,8 @@ function tpl_form_field_image($name, $value = '', $default = '', $options = arra
 	if (!empty($value)) {
 		$val = tomedia($value);
 	}
-	if (defined('SYSTEM_WELCOME_MODULE')) {
-		$options['uniacid'] = 0;
-	}
 	if (!empty($options['global'])) {
 		$options['global'] = true;
-		$val = to_global_media(empty($value) ? $default : $value);
 	} else {
 		$options['global'] = false;
 	}
@@ -388,7 +330,7 @@ function tpl_form_field_image($name, $value = '', $default = '', $options = arra
 						}
 						if(url.media_id){
 							if(img.length > 0){
-								img.get(0).src = url.url;
+								img.get(0).src = "";
 							}
 							ipt.val(url.media_id);
 						}
@@ -417,13 +359,7 @@ function tpl_form_field_image($name, $value = '', $default = '', $options = arra
 	return $s;
 }
 
-/**
- * 批量上传图片
- * @param string $name 表单input名称
- * @param array $value 附件路径信息
- * @param array $options  自定义图片上传路径
- * @return string
- */
+
 function tpl_form_field_multi_image($name, $value = array(), $options = array()) {
 	global $_W;
 	$options['multiple'] = true;
@@ -478,13 +414,7 @@ EOF;
 	return $s;
 }
 
-/**
- * 【表单控件】: 音乐选择与上传
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @param array $options 表单中input附加信息
- * @return string
- */
+
 function tpl_form_field_audio($name, $value = '', $options = array()) {
 	if (!is_array($options)) {
 		$options = array();
@@ -565,13 +495,7 @@ function tpl_form_field_audio($name, $value = '', $options = array()) {
 	return $s;
 }
 
-/**
- * 批量上传音频
- * @param string $name 表单input名称
- * @param array $value 表单input值
- * @param array $options 自定义上传路径
- * @return string
- */
+
 function tpl_form_field_multi_audio($name, $value = array(), $options = array()) {
 	$s = '';
 	$options['direct'] = false;
@@ -664,13 +588,7 @@ function tpl_form_field_multi_audio($name, $value = array(), $options = array())
 	return $s;
 }
 
-/**
- * 【表单控件】: 视频选择与上传
- * @param string $name 表单input名称
- * @param string $value 表单input值
- * @param array $options 表单中input附加信息
- * @return string
- */
+
 function tpl_form_field_video($name, $value = '', $options = array()) {
 	if(!is_array($options)){
 		$options = array();
@@ -1008,9 +926,7 @@ function tpl_form_field_wechat_video($name, $value = '', $options = array()) {
 	return $s;
 }
 
-/*
- * 门店类目选择三级联动
- * */
+
 function tpl_form_field_location_category($name, $values = array(), $del = false) {
 	$html = '';
 	if (!defined('TPL_INIT_LOCATION_CATEGORY')) {
@@ -1072,28 +988,17 @@ function tpl_form_field_location_category($name, $values = array(), $del = false
 	return $html;
 }
 
-/*
- * 百度富文本编辑器
- * @param $id 表单input名称
- * @param $value 表单textarea值
- * @return string
-*/
+
 
 function tpl_ueditor($id, $value = '', $options = array()) {
-	global $_W;
-	$options['uniacid'] = isset($options['uniacid']) ? intval($options['uniacid']) : $_W['uniacid'];
-	$options['global'] = empty($options['global']) ? '' : $options['global'];
+	$s = '';
 	$options['height'] = empty($options['height']) ? 200 : $options['height'];
 	$options['allow_upload_video'] = isset($options['allow_upload_video']) ? $options['allow_upload_video'] : true;
-
-	$s = '';
 	$s .= !empty($id) ? "<textarea id=\"{$id}\" name=\"{$id}\" type=\"text/plain\" style=\"height:{$options['height']}px;\">{$value}</textarea>" : '';
 	$s .= "
 	<script type=\"text/javascript\">
 		require(['util'], function(util){
 			util.editor('" . ($id ? $id : "") . "', {
-			uniacid : {$options['uniacid']}, 
-			global : '" . $options['global'] . "', 
 			height : {$options['height']}, 
 			dest_dir : '" .($options['dest_dir'] ? $options['dest_dir'] : "") . "',
 			image_limit : " . (intval($GLOBALS['_W']['setting']['upload']['image']['limit']) * 1024) . ",
@@ -1106,10 +1011,7 @@ function tpl_ueditor($id, $value = '', $options = array()) {
 	return $s;
 }
 
-/*
- * 短信条数编辑器
- * @param $name 表单input名称
-*/
+
 function tpl_edit_sms($name, $value, $uniacid, $url, $num) {
 	$s = '
 				<div class="input-group">

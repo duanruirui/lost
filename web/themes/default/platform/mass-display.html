@@ -1,10 +1,14 @@
 {template 'common/header'}
+<div class="we7-page-title">
+	素材定时群发
+</div>
 <ul class="we7-page-tab">
-	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-	<li {if $do == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
-	{/if}
-	{/loop}
+	<li {if $_GPC['a'] == 'mass'  && $do == 'post'}class="active"{/if}>
+	<a href="{php echo url('platform/mass/post')}" >素材编辑</a>
+	</li>
+	<li {if $_GPC['a'] == 'mass' && $do == 'send'}class="active"{/if}>
+		<a href="{php echo url('platform/mass/send')}">群发记录</a>
+	</li>
 </ul>
 <div class="alert we7-page-alert">
 	<p><i class="wi wi-info-sign"></i> 使用定时群发功能可设置<span class="text-danger">未来8天</span>的群发,使用该功能前请<span class="text-danger">先确保您的云服务可用</span><br></p>

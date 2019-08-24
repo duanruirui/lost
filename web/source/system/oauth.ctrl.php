@@ -1,7 +1,7 @@
 <?php
 /**
- * 全局借用权限设置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,6 +10,7 @@ load()->model('user');
 
 $dos = array('display', 'save_oauth');
 $do = in_array($_GPC['do'], $dos)? $do : 'display';
+$_W['page']['title'] = '站点管理 - oauth全局设置 - oauth全局设置';
 
 $oauth = setting_load('global_oauth');
 $oauth = !empty($oauth['global_oauth']) ? $oauth['global_oauth'] : array();

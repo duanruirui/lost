@@ -1,8 +1,7 @@
 <?php
 /**
- * 调用第三方数据接口模块
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -13,11 +12,9 @@ class UserapiModule extends WeModule {
 		global $_W;
 		if (!empty($rid)) {
 			$row = pdo_fetch("SELECT * FROM ".tablename($this->tablename)." WHERE rid = :rid ORDER BY `id` DESC", array(':rid' => $rid));
-			$row['type'] = 1; //远程
-			if (!strexists($row['apiurl'], 'http://') && !strexists($row['apiurl'], 'https://')) {
+			$row['type'] = 1; 			if (!strexists($row['apiurl'], 'http://') && !strexists($row['apiurl'], 'https://')) {
 				$row['apilocal'] =  $row['apiurl'];
-				$row['type'] = 0; //本地
-				$row['apiurl'] = '';
+				$row['type'] = 0; 				$row['apiurl'] = '';
 			}
 		} else {
 			$row = array(
@@ -52,20 +49,14 @@ class UserapiModule extends WeModule {
 
 	public function fieldsFormSubmit($rid = 0) {
 		global $_GPC, $_W;
-		permission_check_account_user('platform_reply_userapi');
-		$rid = intval($rid);
 		$reply = array(
 			'rid' => $rid,
-			'description' => safe_gpc_string($_GPC['description']),
-			'apiurl' => empty($_GPC['type']) ? safe_gpc_string($_GPC['apilocal']) : safe_gpc_string($_GPC['apiurl']),
-			'token' => safe_gpc_string($_GPC['wetoken']),
-			'default_text' => safe_gpc_string($_GPC['default-text']),
+			'description' => $_GPC['description'],
+			'apiurl' => empty($_GPC['type']) ? $_GPC['apilocal'] : $_GPC['apiurl'],
+			'token' => $_GPC['wetoken'],
+			'default_text' => $_GPC['default-text'],
 			'cachetime' => intval($_GPC['cachetime']),
 		);
-		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
-		if (empty($rule_exists)) {
-			return false;
-		}
 		$is_exists = pdo_fetchcolumn('SELECT id FROM ' . tablename($this->tablename) . ' WHERE rid = :rid', array(':rid' => $rid));
 		if(!empty($is_exists)) {
 			if(pdo_update($this->tablename, $reply, array('rid' => $rid)) !== false) {
@@ -80,15 +71,7 @@ class UserapiModule extends WeModule {
 	}
 
 	public function ruleDeleted($rid = 0) {
-		global $_W;
-		$rid = intval($rid);
-		permission_check_account_user('platform_reply_userapi');
-		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
-		if (empty($rule_exists)) {
-			return false;
-		}
-		$result = pdo_delete($this->tablename, array('rid' => $rid));
-		return $result;
+		pdo_delete($this->tablename, array('rid' => $rid));
 	}
 
 	public function doSwitch() {

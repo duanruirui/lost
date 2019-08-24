@@ -1,8 +1,7 @@
 <?php
 /**
- * 基本文字回复处理类
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -20,8 +19,7 @@ class ChatsModuleProcessor extends WeModuleProcessor {
 	public function respond() {
 		global $_W;
 		$msgtype = $this->message['type'];
-		//定义该模块可以处理的消息类型
-		$allow = array('text', 'image', 'location', 'link', 'trace');
+				$allow = array('text', 'image', 'location', 'link', 'trace');
 		if(!in_array($msgtype, $allow)) {
 			return $this->respText('抱歉,系统仅支持 文字，图片，地理位置，链接类型的消息！');
 		}

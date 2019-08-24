@@ -1,8 +1,7 @@
 <?php 
 /**
- * MemCached缓存
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -27,12 +26,7 @@ function cache_memcache() {
 	return $memcacheobj;
 }
 
-/**
- * 取出缓存的单条数据
- *
- * @param 缓存键名 ，多个层级或分组请使用:隔开
- * @return mixed
- */
+
 function cache_read($key, $forcecache = true) {
 	$key = cache_namespace($key);
 	
@@ -52,23 +46,12 @@ function cache_read($key, $forcecache = true) {
 }
 
 
-/**
- * 检索缓存中指定层级或分组的所有缓存
- *
- * @param 缓存分组
- * @return mixed
- */
+
 function cache_search($key) {
 	return cache_read(cache_prefix($key));
 }
 
-/**
- * 将值序列化并写入缓存
- *
- * @param string $key
- * @param mixed $data
- * @return mixed
- */
+
 function cache_write($key, $value, $ttl = 0, $forcecache = true) {
 	$key = cache_namespace($key);
 	$memcache = cache_memcache();
@@ -88,11 +71,7 @@ function cache_write($key, $value, $ttl = 0, $forcecache = true) {
 	}
 }
 
-/**
- * 删除某个键的缓存数据
- * @param string $key
- * @return mixed 
- */
+
 function cache_delete($key, $forcecache = true) {
 	$memcache = cache_memcache();
 	if (is_error($memcache)) {
@@ -122,10 +101,7 @@ function cache_delete($key, $forcecache = true) {
 	return true;
 }
 
-/**
- * 清空缓存指定前缀或所有数据
- * @param string $prefix
- */
+
 function cache_clean($prefix = '') {
 	if (!empty($prefix)) {
 		$cache_relation_keys = cache_relation_keys($prefix);
@@ -134,11 +110,13 @@ function cache_clean($prefix = '') {
 		}
 		if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
 			foreach ($cache_relation_keys as $key) {
-				preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
-				$cache_namespace = cache_namespace('we7:' . $matches[1][0]);
-				pdo_delete('core_cache', array('key LIKE' => $cache_namespace . '%'));
-				unset($GLOBALS['_W']['cache']);
-				cache_namespace('we7:' . $matches[1][0], true);
+				$cache_info = cache_load($key);
+				if (!empty($cache_info)) {
+					preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
+					$cache_namespace = cache_namespace('we7:' . $matches[1][0], true);
+					unset($GLOBALS['_W']['cache']);
+					pdo_delete('core_cache', array('key LIKE' => $cache_namespace . '%'));
+				}
 			}
 		}
 		return true;
@@ -156,12 +134,7 @@ function cache_clean($prefix = '') {
 	}
 }
 
-/**
- * Memcache不支持命名空间，自己实现一个
- * 将key中第一段的值做为命名空间，方便按前缀删除（系统有自己的前缀所以以第一，第二段）
- * @param string $key
- * @return mixed
- */
+
 function cache_namespace($key, $forcenew = false) {
 	if (!strexists($key, ':')) {
 		$namespace_cache_key = $key;
@@ -173,12 +146,11 @@ function cache_namespace($key, $forcenew = false) {
 			$namespace_cache_key = $key1;
 		}
 	}
-	if (!in_array($namespace_cache_key, array('unimodules', 'user_modules', 'system_frame'))) {
+	if (!in_array($namespace_cache_key, array('unimodules', 'user_modules'))) {
 		return $key;
 	}
 	
-	//获取命名空间
-	$namespace_cache_key = 'cachensl:' . $namespace_cache_key;
+		$namespace_cache_key = 'cachensl:' . $namespace_cache_key;
 	$memcache = cache_memcache();
 	if (is_error($memcache)) {
 		return $memcache;

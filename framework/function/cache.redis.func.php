@@ -1,17 +1,11 @@
 <?php
 /**
- * redis缓存
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * redids  连接
- * 必选参数：服务器ip,端口
- * 可选参数：redis认证
- * @return array
- */
+
 function cache_redis() {
 	global $_W;
 	static $redisobj;
@@ -37,11 +31,7 @@ function cache_redis() {
 	return $redisobj;
 }
 
-/**
- * 根据$key获取值
- * @param $key
- * @return array|mixed|string
- */
+
 function cache_read($key) {
 	$redis = cache_redis();
 	if (is_error($redis)) {
@@ -55,11 +45,7 @@ function cache_read($key) {
 	return '';
 }
 
-/**
- * 查询指定前缀的缓存数据
- * @param $key
- * @return array
- */
+
 function cache_search($key) {
 	$redis = cache_redis();
 	if (is_error($redis)) {
@@ -75,13 +61,7 @@ function cache_search($key) {
 	return $search_data;
 }
 
-/**
- * 把数据序列化写入到缓存中
- * @param $key
- * @param $value
- * @param int $ttl
- * @return array|bool
- */
+
 function cache_write($key, $value, $ttl = CACHE_EXPIRE_LONG) {
 	$redis = cache_redis();
 	if (is_error($redis)) {
@@ -94,11 +74,7 @@ function cache_write($key, $value, $ttl = CACHE_EXPIRE_LONG) {
 	return false;
 }
 
-/**
- * 删除某个键的缓存数据
- * @param $key
- * @return array|bool
- */
+
 function cache_delete($key){
 	$redis = cache_redis();
 	if (is_error($redis)) {
@@ -125,11 +101,7 @@ function cache_delete($key){
 	return true;
 }
 
-/**
- * 删除指定前缀的数据和全部数据
- * @param string $key
- * @return array|bool
- */
+
 function cache_clean($key = '') {
 	$redis = cache_redis();
 	if (is_error($redis)) {
@@ -143,12 +115,15 @@ function cache_clean($key = '') {
 
 		if (is_array($cache_relation_keys) && !empty($cache_relation_keys)) {
 			foreach ($cache_relation_keys as $key) {
-				preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
-				if ($keys = $redis->keys(cache_prefix('we7:' . $matches[1][0]) . "*")) {
-					unset($GLOBALS['_W']['cache']);
-					$res = $redis->delete($keys);
-					if (!$res) {
-						return error(-1, '缓存 ' . $key . ' 删除失败');
+				$cache_info = cache_load($key);
+				if (!empty($cache_info)) {
+					preg_match_all('/\:([a-zA-Z0-9\-\_]+)/', $key, $matches);
+					if ($keys = $redis->keys(cache_prefix('we7:' . $matches[1][0]) . "*")) {
+						unset($GLOBALS['_W']['cache']);
+						$res = $redis->delete($keys);
+						if (!$res) {
+							return error(-1, '缓存 ' . $key . ' 删除失败');
+						}
 					}
 				}
 			}
@@ -162,11 +137,7 @@ function cache_clean($key = '') {
 	return false;
 }
 
-/**
- * 前缀定义
- * @param $key
- * @return string
- */
+
 function cache_prefix($key) {
 	return $GLOBALS['_W']['config']['setting']['authkey'] . $key;
 }

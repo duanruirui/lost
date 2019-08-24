@@ -1,8 +1,7 @@
 <?php
 /**
- * 新增素材
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- *
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->func('file');
@@ -12,6 +11,8 @@ $dos = array('news', 'tomedia', 'addnews', 'upload_material', 'upload_news');
 $do = in_array($do, $dos) ? $do : 'news';
 
 permission_check_account_user('platform_material');
+
+$_W['page']['title'] = '新增素材-微信素材';
 
 if ($do == 'tomedia') {
 	iajax('0', tomedia($_GPC['url']), '');
@@ -93,8 +94,8 @@ if ($do == 'addnews') {
 		$result = material_local_news_upload($attach_id);
 	}
 	if (is_error($result)){
-		iajax(-1, $result['message']);
-	} else {
+		iajax(-1, '提交微信素材失败');
+	}else{
 		iajax(0, '编辑图文素材成功');
 	}
 }

@@ -1,7 +1,7 @@
 <?php
 /**
- * 微官网管理
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,13 +10,9 @@ load()->model('extension');
 
 $dos = array('display', 'post', 'del', 'default', 'copy', 'switch', 'quickmenu_display', 'quickmenu_post');
 $do = in_array($do, $dos) ? $do : 'display';
-
-permission_check_account_user('platform_site_multi');
-
-//获取默认微站
+$_W['page']['title'] = '微官网';
 $setting = uni_setting($_W['uniacid'], 'default_site');
 $default_site = intval($setting['default_site']);
-//处理错误数据，默认微站状态不可为零
 $default_site_status = pdo_getcolumn('site_multi', array('id' => $default_site), 'status');
 if ($default_site_status != 1) {
 	pdo_update('site_multi', array('status' => 1), array('id' => $default_site));
@@ -24,8 +20,7 @@ if ($default_site_status != 1) {
 
 if ($do == 'post') {
 	if ($_W['isajax'] && $_W['ispost']) {
-		//搜索模板
-		$name = safe_gpc_string($_GPC['name']);
+				$name = trim($_GPC['name']);
 		$sql = "SELECT s.*, t.`name` AS `tname`, t.`title`, t.`type` FROM " . tablename('site_styles') . " AS s LEFT JOIN " . tablename('site_templates') . " AS t ON s.`templateid` = t.`id` WHERE s.`uniacid` = :uniacid AND s.`name` LIKE :name";
 		$styles = pdo_fetchall($sql, array(':uniacid' => $_W['uniacid'], ':name' => "%{$name}%"));
 		iajax(0, $styles, '');
@@ -34,25 +29,27 @@ if ($do == 'post') {
 
 	if (checksubmit('submit')) {
 		$bindhost = parse_url($_W['siteroot']);
-		if ($bindhost['host'] == safe_gpc_string($_GPC['bindhost'])) {
+		if ($bindhost['host'] == trim($_GPC['bindhost'])) {
 			itoast('绑定域名有误', referer(), 'error');
 		}
 		$data = array(
 			'uniacid' => $_W['uniacid'],
-			'title' => safe_gpc_string($_GPC['title']),
+			'title' => trim($_GPC['title']),
 			'styleid' => intval($_GPC['styleid']),
 			'status' => intval($_GPC['status']),
 			'site_info' => iserializer(array(
-				'thumb' => safe_gpc_string($_GPC['thumb']),
-				'keyword' => !empty($_GPC['keyword']) ? safe_gpc_string($_GPC['keyword']) : '微官网',
-				'description' => safe_gpc_string($_GPC['description']),
+				'thumb' => trim($_GPC['thumb']),
+				'keyword' => trim($_GPC['keyword']),
+				'description' => trim($_GPC['description']),
 				'footer' => htmlspecialchars($_GPC['footer'])
 			)),
-			'bindhost' => safe_gpc_string($_GPC['bindhost']),
+			'bindhost' => trim($_GPC['bindhost']),
 		);
+		if (empty($data['title'])) {
+			itoast('请填写站点名称', referer(), 'error');
+		}
 		if (!empty($id)) {
-			//默认微站状态不可关闭
-			if ($id == $default_site) {
+						if ($id == $default_site) {
 				$data['status'] = 1;
 			}
 			pdo_update('site_multi', $data, array('id' => $id));
@@ -60,19 +57,19 @@ if ($do == 'post') {
 			pdo_insert('site_multi', $data);
 			$id = pdo_insertid();
 		}
-
-		$cover = array(
-			'uniacid' => $_W['uniacid'],
-			'title' => $data['title'],
-			'keyword' => !empty($_GPC['keyword']) ? safe_gpc_string($_GPC['keyword']) : '微官网',
-			'url' => url('home', array('i' => $_W['uniacid'], 't' => $id)),
-			'description' => safe_gpc_string($_GPC['description']),
-			'thumb' => safe_gpc_string($_GPC['thumb']),
-			'module' => 'site',
-			'multiid' => $id,
-		);
-		site_cover($cover);
-
+		if (!empty($_GPC['keyword'])) {
+			$cover = array(
+				'uniacid' => $_W['uniacid'],
+				'title' => $data['title'],
+				'keyword' => trim($_GPC['keyword']),
+				'url' => url('home', array('i' => $_W['uniacid'], 't' => $id)),
+				'description' => trim($_GPC['description']),
+				'thumb' => trim($_GPC['thumb']),
+				'module' => 'site',
+				'multiid' => $id,
+			);
+			site_cover($cover);
+		}
 		itoast('更新站点信息成功！', url('site/multi/display'), 'success');
 	}
 
@@ -137,13 +134,13 @@ if ($do == 'del') {
 	if ($default_site == $id) {
 		itoast('您删除的微站是默认微站,删除前先指定其他微站为默认微站', referer(), 'error');
 	}
-	//删除导航
-	pdo_delete('site_nav', array('uniacid' => $_W['uniacid'], 'multiid' => $id));
-	//删除微站入口设置
-	$rid = pdo_fetchcolumn('SELECT rid FROM ' .tablename('cover_reply') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
-	uni_delete_rule($rid, 'cover_reply');
-	//删除微站信息
-	pdo_delete('site_multi', array('uniacid' => $_W['uniacid'], 'id' => $id));
+		pdo_delete('site_nav', array('uniacid' => $_W['uniacid'], 'multiid' => $id));
+		$rid = pdo_fetchcolumn('SELECT rid FROM ' .tablename('cover_reply') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
+	if(pdo_delete('rule', array('id' => $rid, 'uniacid' => $_W['uniacid'])) !== false) {
+		pdo_delete('rule_keyword', array('rid' => $rid));
+		pdo_delete('cover_reply', array('rid' => $rid, 'multiid' => $id));
+	}
+		pdo_delete('site_multi', array('uniacid' => $_W['uniacid'], 'id' => $id));
 	itoast('删除微站成功', referer(), 'success');
 }
 
@@ -160,8 +157,7 @@ if ($do == 'copy') {
 	if (!$multi_id) {
 		itoast('复制微站出错', '', 'error');
 	} else {
-		//复制微站导航链接
-		$navs = pdo_fetchall('SELECT * FROM ' . tablename('site_nav') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
+				$navs = pdo_fetchall('SELECT * FROM ' . tablename('site_nav') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
 		if (!empty($navs)) {
 			foreach ($navs as &$nav) {
 				unset($nav['id']);
@@ -170,8 +166,7 @@ if ($do == 'copy') {
 			}
 			unset($nav);
 		}
-		//复制微站入口设置
-		$cover = pdo_fetch('SELECT * FROM ' . tablename('cover_reply') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
+				$cover = pdo_fetch('SELECT * FROM ' . tablename('cover_reply') . ' WHERE uniacid = :uniacid AND multiid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $id));
 		if (!empty($cover)) {
 			$rule = pdo_fetch('SELECT * FROM ' . tablename('rule') . ' WHERE uniacid = :uniacid AND id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $cover['rid']));
 			$keywords = pdo_fetchall('SELECT * FROM ' . tablename('rule_keyword') . ' WHERE uniacid = :uniacid AND rid = :id', array(':uniacid' => $_W['uniacid'], ':id' => $cover['rid']));
@@ -204,14 +199,13 @@ if ($do == 'switch') {
 		itoast('微站不存在或已删除', referer(), 'error');
 	}
 	$data = array('status' => $multi_info['status'] == 1 ? 0 : 1);
-	$result = pdo_update('site_multi', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+	$result = pdo_update('site_multi', $data, array('id' => $id));
 	if(!empty($result)) {
 		iajax(0, '更新成功！', '');
 	}else {
 		iajax(-1, '请求失败！', '');
 	}
 }
-//底部快捷菜单:quickmenu_display、quickmenu_post
 if ($do == 'quickmenu_display' && $_W['isajax'] && $_W['ispost'] && $_W['role'] != 'operator') {
 	$multiid = intval($_GPC['multiid']);
 	if($multiid > 0){
@@ -248,7 +242,7 @@ if ($do == 'quickmenu_post' && $_W['isajax'] && $_W['ispost']) {
 	);
 	$id = pdo_fetchcolumn("SELECT id FROM ".tablename('site_page')." WHERE multiid = :multiid AND type = 2", array(':multiid' => intval($_GPC['multiid'])));
 	if (!empty($id)) {
-		$result = pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+		$result = pdo_update('site_page', $data, array('id' => $id));
 	} else {
 		$result = pdo_insert('site_page', $data);
 		$id = pdo_insertid();

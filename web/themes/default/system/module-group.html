@@ -1,72 +1,50 @@
 {template "common/header"}
-<div class="we7-step">
-	<ul>
-		<li ><span class="content">1 安装应用</span></li>
-		<li class="active"><span class="content">2 分配应用权限</span> </li>
-		<li><span class="content">3 安装成功</span> </li>
-	</ul>
+<div class="steps">
+	<div class="steps-item steps-status-wait">
+		<div class="steps-line"><span class="steps-num">1</span></div>
+		<div class="steps-state">安装应用</div>
+	</div>
+	<div class="steps-item steps-status-finish">
+		<div class="steps-line"><span class="steps-num">2</span></div>
+		<div class="steps-state">分配应用权限</div>
+	</div>
+	<div class="steps-item steps-status-wait">
+		<div class="steps-line"><span class="steps-num">3</span></div>
+		<div class="steps-state">安装成功</div>
+	</div>
 </div>
-
-<div id="js-module-group" class="module-group-page clearfix" ng-controller="moduleGroup" ng-cloak>
-	<img src="{php echo tomedia($module['logo'])}" class="module-img" alt="">{if !empty($module['title'])}{$module['title']}{else}模板{/if}
-	<div class="we7-header">
-		分配应用权限组(这里来定义哪些应用权限组可使用{if !empty($module['title'])}{$module['title']} 功能{else}该模板{/if})
+<div class="clearfix">
+	<h5 class="page-header">安装 {if $action == 'module'}{$module['title']}{else}模板{/if}</h5>
+	<div class="alert alert-info">
+		您正在安装 {if $action == 'module'}{$module['title']} 模块{else}模板{/if}. 请选择哪些公众号服务套餐组可使用
+		{if $action == 'module'}{$module['title']} 功能{else}该模板{/if} .
 	</div>
-	<div class="alert we7-page-alert we7-margin-top hidden">
-		如果不选择可用权限组,则默认加入所有权限组
+	<div class="alert alert-info">
+		默认将{if $action == 'module'}{$module['title']} 模块{else}模板{/if}加入<span class="label label-info">所有服务</span>套餐服务
 	</div>
-	<form class="form we7-form we7-margin-top" action="" method="post" id="form1">
+	<form class="form-horizontal form we7-form" action="" method="post" id="form1">
+		<h5 class="page-header">可用的公众号服务套餐组 <small>这里来定义哪些公众号服务套餐组可使用 {if $action == 'module'}{$module['title']} 功能{else}该模板{/if}</small></h5>
 		<div class="form-group">
-			<label class="col-sm-1 control-label">应用权限组</label>
-			<div class="col-sm-11 form-controls">
-				<div class="we7-group-show " ng-repeat="extend in moduleGroupList.groups" ng-if="extend.checked == 1">
-					<input type="checkbox" name="group[]" checked value="{{extend.id}}">
-					<div class="name">
-						{{extend.name}}
-					</div>
-					<div class="group-app-list">
-						<div class="group-app-item" ng-repeat="module in extend.modules_all">
-							<img src="{{module.logo}}" class="module-img" alt="">
-							<div class="info">
-								<div class="title text-over">
-									{{module.title}}
-								</div>
-								<div class="type-list">
-									<i ng-class="itme.icon" ng-repeat="itme in module.group_support | moduleInfo" ></i>
-								</div>
-							</div>
-						</div>
-						<div class="group-app-item" ng-repeat="module in extend.templates">
-							<img src="{{module.logo}}" class="template-img" alt="">
-							<div class="info">
-								<div class="title">
-									{{module.title}}
-								</div>
-								<div class="type-list">
-									<i class="wi wi-template"></i>
-								</div>
-							</div>
-						</div>
-					</div>
-					<a class="action"></a>
-					<a href="" class="remove" ng-click="extend.checked = 0"><i class="wi wi-error"></i></a>
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">公众号服务套餐组</label>
+			<div class="col-sm-10 col-xs-12">
+				{loop $module_group $group}
+				<div class="checkbox">
+					<input id="checkbox-{$group['id']}" type="checkbox" name="group[]" value="{$group['id']}">
+					<label for="checkbox-{$group['id']}" class="ng-binding">{$group['name']}</label>
 				</div>
-				<we7-modal-app module-list="moduleGroupList" multiple="true" on-confirm="groupConfirm()">
-					<div class="add-new-block" >
-						<i class="wi wi-plus"></i> 添加应用权限组
-					</div>
-				</we7-modal-app>
+				{/loop}
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+			<div class="col-sm-10 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" value="确定继续安装 {$module['title']}">
 			</div>
 		</div>
 		<input type="hidden" name="flag" value="1">
-		<input type="hidden" name="upgrade_flag" value="1">
 		<input type="hidden" name="tid" value="{$tid}">
 		<input type="hidden" name="support" value="{$module_support_name}">
-		<div class="form-group col-sm-offset-1">
-			<input type="submit" class="btn btn-primary" name="submit" value="确定继续安装{$module['title']}">
-		</div>
 	</form>
-
 	<div class="distribution-steps">
 		<div class="we7-margin-bottom-sm font-lg">分配应用权限的流程说明</div>
 		<div class="steps-container">
@@ -93,38 +71,13 @@
 		</div>
 	</div>
 	<script>
-		angular.module('moduleApp').value('config', {
-			module_group: {php echo !empty($module_group) ? json_encode($module_group) : 'null'}
+		$('#form1').submit(function(){
+			var num = $("input[name='group[]']:checked").length;
+			if(num == 0) {
+				return confirm("您没有选择可使用该模块/模板的公众号服务套餐组,模块/模板安装成功后可在 公众号服务套餐 编辑");
+			}
+			return true;
 		});
-		angular.module('moduleApp').controller('moduleGroup', ['$scope', 'config', function ($scope, config) {
-			$scope.moduleGroupList = {
-				groups: config.module_group
-			}
-			$scope.loadChange = function() {
-				$('.we7-group-show').each(function() {
-					$(this).removeClass('low');
-					$(this).removeClass('closed');
-					if($(this).find('.group-app-list').outerHeight() > 70) {
-						$(this).removeClass('low');
-						$(this).addClass('closed');
-						$(this).find('.action').on('click', function() {
-							$(this).parent().toggleClass('closed')
-						})
-					} else {
-						$(this).addClass('low');
-						$(this).removeClass('closed');
-					}
-				})
-			}
-
-			// 添加应用权限组
-			$scope.groupConfirm = function() {
-				setTimeout(function(){
-					$scope.loadChange()
-				}, 20)
-			}
-		}]);
-		angular.bootstrap($('#js-module-group'), ['moduleApp']);
 	</script>
 </div>
 {template 'common/footer'}

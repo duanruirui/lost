@@ -1,28 +1,24 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('user');
 load()->model('setting');
-load()->model('utility');
 load()->classs('oauth2/oauth2client');
 
-$dos = array('display', 'valid_mobile', 'register', 'check_username', 'get_extendfields', 'check_code', 'check_mobile_code', 'check_password_safe', 'check_failed_code');
+$dos = array('display', 'valid_mobile', 'register', 'check_username', 'get_extendfields', 'check_code', 'check_mobile_code');
 $do = in_array($do, $dos) ? $do : 'display';
 
-if (empty($_W['setting']['register']['open']) && empty($_W['setting']['copyright']['mobile_status'])) {
+$_W['page']['title'] = '注册选项 - 用户设置 - 用户管理';
+if (empty($_W['setting']['register']['open'])) {
 	itoast('本站暂未开启注册功能，请联系管理员！', '', '');
 }
-if (empty($_GPC['register_type'])) {
-	$_GPC['register_type'] = !empty($_W['setting']['register']['open']) ? 'system' : 'mobile';
-}
+
 $register_type = safe_gpc_belong(safe_gpc_string($_GPC['register_type']), array('system', 'mobile'), 'system');
 $owner_uid = intval($_GPC['owner_uid']);
-$setting = $_W['setting']['register'];
-$user_type = empty($_GPC['type']) || $_GPC['type'] == USER_TYPE_COMMON ? USER_TYPE_COMMON : USER_TYPE_CLERK;
 
 if ($register_type == 'system') {
 	$extendfields = OAuth2Client::create($register_type)->systemFields();
@@ -38,22 +34,21 @@ if ($do == 'valid_mobile' || $do == 'register' && $register_type == 'mobile') {
 	}
 }
 
+if ($do == 'valid_mobile') {
+	iajax(0, '本地校验成功');
+}
+
 if ($do == 'register') {
+
 	if(checksubmit() || $_W['ispost'] && $_W['isajax']) {
-		$register_user = OAuth2Client::create($register_type)->setUserType($user_type)->register();
-		$redirect = url('user/login');
-		if ($user_type == USER_TYPE_CLERK && !empty($_GPC['m'])) {
-			if (empty($_GPC['redirect'])) {
-				$redirect = url('module/permission/display', array('m' => $_GPC['m']));
-			} else {
-				$redirect = url('module/permission/post', array('m' => $_GPC['m']));
-			}
-		}
+
+		$register_user = OAuth2Client::create($register_type)->register();
+
 		if ($register_type == 'system') {
 			if (is_error($register_user)) {
 				itoast($register_user['message']);
 			} else {
-				itoast($register_user['message'], $redirect);
+				itoast($register_user['message'], url('user/login'));
 			}
 		}
 
@@ -61,7 +56,7 @@ if ($do == 'register') {
 			if (is_error($register_user)) {
 				iajax(-1, $register_user['message']);
 			} else {
-				iajax(0, $register_user['message'], $redirect);
+				iajax(0, $register_user['message'], url('user/login'));
 			}
 		}
 	}
@@ -76,11 +71,39 @@ if ($do == 'check_username') {
 	}
 }
 
+if ($do == 'get_extendfields') {
+	$extendfields = OAuth2Client::create($register_type)->systemFields();
+		if (!empty($extendfields)) {
+		foreach ($extendfields as $field => $value) {
+			$extendfields[$field][$field . '_err'] = false;
+			$extendfields[$field][$field . '_msg'] = '';
+		}
+	}
+	iajax(0, $extendfields);
+}
+
 if ($do == 'check_code') {
-	if (!checkcaptcha(intval($_GPC['code']))) {
-		iajax(-1, '你输入的验证码不正确, 请重新输入.');
+	if (!empty($_W['setting']['register']['code'])) {
+		if (!checkcaptcha(intval($_GPC['code']))) {
+			iajax(-1, '你输入的验证码不正确, 请重新输入.');
+		} else {
+			iajax(0, '验证码正确');
+		}
+	}
+}
+
+if ($do == 'check_mobile_code') {
+	$smscode = intval($_GPC['smscode']);
+	$mobile = safe_gpc_string($_GPC['mobile']);
+	$user_table = table('users');
+	$code_info = $user_table->userVerifyCode($mobile, $smscode);
+
+	if (empty($code_info)) {
+		iajax(-1, '短信验证码不正确');
+	} else if ($code_info['createtime'] + 120 < TIMESTAMP) {
+		iajax(-1, '短信验证码已过期，请重新获取');
 	} else {
-		iajax(0, '验证码正确');
+		iajax(0, '短信验证码正确');
 	}
 }
 

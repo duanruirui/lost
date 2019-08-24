@@ -1,19 +1,4 @@
 {template 'common/header'}
-<ol class="breadcrumb we7-breadcrumb">
-	<a href="{php echo url('mc/member')}"><i class="wi wi-back-circle"></i> </a>
-	<li>
-		<a href="{php echo url('mc/member')}">会员列表</a>
-	</li>
-	<li>
-		{if $do == 'credit_statistics'}
-		数据统计
-		{elseif $do == 'member_credits'}
-		积分/余额
-		{else}
-		基本信息
-		{/if}
-	</li>
-</ol>
 <div class="btn-group we7-btn-group">
 	<a href="{php echo url('mc/member/base_information', array('uid' => $uid))}" class="btn {if $do == 'base_information'}active{/if}">基本信息</a>
 	<a href="{php echo url('mc/member/member_credits', array('uid' => $uid))}" class="btn {if $do == 'member_credits'}active{/if}">{$creditnames['credit1']['title']}/{$creditnames['credit2']['title']}</a>
@@ -78,7 +63,7 @@
 			<col />
 			<col width="100px">
 			<tr>
-				<th class="text-left" colspan="3">会员{$creditnames['credit1']['title']}/{$creditnames['credit2']['title']}操作</th>
+				<th class="text-left" colspan="3">会员{$creditnames['credit1']['title']}/{$creditnames['credit1']['title']}操作</th>
 			</tr>
 			<tr>
 				<td class="table-label">{$creditnames['credit1']['title']}</td>
@@ -115,7 +100,7 @@
 			<tr>
 				<th>账户类型</th>
 				<th class="text-center">操作员</th>
-				<th class="text-center">{$creditnames[$type]['title']}增减</th>
+				<th class="text-center">{$creditnames['credit1']['title']}增减</th>
 				<th class="text-center">模块</th>
 				<th class="text-center">操作时间</th>
 				<th class="text-center">备注</th>

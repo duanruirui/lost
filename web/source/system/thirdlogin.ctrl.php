@@ -1,7 +1,7 @@
 <?php
 /**
- * 第三方登录配置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,78 +10,42 @@ load()->classs('oauth2/oauth2client');
 $dos = array('display', 'save_setting');
 $do = in_array($do, $dos) ? $do : 'display';
 
+$_W['page']['title'] = '登录配置';
+
 $types = OAuth2Client::supportLoginType();
-$type = safe_gpc_string($_GPC['type']);
+
+$type = trim($_GPC['type']);
 $type = !empty($type) && in_array($type, $types) ? $type : 'qq';
 
-$thirdlogin = $_W['setting']['thirdlogin'];
-$copyright = $_W['setting']['copyright'];
-
 if ($do == 'save_setting') {
-	$is_copyright = false;
-	switch ($_GPC['key']) {
-		case 'qqauthstate':
-			$thirdlogin['qq']['authstate'] = intval($_GPC['value']);
-			break;
-		case 'qqappid':
-			$thirdlogin['qq']['appid'] = safe_gpc_string($_GPC['value']);
-			break;
-		case 'qqappsecret':
-			$thirdlogin['qq']['appsecret'] = safe_gpc_string($_GPC['value']);
-			break;
-		case 'wechatauthstate':
-			$thirdlogin['wechat']['authstate'] = intval($_GPC['value']);
-			break;
-		case 'wechatappid':
-			$thirdlogin['wechat']['appid'] = safe_gpc_string($_GPC['value']);
-			break;
-		case 'wechatappsecret':
-			$thirdlogin['wechat']['appsecret'] = safe_gpc_string($_GPC['value']);
-			break;
-		case 'bind':
-			$copyright['bind'] = safe_gpc_string($_GPC['value']);
-			$copyright['bind'] = $copyright['bind'] == 'null' ? '' : $copyright['bind'];
-			$is_copyright = true;
-			break;
-		case 'oauth_bind':
-			$copyright['oauth_bind'] = intval($_GPC['value']);
-			$is_copyright = true;
-			break;
+	if ($_W['isajax'] && $_W['ispost']) {
+		$appid = trim($_GPC['appid']);
+		$appsecret = trim($_GPC['appsecret']);
+		$authstate = trim($_GPC['authstate']);
+
+		$data = array();
+		$data[$type]['appid'] = !empty($appid) ? $appid : $_W['setting']['thirdlogin'][$type]['appid'];
+		$data[$type]['appsecret'] = !empty($appsecret) ? $appsecret : $_W['setting']['thirdlogin'][$type]['appsecret'];
+		$data[$type]['authstate'] = !empty($authstate) ? (empty($_W['setting']['thirdlogin'][$type]['authstate']) ? 1 : 0) : $_W['setting']['thirdlogin'][$type]['authstate'];
+		$_W['setting']['thirdlogin'][$type] = $data[$type];
+		$result = setting_save($_W['setting']['thirdlogin'], 'thirdlogin');
+		if($result) {
+			iajax(0, '修改成功！', referer());
+		}else {
+			iajax(1, '修改失败！', referer());
+		}
 	}
-	if ($is_copyright) {
-		setting_save($copyright, 'copyright');
-	} else {
-		setting_save($thirdlogin, 'thirdlogin');
-	}
-	itoast('更新设置成功！', referer(), 'success');
 }
 
 if ($do == 'display') {
-	if (empty($thirdlogin)) {
+	if (empty($_W['setting']['thirdlogin'])) {
 		foreach ($types as $login_type) {
-			$thirdlogin[$login_type]['appid'] = '';
-			$thirdlogin[$login_type]['appsecret'] = '';
-			$thirdlogin[$login_type]['authstate'] = '';
+			$_W['setting']['thirdlogin'][$login_type]['appid'] = '';
+			$_W['setting']['thirdlogin'][$login_type]['appsecret'] = '';
+			$_W['setting']['thirdlogin'][$login_type]['authstate'] = '';
 		}
-		setting_save($thirdlogin, 'thirdlogin');
+		setting_save($_W['setting']['thirdlogin'], 'thirdlogin');
 	}
-	$thirdlogin['bind'] = $copyright['bind'];
-	$thirdlogin['oauth_bind'] = $copyright['oauth_bind'];
 	$siteroot_parse_array = parse_url($_W['siteroot']);
-
-	$binds = array(array('name' => '无', 'id' => 'null'));
-	foreach (OAuth2Client::supportBindTypeInfo() as $info) {
-		$binds[] = array('name' => $info['title'], 'id' => $info['type']);
-	}
-	$bind = array();
-	foreach ($binds as $item) {
-		if ($item['id'] == $thirdlogin['bind']) {
-			$bind = $item;
-			break;
-		}
-	}
-	if (empty($bind)) {
-		$bind = array('name' => '无', 'id' => 'null');
-	}
 }
 template('system/thirdlogin');

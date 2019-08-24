@@ -1,7 +1,7 @@
 <?php
 /**
- * 小程序身份获取
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -11,12 +11,9 @@ load()->model('mc');
 $dos = array('openid', 'userinfo', 'check');
 $do = in_array($do, $dos) ? $do : 'openid';
 
-$account_api = WeAccount::createByUniacid();
-
+$account_api = WeAccount::create();
 if ($do == 'openid') {
-	/**
-	 * 用户可通过code码或是Openid来获取用户信息
-	 */
+	
 	$code = $_GPC['code'];
 	$openid = $_GPC['openid'];
 	
@@ -41,12 +38,10 @@ if ($do == 'openid') {
 	if (!empty($oauth) && !is_error($oauth)) {
 		$_SESSION['openid'] = $oauth['openid'];
 		$_SESSION['session_key'] = $oauth['session_key'];
-		//更新Openid到mapping_fans表中
-		$fans = mc_fansinfo($oauth['openid']);
+				$fans = mc_fansinfo($oauth['openid']);
 		if (empty($fans)) {
 			$record = array(
 				'openid' => $oauth['openid'],
-				'unionid' => $oauth['unionid'],
 				'uid' => 0,
 				'acid' => $_W['acid'],
 				'uniacid' => $_W['uniacid'],
@@ -59,7 +54,7 @@ if ($do == 'openid') {
 				'tag' => '',
 			);
 			$email = md5($oauth['openid']).'@we7.cc';
-			$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email, 'uniacid' => $_W['uniacid']), 'uid');
+			$email_exists_member = pdo_getcolumn('mc_members', array('email' => $email), 'uid');
 			if (!empty($email_exists_member)) {
 				$uid = $email_exists_member;
 			} else {
@@ -84,16 +79,7 @@ if ($do == 'openid') {
 			$record['uid'] = $uid;
 			$_SESSION['uid'] = $uid;
 			pdo_insert('mc_mapping_fans', $record);
-		} else {
-			$userinfo = $fans['tag'];
-			$uid = $fans['uid'];
 		}
-		if (empty($userinfo)) {
-			$userinfo = array(
-				'openid' => $oauth['openid'],
-			);
-		}
-		$_SESSION['userinfo'] = base64_encode(iserializer($userinfo));
 		$account_api->result(0, '', array('sessionid' => $_W['session_id'], 'userinfo' => $fans, 'openid' => $oauth['openid']));
 	} else {
 		$account_api->result(1, $oauth['message']);
@@ -129,30 +115,19 @@ if ($do == 'openid') {
 			'headimgurl' => $userinfo['avatarUrl'],
 		))),
 	);
-	
-	$member = mc_fetch($fans['uid']);
-	if (!empty($member)) {
-		pdo_update('mc_members', array('nickname' => $userinfo['nickName'], 'avatar' => $userinfo['avatarUrl'], 'gender' => $userinfo['gender']), array('uid' => $fans['uid']));
-	} else {
-		$default_groupid = pdo_fetchcolumn('SELECT groupid FROM ' .tablename('mc_groups') . ' WHERE uniacid = :uniacid AND isdefault = 1', array(':uniacid' => $_W['uniacid']));
-		$member = array(
-			'uniacid' => $_W['uniacid'],
-			'email' => md5($_SESSION['openid']).'@we7.cc',
-			'salt' => random(8),
-			'groupid' => $default_groupid,
-			'createtime' => TIMESTAMP,
-			'password' => md5($userinfo['openId'] . $member['salt'] . $_W['config']['setting']['authkey']),
-			'nickname' => $userinfo['nickName'],
-			'avatar' => $userinfo['avatarUrl'],
-			'gender' => $userinfo['gender'],
-			'nationality' => '',
-			'resideprovince' => '',
-			'residecity' => '',
-		);
-		pdo_insert('mc_members', $member);
-		$fans_update['uid'] = pdo_insertid();
+			if (!empty($userinfo['unionId'])) {
+		$union_fans = pdo_get('mc_mapping_fans', array('unionid' => $userinfo['unionId'], 'openid !=' => $userinfo['openId']));
+		if (!empty($union_fans['uid'])) {
+			if (!empty($fans['uid'])) {
+				
+			}
+			$fans_update['uid'] = $union_fans['uid'];
+			$_SESSION['uid'] = $union_fans['uid'];
+		}
 	}
 	pdo_update('mc_mapping_fans', $fans_update, array('fanid' => $fans['fanid']));
+	pdo_update('mc_members', array('nickname' => $userinfo['nickName'], 'avatar' => $userinfo['avatarUrl'], 'gender' => $userinfo['gender']), array('uid' => $fans['uid']));
+	$member = mc_fetch($fans['uid']);
 	unset($member['password']);
 	unset($member['salt']);
 	$account_api->result(0, '', $member);

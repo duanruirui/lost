@@ -1,20 +1,22 @@
 <?php
 /**
- * pc列表
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('permission');
+
+load()->model('webapp');
 $account_info = permission_user_account_num();
 
 $do = safe_gpc_belong($do, array('create', 'list', 'create_display'), 'list');
+
 if($do == 'create') {
 	if(!checksubmit()) {
 		echo '非法提交';
 		return;
 	}
-	if (!permission_user_account_creatable($_W['uid'], WEBAPP_TYPE_SIGN)) {
+	if (!webapp_can_create($_W['uid'])) {
 		itoast('创建PC个数已满', url('account/display', array('type' => WEBAPP_TYPE_SIGN)));
 	}
 	$data = array(
@@ -39,8 +41,8 @@ if($do == 'create') {
 }
 
 if($do == 'create_display') {
-	if(!permission_user_account_creatable($_W['uid'], WEBAPP_TYPE_SIGN)) {
-		itoast('创建PC个数已满', url('account/display', array('type' => WEBAPP_TYPE_SIGN)));
+	if(!webapp_can_create($_W['uid'])) {
+		itoast('', url('account/display', array('type' => WEBAPP_TYPE_SIGN)));
 	}
 	template('webapp/create');
 }

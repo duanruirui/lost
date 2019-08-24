@@ -1,25 +1,34 @@
 {template 'common/header'}
 <div>
     <ol class="breadcrumb we7-breadcrumb">
-        <a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i></a>
-        <li><a href="{php echo url('account/manage')}">平台列表</a></li>
-        <li>{if empty($version_id)}新建{else}编辑{/if}APP版本</li>
+        <a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i></a>
+        <li><a href="{url 'account/manage'}">APP列表</a></li>
+        <li>新建APP</li>
     </ol>
     <div id="js-phone-app" ng-controller="phoneCreateCtrl">
         <div id="select">
             <div class="form-defalut we7-form">
+                <div class="form-group" ng-if = "!uniacid">
+                    <label for="" class="control-label col-sm-2">APP名称</label>
+                    <div class="form-controls col-sm-10">
+                        <input type="text" class="form-control wxapp-name" ng-model="phoneappinfo.name" placeholder="APP名称">
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label for="" class="control-label col-sm-2">版本描述</label>
+                    <label for="" class="control-label col-sm-2">APP描述</label>
                     <div class="form-controls col-sm-10">
                         <input type="text" ng-model="phoneappinfo.description" class="form-control wxapp-name" placeholder="版本描述">
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label for="" class="control-label col-sm-2">版本号</label>
                     <div class="form-controls col-sm-10">
                         <input type="text" ng-model="phoneappinfo.version" class="form-control wxapp-name" placeholder="版本号，只能是数字、点，数字最多两位，例如 1.01">
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label class="control-label col-sm-2">添加应用</label>
                     <div class="form-controls col-sm-10">
@@ -34,9 +43,7 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-sm-offset-2">
-                    <a type="button" class="btn btn-primary" ng-click="savePhoneApp()">确认</a>
-                </div>
+                <a type="button" class="btn btn-primary" ng-click="savePhoneApp()">创建APP</a>
             </div>
         </div>
 

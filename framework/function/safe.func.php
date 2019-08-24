@@ -1,19 +1,13 @@
 <?php
 /**
- * 提供系统安全获取传入值
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 从GPC中获取一个数字
- * @param unknown $value
- * @param string $default
- */
+
 function safe_gpc_int($value, $default = 0) {
-	//如果包含小数点，优先按float对待
-	//否则一律按int对待
-	if (strpos($value, '.') !== false) {
+			if (strpos($value, '.') !== false) {
 		$value = floatval($value);
 		$default = floatval($default);
 	} else {
@@ -38,12 +32,7 @@ function safe_gpc_belong($value, $allow = array(), $default = '') {
 	}
 }
 
-/**
- * 转换一个安全字符串
- * @param mixed $value
- * @param string $default
- * @return string
- */
+
 function safe_gpc_string($value, $default = '') {
 	$value = safe_bad_str_replace($value);
 	$value  = preg_replace('/&((#(\d{3,5}|x[a-fA-F0-9]{4}));)/', '&\\1', $value);
@@ -54,12 +43,7 @@ function safe_gpc_string($value, $default = '') {
 	return $value;
 }
 
-/**
- * 转换一个安全路径
- * @param string $value
- * @param string $default
- * @return string
- */
+
 function safe_gpc_path($value, $default = '') {
 	$path = safe_gpc_string($value);
 	$path = str_replace(array('..', '..\\', '\\\\' ,'\\', '..\\\\'), '', $path);
@@ -71,11 +55,7 @@ function safe_gpc_path($value, $default = '') {
 	return $path;
 }
 
-/**
- * 转换一个安全的字符串型数组
- * @param unknown $value
- * @param array $default
- */
+
 function safe_gpc_array($value, $default = array()) {
 	if (empty($value) || !is_array($value)) {
 		return $default;
@@ -92,18 +72,13 @@ function safe_gpc_array($value, $default = array()) {
 	return $value;
 }
 
-/**
- * 转换一个安全的布尔值
- * @param mixed $value
- * @return boolean
- */
-function safe_gpc_boolean($value) {
-	return boolval($value);
+
+function safe_gpc_boolean($value, $default = false) {
+	$value = safe_gpc_int($value, $default);
+	return empty($value) ? false : true;
 }
 
-/**
- * 转换一个安全HTML数据
- */
+
 function safe_gpc_html($value, $default = '') {
 	if (empty($value) || !is_string($value)) {
 		return $default;
@@ -148,40 +123,32 @@ function safe_gpc_sql($value, $operator = 'ENCODE', $default = '') {
 	return $value;
 }
 
-/**
- * 转换一个安全URL
- * @param $_GPC中的值
- * @param boolean $strict_domain 是否严格限制只能为当前域下的URL
- * @param string $default
- */
+
 function safe_gpc_url($value, $strict_domain = true, $default = '') {
 	global $_W;
 	if (empty($value) || !is_string($value)) {
 		return $default;
 	}
-	$value = urldecode($value);
+	
 	if (starts_with($value, './')) {
 		return $value;
 	}
-
+	
 	if ($strict_domain) {
 		if (starts_with($value, $_W['siteroot'])) {
 			return $value;
 		}
 		return $default;
 	}
-
+	
 	if (starts_with($value, 'http') || starts_with($value, '//')) {
 		return $value;
 	}
-
+	
 	return $default;
 }
 
-/**
- *  去掉可能造成xss攻击的字符
- * @param $val $string 需处理的字符串
- */
+
 function safe_remove_xss($val) {
 	$val = preg_replace('/([\x0e-\x19])/', '', $val);
 	$search = 'abcdefghijklmnopqrstuvwxyz';
@@ -240,28 +207,9 @@ function safe_bad_str_replace($string) {
 	if (empty($string)) {
 		return '';
 	}
-	$badstr = array("\0", "%00", "%3C", "%3E", '<?', '<%', '<?php', '{php', '{if', '{loop', '../');
-	$newstr = array('_', '_', '&lt;', '&gt;', '_', '_', '_', '_', '_', '_', '.._');
+	$badstr = array("\0", "%00", "%3C", "%3E", '<?', '<%', '<?php', '{php', '../');
+	$newstr = array('_', '_', '&lt;', '&gt;', '_', '_', '_', '_', '.._');
 	$string  = str_replace($badstr, $newstr, $string);
-
+	
 	return $string;
-}
-
-
-/**
- * 检测密码强度
- * @param $password
- * @return array|bool
- */
-function safe_check_password($password) {
-	$setting = setting_load('register');
-	if (!$setting['register']['safe']) {
-		return true;
-	}
-	preg_match(PASSWORD_STRONG_REGULAR, $password, $out);
-	if (empty($out)) {
-		return error(-1, PASSWORD_STRONG_STATE);
-	} else {
-		return true;
-	}
 }

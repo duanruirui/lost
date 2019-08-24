@@ -1,9 +1,7 @@
 <?php
 /**
- * 粉丝管理模块订阅器
- *
- * @author WeEngine Team
- * @url http://bbs.w7.cc/forum.php?mod=forumdisplay&fid=36&filter=typeid&typeid=1
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 class CoreModuleReceiver extends WeModuleReceiver {
@@ -15,10 +13,7 @@ class CoreModuleReceiver extends WeModuleReceiver {
 			$uniacid = $this->uniacid;
 			$ticket = trim($this->message['ticket']);
 			if(!empty($ticket)) {
-				$qr = pdo_fetchall(
-					"SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = :uniacid AND ticket = :ticket",
-					array(':uniacid' => $uniacid, ':ticket' => $ticket)
-				);
+				$qr = pdo_fetchall("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$uniacid}' AND ticket = '{$ticket}'");
 				if(!empty($qr)) {
 					if(count($qr) != 1) {
 						$qr = array();
@@ -30,12 +25,11 @@ class CoreModuleReceiver extends WeModuleReceiver {
 			if(empty($qr)) {
 				$sceneid = trim($this->message['scene']);
 				if(is_numeric($sceneid)) {
-					$scene_condition = " `qrcid` = :sceneid";
+					$scene_condition = " `qrcid` = '{$sceneid}'";
 				} else {
-					$scene_condition = " `scene_str` = :sceneid";
+					$scene_condition = " `scene_str` = '{$sceneid}'";
 				}
-				$condition = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
-				$qr = pdo_fetch("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = :uniacid AND {$scene_condition}", $condition);
+				$qr = pdo_fetch("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$uniacid}' AND {$scene_condition}");
 			}
 			$insert = array(
 				'uniacid' => $_W['uniacid'],
@@ -54,12 +48,11 @@ class CoreModuleReceiver extends WeModuleReceiver {
 			$uniacid = $this->uniacid;
 			$sceneid = trim($this->message['scene']);
 			if(is_numeric($sceneid)) {
-				$scene_condition = " `qrcid` = :sceneid";
+				$scene_condition = " `qrcid` = '{$sceneid}'";
 			} else {
-				$scene_condition = " `scene_str` = :sceneid";
+				$scene_condition = " `scene_str` = '{$sceneid}'";
 			}
-			$condition = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
-			$row = pdo_fetch("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = :uniacid AND {$scene_condition} AND `type` = 'scene'", $condition);
+			$row = pdo_fetch("SELECT `id`, `keyword`, `name`, `acid` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$uniacid}' AND {$scene_condition}");
 			$insert = array(
 				'uniacid' => $_W['uniacid'],
 				'acid' => $row['acid'],
@@ -93,7 +86,7 @@ class CoreModuleReceiver extends WeModuleReceiver {
 			}
 		}
 		if ($this->message['event'] == 'subscribe' && !empty($_W['account']) && ($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY || $_W['account']['level'] == ACCOUNT_SUBSCRIPTION_VERIFY)) {
-			$account_obj = WeAccount::createByUniacid();
+			$account_obj = WeAccount::create();
 			$userinfo = $account_obj->fansQueryInfo($this->message['from']);
 			if(!is_error($userinfo) && !empty($userinfo) && !empty($userinfo['subscribe'])) {
 				$userinfo['nickname'] = stripcslashes($userinfo['nickname']);

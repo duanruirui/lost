@@ -1,13 +1,15 @@
 {template 'common/header'}
 <div class="sensitive-word" ng-controller="sensitiveWord" ng-cloak>
-	<div class="search-box we7-margin-bottom">
-		<form action="{php url('system/sensitiveword')}" method="post"  class="search-form">
-			<div class="input-group" >
+	<div class="clearfix we7-margin-bottom">
+		<form action="{php url('system/sensitiveword')}" method="post"  class="pull-left form-inline">
+			<div class="input-group form-group" style="width: 400px;">
 				<input type="text" name="keyword" value="{$keyword}" class="form-control" placeholder="输入要搜索的敏感词汇">
 				<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
 			</div>
 		</form>
-		<a href="#" class="btn btn-primary we7-padding-horizontal"  data-toggle="modal" data-target="#myModalSensitive">添加敏感词</a>
+		<div class="pull-right">
+			<a href="#" class="btn btn-primary we7-padding-horizontal"  data-toggle="modal" data-target="#myModalSensitive">添加敏感词</a>
+		</div>
 	</div>
 	<div class="modal fade" id="myModalSensitive" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 		<div class="modal-dialog">
@@ -34,8 +36,8 @@
 			</div>
 		</div>
 	</div>
-	<div class="panel we7-panel panel-table">
-		<div class="panel-heading">敏感词汇</div>
+	<div class="panel we7-panel">
+		<div class="panel-heading">添加敏感词汇</div>
 		<div class="panel-body">
 			<div class="sensitive-list">
 				<div class="item" ng-repeat="list in lists">

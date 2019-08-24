@@ -43,17 +43,5 @@ a{color:{$_W['styles']['linkcolor']}; text-decoration:none;}
 	</ul>
 	{/if}
 	<!-- 该分类下文章-start -->
-
-	<ul class="list list-unstyled">
-		{data module="site" func="site_article" cid="$cid" assign="result" return="true"}
-		{loop $result['list'] $row}
-		<li>
-			<a href="{$row['linkurl']}">
-				<div class="title">{php echo cutstr($row['title'],40,1);}</div>
-				<div class="createtime">{php echo date('Y-m-d H:i:s', $row['createtime'])}</div>
-			</a>
-		</li>
-		{/loop}
-	</ul>
 </div>
 {template 'common/footer'}

@@ -1,15 +1,16 @@
 <?php
 /**
- * 检测文件BOM相关操作
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
+
+$_W['page']['title'] = '检测文件BOM - 常用系统工具 - 系统管理';
 
 set_time_limit(0);
 
 load()->func('file');
 
-//检测BOM异常
 if (checksubmit('submit')) {
 	$path = IA_ROOT;
 	$trees = file_tree($path);
@@ -32,7 +33,6 @@ if (checksubmit('submit')) {
 	cache_write(cache_system_key('bomtree'), $bomtree);
 }
 
-//处理BOM异常
 if (checksubmit('dispose')) {
 	$trees = cache_load(cache_system_key('bomtree'));
 	$path = IA_ROOT;

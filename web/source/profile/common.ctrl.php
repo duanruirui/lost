@@ -1,7 +1,7 @@
 <?php
 /**
- * 参数设置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -9,8 +9,10 @@ defined('IN_IA') or exit('Access Denied');
 $dos = array('uc_setting', 'upload_file');
 $do = in_array($do, $dos) ? $do : 'uc_setting';
 permission_check_account_user('profile_setting');
+$_W['page']['title'] = '系统 - 参数设置';
 
 if ($do == 'uc_setting') {
+	$_W['page']['title'] = 'uc站点整合';
 	$setting = uni_setting_load('uc');
 	$uc = $setting['uc'];
 	if(!is_array($uc)) {
@@ -18,72 +20,41 @@ if ($do == 'uc_setting') {
 	}
 
 	if(checksubmit('submit')) {
-		$uc['connect'] = isset($_GPC['connect']) ? safe_gpc_string($_GPC['connect']) : $uc['connect'];
-		$uc['title'] = isset($_GPC['title']) ? safe_gpc_string($_GPC['title']) : $uc['title'];
-		$uc['appid'] = isset($_GPC['appid']) ? intval($_GPC['appid']) : $uc['appid'];
-		$uc['key'] = isset($_GPC['key']) ? safe_gpc_string($_GPC['key']) : $uc['key'];
-		$uc['charset'] = isset($_GPC['charset']) ? safe_gpc_string($_GPC['charset']) : $uc['charset'];
-		$uc['dbhost'] = isset($_GPC['dbhost']) ? safe_gpc_string($_GPC['dbhost']) : $uc['dbhost'];
-		$uc['dbuser'] = isset($_GPC['dbuser']) ? safe_gpc_string($_GPC['dbuser']) : $uc['dbuser'];
-		$uc['dbpw'] = isset($_GPC['dbpw']) ? safe_gpc_string($_GPC['dbpw']) : $uc['dbpw'];
-		$uc['dbname'] = isset($_GPC['dbname']) ? safe_gpc_string($_GPC['dbname']) : $uc['dbname'];
-		$uc['dbcharset'] = isset($_GPC['dbcharset']) ? safe_gpc_string($_GPC['dbcharset']) : $uc['dbcharset'];
-		$uc['dbtablepre'] = isset($_GPC['dbtablepre']) ? safe_gpc_string($_GPC['dbtablepre']) : $uc['dbtablepre'];
-		$uc['dbconnect'] = isset($_GPC['dbconnect']) ? intval($_GPC['dbconnect']) : $uc['dbconnect'];
-		$uc['api'] = isset($_GPC['api']) ? safe_gpc_string($_GPC['api']) : $uc['api'];
-		$uc['ip'] = isset($_GPC['ip']) ? safe_gpc_string($_GPC['ip']) : $uc['ip'];
-
-		if (isset($_GPC['status'])) {
-			$uc['status'] = $_GPC['status'] == 1 ? 1 : 0;
-		}
-		if ($uc['status'] == 1) {
-			if (empty($uc['title'])) {
-				iajax(-1, '请填写正确的通行证名称！');
-			}
-			if (empty($uc['appid'])) {
-				iajax(-1, '请填写正确的应用ID！');
-			}
-			if (empty($uc['key'])) {
-				iajax(-1, '请填写通信密钥！');
-			}
-			if (empty($uc['charset'])) {
-				iajax(-1, '请填写UCenter的字符集！');
-			}
-			if (!in_array($uc['connect'], array('mysql','http'))) {
-				iajax(1, '通行方式参数有误');
-			}
+		$rec = array();
+		$uc['status'] = intval($_GPC['status']);
+		$uc['connect'] = trim($_GPC['connect']);
+		if($uc['status'] == '1' && in_array($uc['connect'], array('mysql','http'))) {
+			$uc['title'] = empty($_GPC['title']) ? itoast('请填写正确的站点名称！', referer(), 'error') : trim($_GPC['title']);
+			$uc['appid'] = empty($_GPC['appid']) ? itoast('请填写正确的应用id！', referer(), 'error') : intval($_GPC['appid']);
+			$uc['key'] = empty($_GPC['key']) ? itoast('请填写与UCenter的通信密钥！', referer(), 'error') : trim($_GPC['key']);
+			$uc['charset'] = empty($_GPC['charset']) ? itoast('请填写UCenter的字符集！', referer(), 'error') : trim($_GPC['charset']);
 			if($uc['connect'] == 'mysql') {
-				if (empty($uc['dbhost'])) {
-					iajax(-1, '请填写UCenter数据库主机地址！');
-				}
-				if (empty($uc['dbuser'])) {
-					iajax(-1, '请填写UCenter数据库用户名！');
-				}
-				if (empty($uc['dbpw'])) {
-					iajax(-1, '请填写UCenter数据库密码！');
-				}
-				if (empty($uc['dbname'])) {
-					iajax(-1, '请填写UCenter数据库名称！');
-				}
-				if (empty($uc['dbcharset'])) {
-					iajax(-1, '请填写UCenter数据库字符集！');
-				}
-				if (empty($uc['dbtablepre'])) {
-					iajax(-1, '请填写UCenter数据表前缀！');
-				}
-			} elseif ($uc['connect'] == 'http') {
-				if (empty($uc['api'])) {
-					iajax(-1, '请填写UCenter 服务端的URL地址！');
-				}
-				if (empty($uc['ip'])) { 
-					iajax(-1, '请填写UCenter的IP！');
-				}
+				$uc['dbhost'] = empty($_GPC['dbhost']) ? itoast('请填写UCenter数据库主机地址！', referer(), 'error') : trim($_GPC['dbhost']);
+				$uc['dbuser'] = empty($_GPC['dbuser']) ? itoast('请填写UCenter数据库用户名！', referer(), 'error') : trim($_GPC['dbuser']);
+				$uc['dbpw'] = empty($_GPC['dbpw']) ? itoast('请填写UCenter数据库密码！', referer(), 'error') : trim($_GPC['dbpw']);
+				$uc['dbname'] = empty($_GPC['dbname']) ? itoast('请填写UCenter数据库名称！', referer(), 'error') : trim($_GPC['dbname']);
+				$uc['dbcharset'] = empty($_GPC['dbcharset']) ? itoast('请填写UCenter数据库字符集！', referer(), 'error') : trim($_GPC['dbcharset']);
+				$uc['dbtablepre'] = empty($_GPC['dbtablepre']) ? itoast('请填写UCenter数据表前缀！', referer(), 'error') : trim($_GPC['dbtablepre']);
+				$uc['dbconnect'] = intval($_GPC['dbconnect']);
+				$uc['api'] = trim($_GPC['api']);
+				$uc['ip'] = trim($_GPC['ip']);
+			} elseif($uc['connect'] == 'http') {
+				$uc['dbhost'] = trim($_GPC['dbhost']);
+				$uc['dbuser'] = trim($_GPC['dbuser']);
+				$uc['dbpw'] = trim($_GPC['dbpw']);
+				$uc['dbname'] = trim($_GPC['dbname']);
+				$uc['dbcharset'] = trim($_GPC['dbcharset']);
+				$uc['dbtablepre'] = trim($_GPC['dbtablepre']);
+				$uc['dbconnect'] = intval($_GPC['dbconnect']);
+				$uc['api'] = empty($_GPC['api']) ? itoast('请填写UCenter 服务端的URL地址！', referer(), 'error') : trim($_GPC['api']);
+				$uc['ip'] = empty($_GPC['ip']) ? itoast('请填写UCenter的IP！', referer(), 'error') : trim($_GPC['ip']);
 			}
 		}
+		$uc = iserializer($uc);
 		if(uni_setting_save('uc', $uc)){
-			iajax(0, '设置成功！', referer());
+			itoast('设置UC参数成功！', referer(), 'success');
 		}else {
-			iajax(-1, '设置失败！');
+			itoast('设置UC参数失败，请核对内容重新提交！', referer(), 'error');
 		}
 	}
 }

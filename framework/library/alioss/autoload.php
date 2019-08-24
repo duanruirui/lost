@@ -1,6 +1,6 @@
 <?php
 
-function aliClassLoader($class)
+function classLoader($class)
 {
     $path = str_replace('\\', DIRECTORY_SEPARATOR, $class);
     $file = __DIR__ . DIRECTORY_SEPARATOR .'src'. DIRECTORY_SEPARATOR . $path . '.php';
@@ -8,4 +8,4 @@ function aliClassLoader($class)
         require_once $file;
     }
 }
-spl_autoload_register('aliClassLoader');
+spl_autoload_register('classLoader');

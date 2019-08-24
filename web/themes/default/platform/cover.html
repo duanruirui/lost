@@ -1,4 +1,7 @@
 {template 'common/header'}
+<div class="we7-page-title">
+	入口设置
+</div>
 <ul class="we7-page-tab">
 	{if !empty($module['isrulefields']) &&!empty($_W['account']) && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}<li><a href="{url 'platform/reply' array('m' => $module['name'], 'version_id' => intval($_GPC['version_id']))}">关键字链接入口 </a></li>{/if}
 	{if !empty($frames['section']['platform_module_common']['menu']['platform_module_cover'])}
@@ -64,7 +67,7 @@
 </div>
 <!--end二维码-->
 <div class="we7-form" id="js-reply-form" ng-controller="KeywordReply" ng-cloak>
-	<form id="reply-form" action="" method="post" enctype="multipart/form-data" style="padding-bottom: 60px;">
+	<form id="reply-form" action="" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="entry_id" value="{$entry_id}" />
 	<input type="hidden" name="keywords">
 	<table class="we7-table table-hover">
@@ -105,7 +108,7 @@
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 					<h4 class="modal-title" id="addkeywordsModalLabel">添加关键字</h4>
 				</div>
-				<div class="modal-body overflow-auto" ng-style="{'height': '335px'}">
+				<div class="modal-body" ng-style="{'height': '335px'}">
 					<div class="form-group">
 						<label class="control-label col-sm-3">触发关键字</label>
 						<div class="form-controls col-sm-8">
@@ -259,9 +262,9 @@
 				});
 			});
 		});
-		// $('.js-clip').each(function(){
-		// 	util.clip(this, $(this).data('url'));
-		// });
+		$('.js-clip').each(function(){
+			util.clip(this, $(this).data('url'));
+		});
 	});
 	require(['underscore'], function() {
 		angular.module('replyFormApp').value('config', {

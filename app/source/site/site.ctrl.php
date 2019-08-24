@@ -1,7 +1,7 @@
 <?php
 /**
- * 微文章
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 $do = in_array($do, array('list', 'detail', 'handsel', 'comment')) ? $do : 'list';
@@ -43,8 +43,7 @@ if ($do == 'list') {
 
 	if (empty($category['ishomepage'])) {
 		$ishomepage = 0;
-		// 独立选择分类模板
-		if (! empty($category['template'])) {
+				if (! empty($category['template'])) {
 			$_W['template'] = $category['template'];
 		}
 		template('site/list');
@@ -54,8 +53,7 @@ if ($do == 'list') {
 			$_W['template'] = $category['template'];
 		}
 		$ishomepage = 1;
-		// 该分类下子分类
-		$navs = pdo_fetchall("SELECT * FROM " . tablename('site_category') . " WHERE uniacid = '{$_W['uniacid']}' AND parentid = '$cid' ORDER BY displayorder DESC,id DESC");
+				$navs = pdo_fetchall("SELECT * FROM " . tablename('site_category') . " WHERE uniacid = '{$_W['uniacid']}' AND parentid = '$cid' ORDER BY displayorder DESC,id DESC");
 		if (! empty($navs)) {
 			foreach ($navs as &$row) {
 				if (empty($row['linkurl']) || (! strexists($row['linkurl'], 'http://') && ! strexists($row['linkurl'], 'https://'))) {
@@ -108,13 +106,11 @@ if ($do == 'list') {
 	} else {
 		$detail['thumb'] = '';
 	}
-	// 微站-文章页面只显示公众号名称
-	$title = $_W['page']['title'] = '';
-	// 独立选择内容模板
-	if (! empty($detail['template'])) {
+		$title = $_W['page']['title'] = '';
+		if (! empty($detail['template'])) {
 		$_W['template'] = $detail['template'];
 	}
-	/* 获取引导素材 */
+	
 	if ($_W['os'] == 'android' && $_W['container'] == 'wechat' && $_W['account']['account']) {
 		$subscribeurl = "weixin://profile/{$_W['account']['account']}";
 	} else {
@@ -123,16 +119,14 @@ if ($do == 'list') {
 			':acid' => intval($_W['acid'])
 		));
 	}
-	// 阅读次数
-	$detail['click'] = intval($detail['click']) + 1;
+		$detail['click'] = intval($detail['click']) + 1;
 	pdo_update('site_article', array(
 		'click' => $detail['click']
 	), array(
 		'uniacid' => $_W['uniacid'],
 		'id' => $id
 	));
-	// 设置分享信息
-	$_share = array(
+		$_share = array(
 		'desc' => $detail['description'],
 		'title' => $detail['title'],
 		'imgUrl' => $detail['thumb']
@@ -143,12 +137,12 @@ if ($do == 'list') {
 		mc_oauth_userinfo();
 		$pindex = max(1, intval($_GPC['page']));
 		$psize = 10;
-		$comment_table = table('site_article_comment');
+		$comment_table = table('sitearticlecomment');
 		$comment_table->searchWithArticleid($id);
 		$comment_table->searchWithParentid(ARTICLE_COMMENT_DEFAULT);
 		$comment_table->searchWithPage($pindex, $psize);
 
-		$article_lists = $comment_table->getAllByCurrentUniacid();
+		$article_lists = $comment_table->articleCommentList();
 		$total = $comment_table->getLastQueryTotal();
 		$pager = pagination($total, $pindex, $psize);
 		$article_lists = article_comment_detail($article_lists);
@@ -156,8 +150,7 @@ if ($do == 'list') {
 
 	template('site/detail');
 } elseif ($do == 'handsel') {
-	// 处理分享成功后的积分处理
-	if ($_W['ispost']) {
+		if ($_W['ispost']) {
 		$id = intval($_GPC['id']);
 		$article = pdo_fetch('SELECT id, credit FROM ' . tablename('site_article') . ' WHERE uniacid = :uniacid AND id = :id', array(
 			':uniacid' => $_W['uniacid'],

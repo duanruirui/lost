@@ -1,7 +1,7 @@
 <?php
 /**
- * BAE相关设置选项
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('setting');
@@ -9,6 +9,7 @@ load()->model('attachment');
 
 $dos = array('attachment', 'remote', 'buckets', 'oss', 'cos', 'qiniu', 'ftp', 'upload_remote');
 $do = in_array($do, $dos) ? $do : 'global';
+$_W['page']['title'] = '附件设置 - 系统管理';
 
 if ($do == 'upload_remote') {
 	if (!empty($_W['setting']['remote_complete_info']['type'])) {
@@ -27,67 +28,71 @@ if ($do == 'upload_remote') {
 	}
 }
 
-//全局设置
 if ($do == 'global') {
-	if (empty($_W['setting']['upload'])) {
-		$upload = $_W['config']['upload'];
-	} else {
-		$upload = $_W['setting']['upload'];
-	}
 	$post_max_size = ini_get('post_max_size');
 	$post_max_size = $post_max_size > 0 ? bytecount($post_max_size) / 1024 : 0;
 	$upload_max_filesize = ini_get('upload_max_filesize');
 	if (checksubmit('submit')) {
 		$harmtype = array('asp','php','jsp','js','css','php3','php4','php5','ashx','aspx','exe','cgi');
+		$upload = $_GPC['upload'];
+		if (!empty($upload['image']['thumb'])) {
+			$upload['image']['thumb'] = 1;
+		} else {
+			$upload['image']['thumb'] = 0;
+		}
+		$upload['image']['width'] = intval(trim($upload['image']['width']));
+		if (!empty($upload['image']['thumb']) && empty($upload['image']['width'])) {
+			itoast('请设置图片缩略宽度.', '', '');
+		}
+		$upload['image']['limit'] = max(0, min(intval(trim($upload['image']['limit'])), $post_max_size));
+		if (empty($upload['image']['limit'])) {
+			itoast('请设置图片上传支持的文件大小, 单位 KB.', '', '');
+		}
+		if (empty($upload['image']['extentions'])) {
+			itoast('请添加支持的图片附件后缀类型', '', '');
+		}
+		if (!empty($upload['image']['extentions'])) {
+			$upload['image']['extentions'] = explode("\n", $upload['image']['extentions']);
+			foreach ($upload['image']['extentions'] as $key => &$row) {
+				$row = trim($row);
+				if (in_array($row, $harmtype)) {
+					unset($upload['image']['extentions'][$key]);
+					continue;
+				}
+			}
+		}
+		if (!is_array($upload['image']['extentions']) || count($upload['image']['extentions']) < 1) {
+			itoast('请添加支持的图片附件后缀类型', '', '');
+		}
+		$upload['audio']['limit'] = max(0, min(intval(trim($upload['audio']['limit'])), $post_max_size));
+		if (empty($upload['image']['limit'])) {
+			itoast('请设置音频视频上传支持的文件大小, 单位 KB.', '', '');
+		}
+		$zip_percentage = intval($upload['image']['zip_percentage']);
+		if($zip_percentage <=0 || $zip_percentage > 100) {
+			$upload['image']['zip_percentage'] = 100;		}
 
-		switch ($_GPC['key']) {
-			case 'attachment_limit':
-				$upload['attachment_limit'] = max(0, intval($_GPC['value'])); //单位M
-				break;
-			case 'image_thumb':
-				$upload['image']['thumb'] = empty($_GPC['value']) ? 0 : 1;
-				break;
-			case 'image_width':
-				$upload['image']['width'] = intval($_GPC['value']); //单位px
-				break;
-			case 'image_extentions':
-				$upload['image']['extentions'] = array();
-				$image_extentions = explode("\n", safe_gpc_string($_GPC['value']));
-				foreach ($image_extentions as $item) {
-					$item = safe_gpc_string(trim($item));
-					if (!empty($item) && !in_array($item, $harmtype) && !in_array($item, $upload['image']['extentions'])) {
-						$upload['image']['extentions'][] = $item;
-					}
+		if (!empty($upload['audio']['extentions'])) {
+			$upload['audio']['extentions'] = explode("\n", $upload['audio']['extentions']);
+			foreach ($upload['audio']['extentions'] as $key => &$row) {
+				$row = trim($row);
+				if (in_array($row, $harmtype)) {
+					unset($upload['audio']['extentions'][$key]);
+					continue;
 				}
-				break;
-			case 'image_limit':
-				$upload['image']['limit'] = max(0, min(intval($_GPC['value']), $post_max_size)); //单位kb
-				break;
-			case 'image_zip_percentage':
-				$zip_percentage = intval($_GPC['value']);
-				$upload['image']['zip_percentage'] = $zip_percentage;
-				if ($zip_percentage <= 0 || $zip_percentage > 100) {
-					$upload['image']['zip_percentage'] = 100;//100不压缩
-				}
-				break;
-			case 'audio_extentions':
-				$upload['audio']['extentions'] = array();
-				$audio_extentions = explode("\n", safe_gpc_string($_GPC['value']));
-				foreach ($audio_extentions as $item) {
-					$item = safe_gpc_string(trim($item));
-					if (!empty($item) && !in_array($item, $harmtype) && !in_array($item, $upload['audio']['extentions'])) {
-						$upload['audio']['extentions'][] = $item;
-					}
-				}
-				break;
-			case 'audio_limit':
-				$upload['audio']['limit'] = max(0, min(intval($_GPC['value']), $post_max_size)); //单位kb
-				break;
+			}
+		}
+		if (!is_array($upload['audio']['extentions']) || count($upload['audio']['extentions']) < 1) {
+			itoast('请添加支持的音频视频附件后缀类型', '', '');
 		}
 		setting_save($upload, 'upload');
-		iajax(0, '更新设置成功', url('system/attachment'));
+		itoast('更新设置成功！', url('system/attachment'), 'success');
 	}
-
+	if (empty($_W['setting']['upload'])) {
+		$upload = $_W['config']['upload'];
+	} else {
+		$upload = $_W['setting']['upload'];
+	}
 	if (empty($upload['image']['thumb'])) {
 		$upload['image']['thumb'] = 0;
 	} else {
@@ -108,16 +113,7 @@ if ($do == 'global') {
 	}
 }
 
-//远程附件
 if ($do == 'remote') {
-	$remote = $_W['setting']['remote_complete_info'];
-	$remote_urls = array(
-		'alioss' => array('old_url' => $remote['alioss']['url']),
-		'ftp' => array('old_url' => $remote['ftp']['url']),
-		'qiniu' => array('old_url' => $remote['qiniu']['url']),
-		'cos' => array('old_url' => $remote['cos']['url']),
-	);
-
 	if (checksubmit('submit')) {
 		$remote = array(
 			'type' => intval($_GPC['type']),
@@ -177,7 +173,6 @@ if ($do == 'remote') {
 				}
 				$remote['alioss']['url'] = $url;
 			}
-			attachment_replace_article_remote_url($remote_urls['alioss']['old_url'], $remote['alioss']['url']);
 		} elseif ($remote['type'] == ATTACH_FTP) {
 			if (empty($remote['ftp']['host'])) {
 				itoast('FTP服务器地址为必填项.', '', '');
@@ -188,7 +183,6 @@ if ($do == 'remote') {
 			if (empty($remote['ftp']['password'])) {
 				itoast('FTP密码为必填项.', '', '');
 			}
-			attachment_replace_article_remote_url($remote_urls['ftp']['old_url'], $_GPC['ftp']['url']);
 		} elseif ($remote['type'] == ATTACH_QINIU) {
 			if (empty($remote['qiniu']['accesskey'])) {
 				itoast('请填写Accesskey', referer(), 'info');
@@ -204,7 +198,6 @@ if ($do == 'remote') {
 			} else {
 				$remote['qiniu']['url'] = strexists($remote['qiniu']['url'], 'http') ? trim($remote['qiniu']['url'], '/') : 'http://'. trim($remote['qiniu']['url'], '/');
 			}
-			attachment_replace_article_remote_url($remote_urls['qiniu']['old_url'], $remote['qiniu']['url']);
 			$auth = attachment_qiniu_auth($remote['qiniu']['accesskey'], $remote['qiniu']['secretkey'], $remote['qiniu']['bucket']);
 			if (is_error($auth)) {
 				$message = $auth['message']['error'] == 'bad token' ? 'Accesskey或Secretkey填写错误， 请检查后重新提交' : 'bucket填写错误或是bucket所对应的存储区域选择错误，请检查后重新提交';
@@ -232,7 +225,6 @@ if ($do == 'remote') {
 				$remote['cos']['url'] = sprintf('https://%s-%s.cos%s.myqcloud.com', $remote['cos']['bucket'], $remote['cos']['appid'], $remote['cos']['local']);
 			}
 			$remote['cos']['url'] = rtrim($remote['cos']['url'], '/');
-			attachment_replace_article_remote_url($remote_urls['cos']['old_url'], $remote['cos']['url']);
 			$auth = attachment_cos_auth($remote['cos']['bucket'], $remote['cos']['appid'], $remote['cos']['secretid'], $remote['cos']['secretkey'], $remote['cos']['local']);
 
 			if (is_error($auth)) {
@@ -247,6 +239,7 @@ if ($do == 'remote') {
 		setting_save($_W['setting']['remote_complete_info'], 'remote');
 		itoast('远程附件配置信息更新成功！', url('system/attachment/remote'), 'success');
 	}
+	$remote = $_W['setting']['remote_complete_info'];
 	$bucket_datacenter = attachment_alioss_datacenters();
 	$local_attachment = file_dir_exist_image(ATTACHMENT_ROOT . 'images');
 }
@@ -283,8 +276,7 @@ if($do == 'ftp') {
 	$filename = 'MicroEngine.ico';
 	$ftp = new Ftp($ftp_config);
 	if (true === $ftp->connect()) {
-		// 将上传图片同步到 FTP 服务器
-		if ($ftp->upload(ATTACHMENT_ROOT .'images/global/'. $filename, $filename)) {
+				if ($ftp->upload(ATTACHMENT_ROOT .'images/global/'. $filename, $filename)) {
 			load()->func('communication');
 			$response = ihttp_get($url. '/'. $filename);
 			if (is_error($response)) {

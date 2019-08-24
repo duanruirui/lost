@@ -1,13 +1,25 @@
 {template 'common/header'}
 {if in_array($m, $sysmods)}
+	<div class="we7-page-title">
+		自动回复
+	</div>
 	<ul class="we7-page-tab">
-		{loop $active_sub_permission $active_menu}
-			{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-				<li {if $m == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
-			{/if}
-		{/loop}
+		<li {if $m == 'keyword' || $m == ''}class="active" {/if}><a href="{url 'platform/reply' array('m' => 'keyword')}">关键字自动回复 </a></li>
+		<li {if $m == 'special'}class="active"{/if}><a href="{url 'platform/reply' array('m' => 'special')}">非文字自动回复</a></li>
+		<li {if $m == 'welcome'}class="active"{/if}><a href="{url 'platform/reply' array('m' => 'welcome')}">首次访问自动回复</a></li>
+		<li {if $m == 'default'}class="active"{/if}><a href="{url 'platform/reply' array('m' => 'default')}">默认回复</a></li>
+
+		{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+		<li {if $m == 'service'}class="active"{/if}><a href="{url 'platform/reply' array('m' => 'service')}">常用服务</a></li>
+		<li {if $m == 'userapi'}class="active"{/if}><a href="{url 'platform/reply' array('m' => 'userapi')}">自定义接口回复</a></li>
+		{/if}
+
+		<li><a href="{url 'profile/reply-setting'}">回复设置</a></li>
 	</ul>
 {else}
+	<div class="we7-page-title">
+		入口设置
+	</div>
 	<ul class="we7-page-tab">
 		{if !empty($_W['current_module']['isrulefields']) &&!empty($_W['account']) && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}<li class="active"><a href="{url 'platform/reply' array('m' => $m, 'version_id' => intval($_GPC['version_id']))}">关键字链接入口 </a></li>{/if}
 		{if !empty($frames['section']['platform_module_common']['menu']['platform_module_cover'])}
@@ -17,114 +29,135 @@
 {/if}
 {if $m == 'keyword' || $m == 'userapi' || !in_array($m, $sysmods)}
 	<div id="js-keyword-display" ng-controller="KeywordDisplay" ng-cloak>
-		<div class="search-box we7-margin-bottom">
-			{if in_array($m, $sysmods) && $m != 'userapi'}
-			<select class="we7-margin-right" ng-model="keywordType" ng-change="changeType()">
-				<option value="">全部</option>
-				<option value="news" >回复图文</option>
-				<option value="apply">回复模块</option>
-				{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
-				<option value="voice">回复语音</option>
-				{/if}
-				<option value="basic">回复文字</option>
-				{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
-				<option value="music">回复音乐</option>
-				{/if}
-				<option value="images" >回复图片</option>
-				{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
-				<option value="video" >回复视频</option>
-				{/if}
-			</select>
-			{/if}
-
-			<form action="./index.php" method="get" class="form-horizontal search-form" role="form">
-			<div class="search-form">
-				<div class="input-group  search-form">
-					<input type="hidden" name="c" value="platform">
-					<input type="hidden" name="a" value="reply">
-					<input type="hidden" name="m" value="{$_GPC['m']}" />
-					<input type="hidden" name="status" value="{$status}" />
-
-					<input name="type" type="hidden" value="{$_GPC['type']}">
-					<span class="input-group-btn">
-						<select class="we7-select" name="search_type">
+		<div class="keyword-list-head">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="platform">
+				<input type="hidden" name="a" value="reply">
+				<input type="hidden" name="m" value="{$_GPC['m']}" />
+				<input type="hidden" name="status" value="{$status}" />
+				<div class="keyword-list-head clearfix">
+					<div class="pull-right">
+						<a href="{url 'platform/reply/post' array('m' => $m)}" class="btn btn-primary">+添加{if $m == 'userapi'}自定义接口{else}关键字{/if}回复</a>
+						{if in_array($m, $sysmods) && $m != 'userapi'}<a href="{url 'platform/reply/post' array('m' => 'apply')}" class="btn btn-danger  we7-margin-left">+添加应用关键字</a>{/if}
+					</div>
+					<div class="input-group we7-margin-bottom" style="width:465px;">
+						<select class="we7-select pull-left" name="search_type">
 							<option value="keyword" {if $_GPC['search_type'] == 'keyword'}selected{/if}>关键字</option>
 							<option value="rule" {if $_GPC['search_type'] == 'rule'}selected{/if}>规则名</option>
 						</select>
-					</span>
-					<input class="form-control" name="keyword" type="text" value="{$_GPC['keyword']}" autocomplete="false" placeholder="输入规则名称或关键字名称" style="width: 330px;">
-					<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
+						<input name="type" type="hidden" value="{$_GPC['type']}">
+						<input class="form-control" name="keyword" type="text" value="{$_GPC['keyword']}" placeholder="输入规则名称或关键字名称" style="width: 330px;">
+						<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
+					</div>
 				</div>
-			</div>
 			</form>
-			<a href="{url 'platform/reply/post' array('m' => $m)}" class="btn btn-primary">添加{if $m == 'userapi'}自定义接口{else}关键字{/if}回复</a>
-			{if in_array($m, $sysmods) && $m != 'userapi'}<a href="{url 'platform/reply/post' array('m' => 'apply')}" class="btn btn-default  we7-margin-left">添加应用关键字</a>{/if}
 		</div>
-		
+		{if in_array($m, $sysmods) && $m != 'userapi'}
+		<div class="btn-group we7-btn-group we7-margin-bottom btn-group-justified">
+			<a href="{url 'platform/reply/display' array('m' => 'keyword')}" class="btn {if !$_GPC[type]}active{/if}">全部</a>
+			<a href="{url 'platform/reply/display' array('m' => 'keyword', 'type' => 'news')}" class="btn {if $_GPC[type] == 'news'}active{/if}">回复图文</a>
+			<a href="{url 'platform/reply/display' array('m' => 'keyword', 'type' => 'apply')}" class="btn {if $_GPC[type] == 'apply'}active{/if}">回复模块</a>
+			{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+			<a href="{url 'platform/reply/display' array('m' => 'keyword', 'type' => 'voice')}" class="btn {if $_GPC[type] == 'voice'}active{/if}">回复语音</a>
+			{/if}
+			<a href="{url 'platform/reply/display' array('m' => 'keyword', 'type' => 'basic')}" class="btn {if $_GPC[type] == 'basic'}active{/if}">回复文字</a>
+			{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+			<a href="{url 'platform/reply/display' array('m' => 'keyword', 'type' => 'music')}" class="btn {if $_GPC[type] == 'music'}active{/if}">回复音乐</a>
+			{/if}
+			<a href="{url 'platform/reply/display' array('m' => 'keyword', 'type' => 'images')}" class="btn {if $_GPC[type] == 'images'}active{/if}">回复图片</a>
+			{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+			<a href="{url 'platform/reply/display' array('m' => 'keyword', 'type' => 'video')}" class="btn {if $_GPC[type] == 'video'}active{/if}">回复视频</a>
+			{/if}
+		</div>
+		{/if}
 		<div class="clearfix"></div>
-		<div class=" {if !in_array($m, $sysmods)} we7-padding-bottom {/if}">
+		<div class="table we7-tables {if !in_array($m, $sysmods)} we7-padding-bottom {/if}">
 			<form action="{php echo url('platform/reply/delete');}" method="post" role="form" class="form we7-form" id="form1">
 				<input type="hidden" name="m" value="{$m}">
 				{if !empty($replies)}
+					{loop $replies $row}
 					<table class="table we7-table table-hover">
-						<col width="200px"/>
-						<col>
+						<col width="80px"/>
 						<col width=""/>
 						<col width="120px"/>
 						<col width="230px"/>
 						<tr>
-							<th>规则名称</th>
-							<th>关键字</th>
-							<th>回复内容</th>
-							<th>开关</th>
-							
+							<th class="text-left"  colspan="2">
+								<div class="pull-left">
+									<input id='rid-{$row['id']}' type="checkbox" name='rid[]' we7-check-all="we7-check-all" value="{$row['id']}"/>
+									<label class="text-over reply-item-name" for="rid-{$row['id']}">&nbsp;</label>
+									<label class="text-over reply-item-name">{if !empty($row['name'])}规则名：{$row['name']}{/if}</label>
+								</div>
+								<span class="pull-right">
+									{if $row['displayorder'] > 0}
+										{if $row['displayorder'] == '255'}
+											<span class="label label-primary">置顶</span>
+										{else}
+											<span class="label label-info">优先级 {$row['displayorder']}</span>
+										{/if}
+									{/if}
+								</span>
+							</th>
+							<th>是否开启</th>
 							<th class="text-right">操作</th>
 						</tr>
 						<tr>
-							{loop $replies $row}
-							<td >
-								<input id='rid-{$row['id']}' type="checkbox" name='rid[]' we7-check-all="we7-check-all" value="{$row['id']}"/>
-								<label class="text-over reply-item-name" for="rid-{$row['id']}">&nbsp;<label class="text-over reply-item-name">{if !empty($row['name'])}{$row['name']}{/if}</label></label>
+							{if !in_array($row['module'], $sysmods)}
+								
+							<td class="vertical-middle">
+								<img src="{$row['module_info']['logo']}" alt="" class="keyword-img"/>
 							</td>
-							<td>
-								{loop $row['keywords'] $kw}
-								<span class="keyword-tag" data-toggle="tooltip" data-placement="bottom" title="{if $kw['type']==1}此关键字为精准触发{elseif $kw['type']==2}此关键字为包含触发{elseif $kw['type']==3}此关键字为正则匹配触发{/if}">{$kw['content']}</span>
-								{if $kw['type'] == 4}<span class="form-control-static keyword-tag" data-toggle="tooltip" data-placement="bottom" title="托管">优先级在{$row['displayorder']}之下直接生效</span>{/if}
-								{/loop}
+							<td class="text-left">
+							{else}
+							<td class="text-left" colspan="2">
+							{/if}
+								<div class="we7-form reply-item-keyword">
+									<div class="form-inline">
+										<label for="" class="control-label">关&nbsp;键&nbsp;字</label>
+										<div class="form-controls form-control-static">
+											{loop $row['keywords'] $kw}
+											<span class="keyword-tag" data-toggle="tooltip" data-placement="bottom" title="{if $kw['type']==1}此关键字为精准触发{elseif $kw['type']==2}此关键字为包含触发{elseif $kw['type']==3}此关键字为正则匹配触发{/if}">{$kw['content']}</span>
+											{if $kw['type'] == 4}<span class="form-control-static keyword-tag" data-toggle="tooltip" data-placement="bottom" title="托管">优先级在{$row['displayorder']}之下直接生效</span>{/if}
+											{/loop}
+										</div>
+										<div class="form-inline">
+										<label for="" class="control-label col-sm-2">回复内容</label>
+										<div class="form-controls form-control-static">
+											<span class="">
+											{if $m == 'userapi'}
+												自定义
+											{elseif in_array($row['module'], $sysmods)}
+												共{$row['allreply']['sum']}条（{if $row['allreply']['basic'] > 0}{$row['allreply']['basic']}条文字 {/if}{if $row['allreply']['images'] > 0}{$row['allreply']['images']}条图片 {/if}{if $row['allreply']['news'] > 0}{$row['allreply']['news']}条图文 {/if}{if $row['allreply']['music'] > 0}{$row['allreply']['music']}条音乐 {/if}{if $row['allreply']['voice'] > 0}{$row['allreply']['voice']}条语音 {/if}{if $row['allreply']['video'] > 0}{$row['allreply']['video']}条视频 {/if}{if $row['allreply']['wxcard'] > 0}{$row['allreply']['wxcard']}条卡券{/if}）
+											{else}
+												{php echo cutstr($row['module_info']['title'], 10);}应用
+											{/if}
+											</span>
+										</div>
+									</div>
+								</div>
 							</td>
-							<td>
-								<span class="">
-								{if $m == 'userapi'}
-									自定义
-								{elseif in_array($row['module'], $sysmods)}
-									共{$row['allreply']['sum']}条（{if $row['allreply']['basic'] > 0}{$row['allreply']['basic']}条文字 {/if}{if $row['allreply']['images'] > 0}{$row['allreply']['images']}条图片 {/if}{if $row['allreply']['news'] > 0}{$row['allreply']['news']}条图文 {/if}{if $row['allreply']['music'] > 0}{$row['allreply']['music']}条音乐 {/if}{if $row['allreply']['voice'] > 0}{$row['allreply']['voice']}条语音 {/if}{if $row['allreply']['video'] > 0}{$row['allreply']['video']}条视频 {/if}{if $row['allreply']['wxcard'] > 0}{$row['allreply']['wxcard']}条卡券{/if}）
-								{else}
-									{php echo cutstr($row['module_info']['title'], 10);}应用
-								{/if}
-								</span>
-							</td>
-							<td>
+							<td class="vertical-middle">
 								<label>
 									<div class="switch {if $row['status']} switchOn{/if}" id="key-{$row['id']}" ng-click="changeStatus({$row[id]})"></div>
 								</label>
 							</td>
-							<td>
+							<td class="vertical-middle text-right">
 								<div class="link-group">
 									{if in_array($row['module'], $sysmods)}
 									<a href="{php echo url('platform/reply/post', array('m' => $m, 'rid' => $row['id']))}">编辑</a>
 									{else}
 									<a href="{php echo url('platform/reply/post', array('m' => $row['module'], 'rid' => $row['id']))}">编辑</a>
 									{/if}
-									<a href="javascript:void(0);" class="del" onclick="deleteReply('{php echo url("platform/reply/delete", array("m" => $row['module'], "rid" => $row["id"]))}')">删除</a>
+									<a href="{php echo url('platform/reply/delete', array('m' => $m, 'rid' => $row['id']))}" class="del" onclick="return confirm('删除规则将同时删除关键字与回复，确认吗？');return false;">删除</a>
 									{loop $entries['rule'] $ext_menu}
 									<a href="{$ext_menu['url']}&id={$row['id']}&rid={$row['id']}">{$ext_menu['title']}</a>
 									{/loop}
 								</div>
 							</td>
 						</tr>
-						{/loop}
 					</table>
-					<div class="checkboxall">
+					{/loop}
+					<div>
 						<input type="checkbox" name="rid[]" we7-check-all="we7-check-all" id="select_all"  class="we7-margin-left" value="1" />
 						<label for="select_all">&nbsp;</label>
 						<input type="submit" class="btn btn-danger" value="删除" onclick="if(!confirm('确定删除选中的规则吗？')) return false;"/>
@@ -140,15 +173,6 @@
 		</div>
 	</div>
 	<script>
-
-		function deleteReply(url) {
-			util.confirm(function () {
-				window.location.href = url;
-			}, function () {
-				return false;
-			}, '确认删除吗?');
-		}
-
 		$(function () {
 			$('[data-toggle="tooltip"]').tooltip();
 			$('#select_all').click(function(){
@@ -171,12 +195,8 @@
 					}
 				}
 			});
-			angular.module('replyFormApp').value('config', {
-				'type': '{$_GPC[type]}',
-				'replyUrl': '{url 'platform/reply' array('m' => 'keyword')}',
-			});
-			angular.bootstrap($('#js-keyword-display'), ['replyFormApp']);
 		});
+		angular.bootstrap($('#js-keyword-display'), ['replyFormApp']);
 	</script>
 {elseif $m == 'special'}
 	<div class="NoKeyword-list" id="js-special-display" ng-controller="SpecialDisplay" ng-cloak>
@@ -199,17 +219,9 @@
 					</td>
 					<td class="text-left">
 						{if !empty($setting[$name]['type'])}
-							{if $setting[$name]['type'] == 'keyword'}
-								{$setting[$name]['keyword']}
-							{else}
-								{$module[$setting[$name]['module']]['title']}
-							{/if}
+						{if $setting[$name]['type'] == 'keyword'}{$setting[$name]['keyword']}{else}{$module[$setting[$name]['module']]['title']}{/if}
 						{else}
-							{if !empty($setting[$name]['keyword'])}
-								{$setting[$name]['keyword']}
-							{else}
-								{$module[$setting[$name]['module']]['title']}
-							{/if}
+						{if !empty($setting[$name]['keyword'])}{$setting[$name]['keyword']}{else}{$module[$setting[$name]['module']]['title']}{/if}
 						{/if}
 					</td>
 					<td>

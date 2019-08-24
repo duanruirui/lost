@@ -1,7 +1,7 @@
 <?php
 /**
- * 文章管理 - 微官网
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->func('file');
@@ -11,7 +11,8 @@ load()->model('account');
 $dos = array('display', 'post', 'del');
 $do = in_array($do, $dos) ? $do : 'display';
 
-permission_check_account_user('platform_site_article');
+permission_check_account_user('platform_site');
+$_W['page']['title'] = '文章管理 - 微官网';
 $category = pdo_fetchall("SELECT id,parentid,name FROM ".tablename('site_category')." WHERE uniacid = '{$_W['uniacid']}' AND enabled=1 ORDER BY parentid ASC, displayorder ASC, id ASC ", array(), 'id');
 
 $parent = array();
@@ -54,14 +55,13 @@ if ($do == 'display') {
 			$article_ids[] = $item['id'];
 		}
 	}
-	$article_comment = table('site_article_comment')->srticleCommentUnread($article_ids);
+	$article_comment = table('sitearticlecomment')->srticleCommentUnread($article_ids);
 
 	$setting = uni_setting($_W['uniacid']);
 	template('site/article-display');
 } elseif ($do == 'post') {
 	$id = intval($_GPC['id']);
-	//微站风格模板
-	$template = uni_templates();
+		$template = uni_templates();
 	$pcate = intval($_GPC['pcate']);
 	$ccate = intval($_GPC['ccate']);
 	if (!empty($id)) {
@@ -82,8 +82,7 @@ if ($do == 'display') {
 		}
 		$item['credit'] = iunserializer($item['credit']) ? iunserializer($item['credit']) : array();
 		if (!empty($item['credit']['limit'])) {
-			//获取该文章已经赠送的积分数
-			$credit_num = pdo_fetchcolumn('SELECT SUM(credit_value) FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND module = :module AND sign = :sign', array(':uniacid' => $_W['uniacid'], ':module' => 'article', ':sign' => md5(iserializer(array('id' => $id)))));
+						$credit_num = pdo_fetchcolumn('SELECT SUM(credit_value) FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND module = :module AND sign = :sign', array(':uniacid' => $_W['uniacid'], ':module' => 'article', ':sign' => md5(iserializer(array('id' => $id)))));
 			if (is_null($credit_num)) {
 				$credit_num = 0;
 			}
@@ -132,10 +131,14 @@ if ($do == 'display') {
 			}
 		} elseif (!empty($_GPC['autolitpic'])) {
 			$match = array();
-			preg_match('/&lt;img.*?src=&quot;(.+\.(jpg|jpeg|gif|bmp|png))&quot;/U', $_GPC['content'], $match);
-			if (file_is_image($match[1])) {
-				$data['thumb'] = $match[1];
-				//之前正则匹配结果有误, 且未判断本地是否存在该图片就上传, 会导致同一个图片被重复上传.
+			preg_match('/&lt;img.*?src=&quot;?(.+\.(jpg|jpeg|gif|bmp|png))&quot;/', $_GPC['content'], $match);
+			if (!empty($match[1])) {
+				$url = $match[1];
+				$file = file_remote_attach_fetch($url);
+				if (!is_error($file)) {
+					$data['thumb'] = $file;
+					file_remote_upload($file);
+				}
 			}
 		} else {
 			$data['thumb'] = '';
@@ -165,8 +168,7 @@ if ($do == 'display') {
 			$reply['thumb'] = $data['thumb'];
 			$reply['url'] = murl('site/site/detail', array('id' => $id));
 		}
-		//积分设置
-		if (!empty($_GPC['credit']['status'])) {
+				if (!empty($_GPC['credit']['status'])) {
 			$credit['status'] = intval($_GPC['credit']['status']);
 			$credit['limit'] = intval($_GPC['credit']['limit']) ? intval($_GPC['credit']['limit']) : itoast('请设置积分上限', '', '');
 			$credit['share'] = intval($_GPC['credit']['share']) ? intval($_GPC['credit']['share']) : itoast('请设置分享时赠送积分多少', '', '');
@@ -193,7 +195,9 @@ if ($do == 'display') {
 			pdo_update('news_reply', array('url' => murl('site/site/detail', array('id' => $aid))), array('rid' => $rid));
 		} else {
 			unset($data['createtime']);
-			uni_delete_rule($item['rid'], 'news_reply');
+			pdo_delete('rule', array('id' => $item['rid'], 'uniacid' => $_W['uniacid']));
+			pdo_delete('rule_keyword', array('rid' => $item['rid'], 'uniacid' => $_W['uniacid']));
+			pdo_delete('news_reply', array('rid' => $item['rid']));
 			if (!empty($keywords)) {
 				pdo_insert('rule', $rule);
 				$rid = pdo_insertid();
@@ -210,7 +214,7 @@ if ($do == 'display') {
 				$data['rid'] = 0;
 				$data['kid'] = 0;
 			}
-			pdo_update('site_article', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+			pdo_update('site_article', $data, array('id' => $id));
 		}
 		itoast('文章更新成功！', url('site/article/display'), 'success');
 	} else {
@@ -227,7 +231,9 @@ if ($do == 'display') {
 			}
 
 			if (!empty($row['rid'])) {
-				uni_delete_rule($row['rid'], 'news_reply');
+				pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
+				pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
+				pdo_delete('news_reply', array('rid' => $row['rid']));
 			}
 			pdo_delete('site_article', array('id' => $id, 'uniacid'=>$_W['uniacid']));
 		}
@@ -241,7 +247,9 @@ if ($do == 'display') {
 		}
 
 		if (!empty($row['rid'])) {
-			uni_delete_rule($row['rid'], 'news_reply');
+			pdo_delete('rule', array('id' => $row['rid'], 'uniacid' => $_W['uniacid']));
+			pdo_delete('rule_keyword', array('rid' => $row['rid'], 'uniacid' => $_W['uniacid']));
+			pdo_delete('news_reply', array('rid' => $row['rid']));
 		}
 		if (pdo_delete('site_article', array('id' => $id,'uniacid'=>$_W['uniacid']))){
 			itoast('删除成功！', referer(), 'success');

@@ -1,8 +1,7 @@
 <?php
 /**
- * 基本文字回复模块
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -18,8 +17,7 @@ class CoreModule extends WeModule {
 		'wxcard' => 'wxcard_reply',
 		'keyword' => 'basic_reply'
 	);
-	//对$modules,显示哪些,隐藏哪些,默认都隐藏
-	private $options = array(
+		private $options = array(
 		'basic' => true,
 		'news' => true,
 		'image' => true,
@@ -72,8 +70,7 @@ class CoreModule extends WeModule {
 					}
 				}
 				break;
-			//默认为自动回复
-			default:
+						default:
 				if (!empty($rid)) {
 					$rule_rid = $rid;
 					if (in_array($_GPC['m'], array('welcome', 'default'))) {
@@ -116,8 +113,7 @@ class CoreModule extends WeModule {
 					$module = $isexists['module'];
 					$module = $module == 'images' ? 'image' : $module;
 
-					//选择多种素材
-					if ($_GPC['a'] == 'reply' && (!empty($_GPC['m']) && $_GPC['m'] == 'keyword')) {
+										if ($_GPC['a'] == 'reply' && (!empty($_GPC['m']) && $_GPC['m'] == 'keyword')) {
 						foreach ($this->tablename as $key => $tablename) {
 							if ($key != 'keyword') {
 								$replies[$key] = pdo_fetchall("SELECT * FROM ".tablename($tablename)." WHERE rid = :rid ORDER BY `id`", array(':rid' => $rid));
@@ -156,8 +152,7 @@ class CoreModule extends WeModule {
 								}
 							}
 						}
-					//只选择关键字
-					} else {
+										} else {
 						$replies['keyword'][0]['name'] = $isexists['name'];
 						$replies['keyword'][0]['rid'] = $rid;
 						$replies['keyword'][0]['content'] = $setting_keyword;
@@ -174,8 +169,7 @@ class CoreModule extends WeModule {
 
 	public function fieldsFormValidate($rid = 0) {
 		global $_GPC;
-		//判断回复内容是否全部为空：1、全空 ； 0、至少一个值不空
-		$ifEmpty = 1;
+				$ifEmpty = 1;
 		$reply = '';
 		foreach ($this->modules as $key => $value) {
 			if(trim($_GPC['reply']['reply_'.$value]) != '') {
@@ -201,7 +195,6 @@ class CoreModule extends WeModule {
 
 	public function fieldsFormSubmit($rid = 0) {
 		global $_GPC, $_W;
-		permission_check_account_user('platform_reply_keyword');
 		$delsql = '';
 		foreach ($this->modules as $k => $val) {
 			$tablename = $this->tablename[$val];
@@ -242,8 +235,7 @@ class CoreModule extends WeModule {
 							if (!empty($attach_id) && $reply['attach_id'] == $attach_id) {
 								$reply['parent_id'] = $parent_id;
 							}
-							//本地素材则存attach_id
-							if ($reply['model'] == 'local') {
+														if ($reply['model'] == 'local') {
 								$reply['mediaid'] = $reply['attach_id'];
 							}
 							pdo_insert ($tablename, array ('rid' => $rid, 'parent_id' => $reply['parent_id'], 'title' => $reply['title'], 'thumb' => tomedia($reply['thumb']), 'createtime' => $reply['createtime'], 'media_id' => $reply['mediaid'], 'displayorder' => $reply['displayorder'], 'description' => $reply['description'], 'url' => $reply['url']));
@@ -295,11 +287,9 @@ class CoreModule extends WeModule {
 	}
 
 	public function ruleDeleted($rid = 0) {
-		global $_W;
-		permission_check_account_user('platform_reply_keyword');
 		$reply_modules = array("basic", "news", "music", "images", "voice", "video", "wxcard");
 		foreach($this->tablename as $tablename) {
-			pdo_delete($tablename, array('rid' => $rid, 'uniacid' => $_W['uniacid']));
+			pdo_delete($tablename, array('rid' => $rid));
 		}
 	}
 }

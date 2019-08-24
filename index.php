@@ -1,8 +1,4 @@
 <?php
-/**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/index.php : v 815cdc81ea88 : 2015/08/29 09:40:39 : RenChao $
- */
 
 require './framework/bootstrap.inc.php';
 
@@ -14,9 +10,21 @@ if (!empty($host)) {
 		exit;
 	}
 	
+		$pc_bind = pdo_get('uni_settings', array('bind_domain IN ' => array('http://' . $host, 'https://' . $host), 'default_module <>' => ''), array('uniacid', 'default_module', 'bind_domain'));
+		if (!empty($pc_bind)) {
+			$account_type = pdo_getcolumn('account', array('uniacid' => $pc_bind['uniacid']), 'type');
+			if ($account_type == ACCOUNT_TYPE_WEBAPP_NORMAL) {
+				$_W['uniacid'] = $pc_bind['uniacid'];
+				$_W['account'] = array('type' => $account_type);
+				$url = module_app_entries($pc_bind['default_module'], array('cover'));
+				header('Location: ' . $pc_bind['bind_domain'] . '/app/' . $url['cover'][0]['url']);
+				exit;
+			}
+		}
+	
 }
 if($_W['os'] == 'mobile' && (!empty($_GPC['i']) || !empty($_SERVER['QUERY_STRING']))) {
 	header('Location: ./app/index.php?' . $_SERVER['QUERY_STRING']);
 } else {
-	header('Location: ./web/index.php?' . (!empty($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : 'c=account&a=display'));
+	header('Location: ./web/index.php?' . $_SERVER['QUERY_STRING']);
 }

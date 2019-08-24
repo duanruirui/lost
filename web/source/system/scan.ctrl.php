@@ -1,7 +1,7 @@
 <?php
 /**
- * 木马查杀相关操作
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -11,6 +11,7 @@ load()->func('file');
 
 $dos = array('post', 'count', 'filter_func', 'filter_code', 'encode', 'display','view');
 $do = in_array($do, $dos) ? $do : 'post';
+$_W['page']['title'] = '木马查杀 - 常用系统工具 - 系统管理';
 
 if ($do == 'post') {
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));
@@ -49,7 +50,6 @@ if ($do == 'post') {
 	}
 }
 
-//文件统计
 if ($do == 'count') {
 	$files = array();
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));
@@ -75,7 +75,6 @@ if ($do == 'count') {
 	itoast("文件统计完成，进行特征函数过滤。。。", url('system/scan', array('do' => 'filter_func')), 'success');
 }
 
-//特征函数过滤
 if ($do == 'filter_func') {
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));
 	$file = iunserializer(cache_read(cache_system_key('scan_file')));
@@ -92,7 +91,6 @@ if ($do == 'filter_func') {
 	itoast("特征函数过滤完成，进行特征代码过滤。。。", url('system/scan', array('do' => 'filter_code')), 'success');
 }
 
-//特征代码过滤
 if ($do == 'filter_code') {
 	$config = iunserializer(cache_read(cache_system_key('scan_config')));
 	$file = iunserializer(cache_read(cache_system_key('scan_file')));
@@ -115,7 +113,6 @@ if ($do == 'filter_code') {
 	itoast("特征代码过滤完成，进行加密文件过滤。。。", url('system/scan', array('do' => 'encode')), 'success');
 }
 
-//加密文件过滤
 if ($do == 'encode') {
 	$file = iunserializer(cache_read(cache_system_key('scan_file')));
 	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
@@ -139,7 +136,6 @@ if ($do == 'encode') {
 	itoast("扫描完成。。。", url('system/scan', array('do' => 'display')), 'success');
 }
 
-//查杀报告
 if ($do == 'display') {
 	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
 	if (empty($badfiles)) {
@@ -168,7 +164,6 @@ if ($do == 'display') {
 	}
 }
 
-//查看文件详细
 if ($do == 'view') {
 	$file = authcode(trim($_GPC['file'], 'DECODE'));
 	$file_tmp = $file;
@@ -176,8 +171,7 @@ if ($do == 'view') {
 	if (empty($file) || ! parse_path($file) || $file == 'data/config.php') {
 		itoast('文件不存在', referer(), 'error');
 	}
-	//设置过滤文件
-	$file_arr = explode('/', $file);
+		$file_arr = explode('/', $file);
 	$ignore = array('payment');
 
 	if (is_array($file_arr) && in_array($file_arr[0], $ignore)) {

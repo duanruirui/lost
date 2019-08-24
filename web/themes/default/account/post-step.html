@@ -2,11 +2,20 @@
 {if $_GPC['step'] == 1 || $_GPC['step'] == ''}
 	<div class="account-list-add" id="js-account-post-step1" ng-controller="AccountPostStepOne" ng-cloak>
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i></a>
-			<li><a href="{php echo url('account/manage')}">平台列表</a></li>
+			<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i></a>
+			<li><a href="{url 'account/manage'}">公众号列表</a></li>
 			<li>新建公众号</li>
 		</ol>
 		<div class="panel we7-panel">
+			{if !$_W['isfounder']}
+				<div class="alert alert-warning hidden">
+					温馨提示：
+					<i class="fa fa-info-circle"></i>
+					Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，
+					账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
+					可创建 <span class="text-strong">{$account_info['maxaccount']} </span>个公众号，已创建<span class="text-strong"> {$account_info['uniacid_num']} </span>个，还可创建 <span class="text-strong">{$account_info['uniacid_limit']} </span>个公众号。
+				</div>
+			{/if}
 			<div class="panel-body we7-padding">
 				<div class="col-lg-6">
 					<div class="title">
@@ -14,10 +23,10 @@
 						<a href="javascript:;">手动添加公众号</a>
 					</div>
 					<div class="con">
-						通过<a href="https://mp.weixin.qq.com/" target="_blank" class="color-default">微信公众平台</a> 基本配置获取AppID和AppSecret，添加成功后，将本平台获取的服务器配置接口绑定到微信公众平台（注：添加过程中，请务必保持参数一致）
+						手动绑定需同步微信接口，在微信后台，基本设置可以获取appid和appsecret，绑定成功后，将获取的服务器配置接口绑定到微信后台（切记：绑定过程中，一定要注意保持接口参数一致）
 					</div>
 					<div>
-						<a href="{php echo url('account/create', array('sign' => 'account'))}" class="btn btn-primary">手动添加公众号</a>
+						<a href="{php echo url('account/post-step', array('step' => 2))}" class="btn btn-primary">手动添加公众号</a>
 					</div>
 				</div>
 				<div class="col-lg-6">
@@ -26,11 +35,7 @@
 						授权添加公众号
 					</div>
 					<div class="con">
-						{if user_is_founder($_W['uid'], true)}
-						使用授权添加需认证微信开放平台和全网发布，并在<a href="{php echo url('system/platform')}" target="_blank" class="color-default">微信开放平台设置</a>中启用
-						{else}
-						使用公众平台绑定的管理员个人微信扫码即可快速添加
-						{/if}
+						使用授权登录需认证微信开放平台和全网发布，认证微信开放平台和全网发布教程 <a href="{php echo url('system/platform')}" class="color-default">微信开放平台设置</a>
 					</div>
 					<div>
 						<a href="{$authurl}" class="btn btn-primary">授权添加公众号</a>
@@ -46,19 +51,21 @@
 {elseif $_GPC['step'] == 2}
 	<div class="account-list-add-step">
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{php echo url('account/manage')}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{php echo url('account/manage')}">平台列表</a></li>
+			<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i> </a>
+			<li><a href="{url 'account/manage'}">公众号列表</a></li>
 			<li>新建公众号</li>
 		</ol>
-		<ul class="we7-step">
-			<li class="new active"><span class="content">1. 设置公众号信息</span></li>
-			{if !empty($_W['isfounder'])}
-			<li><span class="content">2. 设置权限</span></li>
-			<li><span class="content">3. 引导页面</span></li>
-			{else}
-			<li><span class="content">2. 引导页面</span></li>
-			{/if}
-		</ul>
+		<div class="we7-step">
+			<ul>
+				<li class="active">1 设置公众号信息</li>
+				{if !empty($_W['isfounder'])}
+				<li>2 设置权限</li>
+				<li>3 引导页面</li>
+				{else}
+				<li>2 引导页面</li>
+				{/if}
+			</ul>
+		</div>
 		<form action="" method="post" class="we7-form" enctype="multipart/form-data" id="js-account-post-step2" ng-controller="AccountPostStepTwo" ng-cloak>
 			<input type="hidden" name="step" value="2">
 			<!--第二步:基本信息-->
@@ -152,7 +159,7 @@
 					<span class="help-block"></span>
 				</div>
 			</div>
-			<div class="form-group col-sm-offset-2">
+			<div class="form-group">
 				<input type="submit" name="submit" class="btn btn-primary btn-submit" value="下一步"/>
 				<input type="hidden" name="token" value="{$_W['token']}">
 			</div>
@@ -167,184 +174,186 @@
 {elseif $_GPC['step'] == 3}
 	<div class="account-list-add-step">
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}">公众号列表</a></li>
+			<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i> </a>
+			<li><a href="{url 'account/manage'}">公众号列表</a></li>
 			<li>新建公众号</li>
 		</ol>
-		<ul class="we7-step">
-			<li ><span class="content">1. 设置公众号信息</span></li>
-			{if !empty($_W['isfounder'])}
-			<li class="active"><span class="content">2. 设置权限</span></li>
-			<li><span class="content">3. 引导页面</span></li>
-			{else}
-			<li><span class="content">2. 引导页面</span></li>
-			{/if}
-		</ul>
-		<form action="" method="post" class="we7-form account-create-step" id="js-account-post-step3" ng-controller="AccountPostStepThree" ng-cloak>
+		<div class="we7-step">
+			<ul>
+				<li>1 设置公众号信息</li>
+				{if !empty($_W['isfounder'])}
+				<li class="active">2 设置权限</li>
+				<li>3 引导页面</li>
+				{else}
+				<li class="active">2 引导页面</li>
+				{/if}
+			</ul>
+		</div>
+		<form action="" method="post" class="we7-form" id="js-account-post-step3" ng-controller="AccountPostStepThree" ng-cloak>
 			<input type="hidden" name="step" value="3">
 			<input type="hidden" name="uniacid" value="{$_GPC['uniacid']}">
 			<input type="hidden" name="acid" value="{$_GPC['acid']}">
 			<!--第三步:设置权限-->
-			<div class="we7-page-alert">
-				如果不选择主管理员，则默认创始人为该账号的主管理员
-			</div>
 			<div class="form-group">
-				<div class="control-label col-sm-2">主管理员</div>
-				<div class="form-controls col-sm-10">
-					<div class="input-group">
-						<input type="hidden" name="uid" value="{$owner['uid']}" id="manager">
-						<input type="text" class="form-control" value="{$owner['username']}" ng-model="owner.username" id="showname">
-						<span class="input-group-btn">
-							<a class="btn btn-default" href="javascript:;" ng-click="selectOwner($event)">选择管理员</a>
-						</span>
+				<label for="" class="control-label col-sm-2">公众号过期时间</label>
+				<div class="form-controls col-sm-8">
+					<div class="form-group">
+						<input id="istop-1" type="radio" name="is-set-endtime" ng-model="owner.endtime" value="1">
+						<label for="istop-1">设置</label>
+						<input id="istop-2" type="radio" name="is-set-endtime" ng-model="owner.endtime" value="0" ng-checked="1">
+						<label for="istop-2">不限</label>
 					</div>
-					<span class="help-block">如果是新用户,请先 <a href="{url 'user/create'}" target="_blank" class="color-default">添加用户</a></span>
+					<div class="form-group" ng-show="owner.endtime == 1">
+						{php echo tpl_form_field_date('endtime', $owner['endtime']);}
+						<span class="help-block">用户的使用时间过期时，将来无法登录，公众号权限也暂停使用，不设置为永久可用</span>
+					</div>
 				</div>
 			</div>
-			<div class="form-group hidden">
-				<label for="" class="control-label col-sm-2">修改管理员用户权限组</label>
-				<div class="form-controls col-sm-8">
-					<select name="groupid" class="select-group col-sm-3" id="groupid" ng-model="owner.groupid" ng-change="changeGroup()">
-						<option value="0">不设置</option>
-						{loop $groups $row}
-						{php $package = iunserializer($row['package']) ? implode(',', iunserializer($row['package'])) : '';}
-						<option value="{$row['id']}" {if $row['id'] == $owner['groupid']}selected{/if} data-package="[{$package}]">{$row['name']}</option>
-						{/loop}
-					</select>
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="" class="control-label col-sm-2">平台过期时间</label>
-				<div class="form-controls col-sm-8">
-					<div class="input-group">
-						<div ng-bind="owmer"></div>
-						<span class="input-group-btn">
-							<select name="" class="select-endtime" id="" ng-model="owner.endtime" ng-change="changeEndtime()">
-								<option value="1">设置</option>
-								<option value="0" >不限</option>
+			<div class="panel we7-panel">
+				<div class="panel-heading">主管理员设置</div>
+				<div class="panel-body we7-padding-top">
+					<div class="form-group">
+						<label for="" class="control-label col-sm-2">主管理员</label>
+						<div class="form-controls col-sm-8">
+							<div class="input-group">
+								<input type="hidden" name="uid" value="{$owner['uid']}" id="manager">
+								<input type="text" class="form-control" value="{$owner['username']}" id="showname">
+								<span class="input-group-btn">
+									<button class="btn btn-default" ng-click="selectOwner($event)">选择管理员</button>
+								</span>
+							</div>
+							<span class="help-block">如果是新用户,请先 <a href="{url 'user/create'}" target="_blank" class="color-default">添加用户</a></span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="" class="control-label col-sm-2">修改管理员用户权限组</label>
+						<div class="form-controls col-sm-8">
+							<select name="groupid" class="we7-select col-sm-3" id="groupid" ng-model="owner.groupid" ng-change="changeGroup()">
+								<option value="0">不设置</option>
+								{loop $groups $row}
+								{php $package = $row['package'] ? implode(',', iunserializer($row['package'])) : '';}
+								<option value="{$row['id']}" {if $row['id'] == $owner['groupid']}selected{/if} data-package="[{$package}]">{$row['name']}</option>
+								{/loop}
 							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+			<table class="table we7-table table-hover">
+				<tr>
+					<td colspan="2" class="text-left bg-light-gray">公众号可使用应用权限组（各权限组均包含系统模块和微站默认模板）</td>
+				</tr>
+				<tr>
+					<th class="text-left bg-light-gray">应用权限组</th>
+					<th class="text-right bg-light-gray">操作</th>
+				</tr>
+				{if permission_check_account_user('see_account_manage_module_tpl_all_permission')}
+				<tr>
+					<td class="text-left">
+						<input id="check-0" type="checkbox" name="package[]" autocomplete="off" value="-1" {if is_array($owner['group']['package']) && in_array('-1', $owner['group']['package'])}checked disabled{/if}{if is_array($extend['package']) && !empty($extend['package'][-1])}checked {/if} />
+						<label for="check-0" class="we7-padding-left we7-margin-horizontal-none">所有服务</label>
+					</td>
+					<td>
+						<div class="link-group">
+							<a href="javascript:void(0);" class="js-unfold" data-toggle="collapse" data-target="#extend0" ng-click="changeText($event)">展开</a>
+						</div>
+					</td>
+				</tr>
+				<tr class="collapse bg-light-gray" aria-expanded="true" id="extend0">
+					<td colspan="2">
+						<div class="col-sm-1 color-gray text-left we7-padding-none">应用权限</div>
+						<div class="col-sm-11">
+							<div class="col-sm-3 text-left">
+								<span class="label label-danger">系统所有模块</span>
+							</div>
+						</div>
+						<div class="col-sm-1 color-gray text-left we7-padding-none">模板权限</div>
+						<div class="col-sm-11">
+							<div class="col-sm-3 text-left">
+								<span class="label label-danger">系统所有模板</span>
+							</div>
+						</div>
+					</td>
+				</tr>
+				{/if}
+				{loop $unigroups $package}
+					<tr>
+						<td class="text-left">
+							<input id="check-{$package['id']}" type="checkbox" name="package[]" autocomplete="off" {if is_array($owner['group']['package']) && in_array($package['id'], $owner['group']['package'])}checked disabled{/if} {if is_array($extend['package']) && !empty($extend['package'][$package['id']])}checked {/if} value="{$package['id']}" />
+							<label for="check-{$package['id']}" class="we7-padding-left we7-margin-horizontal-none">{$package['name']}</label>
+						</td>
+						<td class="text-left">
+							<div class="link-group">
+								<a href="javascript:void(0);" class="color-default js-unfold" data-toggle="collapse" data-target="#extend{$package['id']}" ng-click="changeText($event)">展开</a>
+							</div>
+						</td>
+					</tr>
+					<tr class="collapse bg-light-gray" aria-expanded="true" id="extend{$package['id']}">
+						<td colspan="2">
+							<div>
+								<div class="col-sm-1 color-gray text-left we7-padding-none">应用权限</div>
+								<div class="col-sm-11">
+									{if !empty($package['modules'])}
+									{loop $package['modules'] $module}
+									<div class="col-sm-3 text-left">
+										<img src="{$module['logo']}" style="width:50px;height:50px;">
+										<a href="javascript:void(0);">{$module['title']}</a>
+									</div>
+									{/loop}
+									{else}
+									<div class="col-sm-3 text-left">---</div>
+									{/if}
+								</div>
+							</div>
+							<div>
+								<div class="col-sm-1 color-gray text-left we7-padding-none">模板权限</div>
+								<div class="col-sm-11">
+									{if !empty($package['templates']) && $package['templates'] != 'N;'}
+									{loop $package['templates'] $template}
+									<div class="col-sm-3 text-left">
+										<i class="glyphicon glyphicon-th-large"></i>
+										<a href="javascript:void(0);">{$template['title']}</a>
+									</div>
+									{/loop}
+									{else}
+									<div class="col-sm-3 text-left">
+										<a href="">---</a>
+									</div>
+									{/if}
+								</div>
+							</div>
+						</td>
+					</tr>
+				{/loop}
+				<tr class="account-package-extra" {if empty($owner['extend'])}style="display:none;"{/if}>
+					<td class="text-left bg-light-gray" colspan="2">添加其他应用权限</td>
+				</tr>
+				<tr class="account-package-extra" {if empty($owner['extend'])}style="display:none;"{/if}>
+					<td class="text-left">
+						应用权限：
+						<span class="js-extra-modules">
+							{loop $owner['extend']['modules'] $module}
+							<span class="label label-info">{$module['title']}</span>
+							<input type="hidden" value="{$module['name']}" name="extra[modules][]">
+							{/loop}
 						</span>
-						<div ng-show="owner.endtime == 1">
-							{php echo tpl_form_field_date('endtime', $owner['endtime']);}
-						</div>
-					</div>
-					<span class="help-block">平台有效期默认与主管理员一致，修改日期不可超过主管理员有效期的最大期限。未设置主管理员时，创始人默认为主管理员</span>
-				</div>
-			</div>
-			<div class="col-sm-offset-2 col-sm-8">
-				<div class="we7-header" ng-show="owner.username">
-					公众号可使用应用/模板权限
-				</div>
-				<div class="we7-group-show" ng-if="owner.modules">
-					<input class="hidden" type="checkbox" name="package[]" checked ng-value="package">
-					<div class="name">
-						主管理员权限
-					</div>
-					<div class="group-app-list">
-						<div class="group-app-item" ng-repeat="module in owner.modules">
-							<img src="{{module.logo}}" class="module-img" alt="">
-							<div class="info">
-								<div class="title text-over">
-									{{module.title}}
-								</div>
-								<div class="type-list">
-									<i class="wi wi-account"></i>
-								</div>
-							</div>
-						</div>
-						<div class="group-app-item" ng-if="owner.modules.length < 1">暂无应用</div>
-	
-						<div class="group-app-item" ng-repeat="module in unigroups[package].templates">
-							<img src="{{module.logo}}" class="template-img" alt="">
-							<div class="info">
-								<div class="title">
-									{{module.title}}
-								</div>
-								<div class="type-list">
-									<i class="wi wi-template"></i>
-								</div>
-							</div>
-						</div>
-					</div>
-					<a class="action"></a>
-				</div>
-				<div class="we7-header">公众号附加应用权限组</div>
-				<div class="we7-group-show " ng-repeat="extend in groupAll.groups" ng-if="extend.checked == 1">
-					<input class="hidden" type="checkbox" name="package[]" checked ng-value="extend.id">
-					<div class="name">
-						{{extend.name}}
-					</div>
-					<div class="group-app-list">
-						<div class="group-app-item" ng-repeat="module in extend.modules_all">
-							<img src="{{module.logo}}" class="module-img" alt="">
-							<div class="info">
-								<div class="title text-over">
-									{{module.title}}
-								</div>
-								<div class="type-list">
-									<i ng-class="itme.icon" ng-repeat="itme in module.group_support | moduleInfo" ></i> 
-								</div>
-							</div>
-						</div>
-						<div class="group-app-item" ng-repeat="module in extend.templates">
-							<img src="{{module.logo}}" class="template-img" alt="">
-							<div class="info">
-								<div class="title">
-									{{module.title}}
-								</div>
-								<div class="type-list">
-									<i class="wi wi-template"></i>
-								</div>
-							</div>
-						</div>
-					</div>
-					<a class="action"></a>
-					<a href="" class="remove" ng-click="extend.checked = 0"><i class="wi wi-error"></i></a>
-				</div>
-				<we7-modal-app module-list="groupAll" multiple="true" on-confirm="groupConfirm()">
-					<div class="add-new-block" >
-						<i class="wi wi-plus"></i> 添加应用权限组
-					</div>
-				</we7-modal-app>
-				<div class="we7-header">公众号附加应用</div>
-				<div class="group-post-mudules">
-					<div class="module-item" ng-repeat="module in modulesAll.modules" ng-if="module.checked == 1">
-						<input type="hidden" name="extra[modules][]" ng-value="module.name">
-						<div class="logo">
-							<img ng-src="{{module.logo}}" alt="">
-						</div>
-						<div class="info">
-							<div ng-bind="module.title" class="title text-over">1213</div>
-							<div class="icon">
-								<i class="{{module.support | moduleInfo:'icon'}}"></i>
-							</div>
-						</div>
-						<div class="delete">
-							<i class="wi wi-error" ng-click="module.checked = 0"></i>
-						</div>
-					</div>
-					<div class="module-item" ng-repeat="template in modulesAll.templates"  ng-if="template.checked == 1">
-						<input type="hidden" name="extra[templates][]" ng-value="template.id">
-						<div class="logo">
-							<img ng-src="{{template.logo}}" alt="">
-						</div>
-						<div class="info">
-							<div class="name text-over" ng-bind="template.title">1213</div>
-							<div class="icon">
-								<i class="wi wi-template"></i>
-							</div>
-						</div>
-						<div class="delete">
-							<i class="wi wi-error" ng-click="template.checked = 0"></i>
-						</div>
-					</div>
-					<we7-modal-app module-list="modulesAll" title="'添加应用'" multiple="true">
-						<div class="module-item add" >
-							<i class="wi wi-plus"></i> 添加应用
-						</div>
-					</we7-modal-app>
-				</div>
-			</div>
+					</td>
+					<td class="text-left">
+						模板权限：
+						<span class="js-extra-templates">
+							{loop $owner['extend']['templates'] $template}
+							<span class="label label-info">{$template['title']}</span>
+							<input type="hidden" value="{$template['id']}" name="extra[templates][]">
+							{/loop}
+						</span>
+					</td>
+				</tr>
+				<tr>
+					<td class="text-center" colspan="2">
+						<span class="btn btn-primary" data-toggle="modal" data-target="#jurisdiction-add">添加权限</span>
+					</td>
+				</tr>
+			</table>
 			<div class="form-group">
 				<input type="submit" name="submit" value="下一步" class="btn btn-primary btn-submit"/>
 				<input type="hidden" name="token" value="{$_W['token']}">
@@ -414,9 +423,6 @@
 		angular.module('accountApp').value('config', {
 			notify: {php echo !empty($notify) ? json_encode($notify) : 'null'},
 			owner: {php echo !empty($owner) ? json_encode($owner) : 'null'},
-			unigroups: {php echo !empty($unigroups) ? json_encode($unigroups) : 'null'},
-			modules: {php echo !empty($modules) ? json_encode($modules) : 'null'},
-			templates: {php echo !empty($templates) ? json_encode($templates) : 'null'},
 			links: {
 				userinfo: "{php echo url('account/post-step', array('step' => 3, 'get_type' => 'userinfo'))}",
 			}
@@ -426,19 +432,21 @@
 {elseif $_GPC['step'] == 4}
 	<div class="account-list-add-step">
 		<ol class="breadcrumb we7-breadcrumb">
-			<a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}"><i class="wi wi-back-circle"></i> </a>
-			<li><a href="{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}">公众号列表</a></li>
+			<a href="{url 'account/manage'}"><i class="wi wi-back-circle"></i> </a>
+			<li><a href="{url 'account/manage'}">公众号列表</a></li>
 			<li>新建公众号</li>
 		</ol>
-		<ul class="we7-step">
-			<li ><span class="content">1. 设置公众号信息</span></li>
-			{if !empty($_W['isfounder'])}
-			<li ><span class="content">2. 设置权限</span></li>
-			<li class="active"><span class="content">3. 引导页面</span></li>
-			{else}
-			<li class="active"><span class="content">2. 引导页面</span></li>
-			{/if}
-		</ul>
+		<div class="we7-step">
+			<ul>
+				<li>1 设置公众号信息</li>
+				{if !empty($_W['isfounder'])}
+				<li>2 设置权限</li>
+				<li class="active">3 引导页面</li>
+				{else}
+				<li class="active">2 引导页面</li>
+				{/if}
+			</ul>
+		</div>
 		<div class="we7-form" id="js-account-post-step4" ng-controller="AccountPostStepFour" ng-cloak>
 			<!--第四步:引导页面-->
 			<p class="alert alert-info">您绑定的微信公众号：<strong ng-bind="account.name"></strong>，请按照下列引导完成配置。</p>
@@ -534,7 +542,7 @@
 			links: {
 				siteroot: "{$_W['siteroot']}",
 				post: "{php echo url('account/post')}",
-				manage: "{php echo url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL))}",
+				manage: "{php echo url('account/manage')}",
 				wxapp_manage: "{php echo url('account/manage')}",
 				switch: "{php echo url('account/display/switch')}",
 			}

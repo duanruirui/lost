@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/framework/class/weixin.platform.class.php : v cbf1b98ef490 : 2015/09/18 07:28:57 : RenChao $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -14,9 +14,7 @@ define('ACCOUNT_PLATFORM_API_REFRESH_AUTH_ACCESSTOKEN', 'https://api.weixin.qq.c
 define('ACCOUNT_PLATFORM_API_OAUTH_CODE', 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&component_appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_base&state=%s#wechat_redirect');
 define('ACCOUNT_PLATFORM_API_OAUTH_USERINFO', 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_userinfo&state=%s&component_appid=%s#wechat_redirect');
 define('ACCOUNT_PLATFORM_API_OAUTH_INFO', 'https://api.weixin.qq.com/sns/oauth2/component/access_token?appid=%s&component_appid=%s&code=%s&grant_type=authorization_code&component_access_token=');
-define('ACCOUNT_PLATFORM_API_LOGIN_ACCOUNT', 1); //公众号授权
-define('ACCOUNT_PLATFORM_API_LOGIN_WXAPP', 2); //小程序授权
-load()->classs('weixin.account');
+define('ACCOUNT_PLATFORM_API_LOGIN_ACCOUNT', 1); define('ACCOUNT_PLATFORM_API_LOGIN_WXAPP', 2); load()->classs('weixin.account');
 load()->func('communication');
 
 class WeiXinPlatform extends WeiXinAccount {

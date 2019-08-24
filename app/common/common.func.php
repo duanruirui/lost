@@ -1,49 +1,25 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 生成URL，统一生成方便管理
- * @param string $segment 路由信息字符串
- * @param array $params queryString
- * @param boolean $noredirect
- * @return string (./index.php?c=*&a=*&do=*&...)
- */
+
 function url($segment, $params = array(), $noredirect = false) {
 	return murl($segment, $params, $noredirect);
 }
 
-/**
- * 消息提示窗
- * @param string $msg
- * 提示消息内容
- *
- * @param string $redirect
- * 跳转地址
- *
- * @param string $type 提示类型
- * <pre>
- * success  成功
- * error    错误
- * info     提示(灯泡)
- * warning  警告(叹号)
- * ajax     json
- * sql
- * </pre>
- */
+
 function message($msg, $redirect = '', $type = '') {
 	global $_W;
 	if($redirect == 'refresh') {
 		$redirect = $_W['script_name'] . '?' . $_SERVER['QUERY_STRING'];
-	} elseif (!empty($redirect) && !strexists($redirect, 'http://') && !strexists($redirect, 'https://')) {
+	} elseif (!empty($redirect) && !strexists($redirect, 'http://')) {
 		$urls = parse_url($redirect);
 		$redirect = $_W['siteroot'] . 'app/index.php?' . $urls['query'];
 	} else {
-		// 跳转链接只能跳转本域名下 防止钓鱼 如: 用户可能正常从信任站点微擎登录 跳转到第三方网站 会误认为第三方网站也是安全的
-		$redirect = safe_gpc_url($redirect);
+				$redirect = safe_gpc_url($redirect);
 	}
 	if($redirect == '') {
 		$type = in_array($type, array('success', 'error', 'info', 'warning', 'ajax', 'sql')) ? $type : 'info';
@@ -78,15 +54,7 @@ function itoast($msg, $redirect = '', $type = '') {
 	return message($msg, $redirect, $type);
 }
 
-/**
- * 微站端用户身份验证
- * @return 
- * <pre>
- * 1. true  ：已注册粉丝用户；
- * 2. string：通过 ajax 方式访问的未注册用户，返回 json 编码的注册信息
- * 3. void  ：通过普通链接访问的未注册用户，跳转到注册地址。
- * </pre>
- */
+
 function checkauth() {
 	global $_W, $engine;
 	load()->model('mc');
@@ -96,8 +64,7 @@ function checkauth() {
 	}
 	if(!empty($_W['openid'])) {
 		$fan = mc_fansinfo($_W['openid'], $_W['acid'], $_W['uniacid']);
-		//如果粉丝未关注，checkauth时，会调用微信授权登录功能，获取信息生成粉丝记录
-		if (empty($fan) && $_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
+				if (empty($fan) && $_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
 			$fan = mc_oauth_userinfo();
 			if (!empty($fan['openid'])) {
 				$fan = mc_fansinfo($fan['openid']);

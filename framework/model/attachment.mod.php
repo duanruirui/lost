@@ -1,18 +1,15 @@
 <?php
 /**
- * 远程附件
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 function attachment_set_attach_url() {
 	global $_W;
 	$_W['setting']['remote_complete_info'] = $_W['setting']['remote'];
-	if (!empty($_W['uniacid'])) {
-		$uni_remote_setting = uni_setting_load('remote');
-		if (!empty($uni_remote_setting['remote']['type'])) {
-			$_W['setting']['remote'] = $uni_remote_setting['remote'];
-		}
+	if (!empty($_W['setting']['remote'][$_W['uniacid']]['type'])) {
+		$_W['setting']['remote'] = $_W['setting']['remote'][$_W['uniacid']];
 	}
 	$attach_url = $_W['attachurl_local'] = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/';
 	if (!empty($_W['setting']['remote']['type'])) {
@@ -165,11 +162,7 @@ function attachment_cos_auth($bucket,$appid, $key, $secret, $bucket_local = '') 
 	return true;
 }
 
-/**
- *  强制重置uniacid
- * @param $uniacid
- * @return int
- */
+
 function attachment_reset_uniacid($uniacid) {
 	global $_W;
 	if ($_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER) {
@@ -177,7 +170,7 @@ function attachment_reset_uniacid($uniacid) {
 			$_W['uniacid'] = 0;
 		}
 	} else {
-		/* @var $account AccountTable*/
+		
 		$account = table('account');
 		$accounts = $account->userOwnedAccount($_W['uid']);
 		if (is_array($accounts) && isset($accounts[$uniacid])) {
@@ -185,21 +178,4 @@ function attachment_reset_uniacid($uniacid) {
 		}
 	}
 	return true;
-}
-
-/**
- * 更换远程附件的 url 时，修改系统文章的图片url
- * @param $old_url
- * @param $new_url
- * @return mixed
- */
-function attachment_replace_article_remote_url($old_url, $new_url) {
-	if (empty($old_url) || empty($new_url) || $old_url == $new_url) {
-		return false;
-	}
-	$content_exists = pdo_get('article_news', array('content LIKE' => "%{$old_url}%"));
-	if (!empty($content_exists)) {
-		$update_sql = "UPDATE " . tablename('article_news') . " SET `content`=REPLACE(content, :old_url, :new_url)";
-		return pdo_query($update_sql, array(':old_url' => $old_url, ':new_url' => $new_url));
-	}
 }

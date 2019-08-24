@@ -1,6 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 namespace We7\Table\Modules;
 
@@ -19,17 +20,12 @@ class Cloud extends \We7Table {
 		'webapp_support',
 		'phoneapp_support',
 		'welcome_support',
-		'xzapp_support',
-		'aliapp_support',
-		'baiduapp_support',
-		'toutiaoapp_support',
 		'main_module_name',
 		'main_module_logo',
 		'has_new_version',
 		'has_new_branch',
 		'is_ban',
 		'lastupdatetime',
-		'buytime',
 	);
 	protected $default = array(
 		'name' => '',
@@ -43,17 +39,12 @@ class Cloud extends \We7Table {
 		'webapp_support' => 1,
 		'phoneapp_support' => 1,
 		'welcome_support' => 1,
-		'xzapp_support' => 1,
-		'aliapp_support' => 1,
-		'baiduapp_support' => 1,
-		'toutiaoapp_support' => 1,
 		'main_module_name' => '',
 		'main_module_logo' => '',
 		'has_new_version' => 0,
 		'has_new_branch' => 0,
 		'is_ban' => 0,
 		'lastupdatetime' => 0,
-		'buytime' => 0,
 	);
 
 	public function getByName($name) {
@@ -63,92 +54,38 @@ class Cloud extends \We7Table {
 		return $this->query->where('name', $name)->get('name');
 	}
 
-	public function deleteByName($modulename) {
-		return $this->query->where('name', $modulename)->delete();
-	}
-
-	public function getUpgradeByModuleNameList($module_name_list) {
+	public function getUpgradeByModuleNameList($module_name_list, $account_type = ACCOUNT_TYPE_SIGN) {
 		if (empty($module_name_list)) {
 			return array();
 		}
+
 		return $this->query->where('name', $module_name_list)->where(function ($query){
 			$query->where('has_new_version', 1)->whereor('has_new_branch', 1);
 		})->orderby('lastupdatetime', 'desc')->getall('name');
 	}
 
-	/**
-	 * 增加未停用未删除的条件
-	 */
-	public function searchWithoutRecycle($support = '') {
-		if (empty($support)) {
-			$recycle_module = table('modules_recycle')->getall('name');
-		} else {
-			$recycle_module = table('modules_recycle')->where($support, 1)->getall('name');
-		}
-
-		if (!empty($recycle_module)) {
-			$this->where('name <>', array_keys($recycle_module));
-		}
-		return $this;
+	
+	public function searchWithoutRecycle() {
+		return $this->query->from('modules_cloud', 'a')->select('a.*')->leftjoin('modules_recycle', 'b')->on(array('a.name' => 'b.name'))->where('b.name', 'NULL');
 	}
 
-	public function getUninstallModulesBySupportType($support) {
-		return $this->searchWithoutRecycle($support . '_support')
-			->where("{$support}_support", MODULE_SUPPORT_ACCOUNT)
-			->where('install_status', array(MODULE_LOCAL_UNINSTALL, MODULE_CLOUD_UNINSTALL))
-			->getall('name');
+	public function getUninstallTotalBySupportType($support) {
+		return $this->searchWithoutRecycle()->where('a.' . $support. '_support', MODULE_SUPPORT_ACCOUNT)->where('install_status', array(MODULE_LOCAL_UNINSTALL, MODULE_CLOUD_UNINSTALL))->getcolumn('COUNT(*)');
 	}
 
-	public function searchWithUninstall($local_or_cloud = 0) {
-		if ($local_or_cloud == MODULE_LOCAL_UNINSTALL) {
-			return $this->where('install_status', MODULE_LOCAL_UNINSTALL);
-		} elseif ($local_or_cloud == MODULE_CLOUD_UNINSTALL) {
-			return $this->where('install_status', MODULE_CLOUD_UNINSTALL);
-		} else {
-			return $this->where('install_status', array(MODULE_LOCAL_UNINSTALL, MODULE_CLOUD_UNINSTALL));
-		}
-	}
-
-	public function searchUninstallSupport($support) {
-		return $this->searchWithUninstall()->where($support, 2);
-	}
-
-	public function searchUninstallWithOutWelcome() {
-		return $this->searchWithUninstall()
-			->where(function ($query) {
-				$query->where('account_support', 2)
-					->whereor('wxapp_support', 2)
-					->whereor('webapp_support', 2)
-					->whereor('phoneapp_support', 2)
-					->whereor('xzapp_support', 2)
-					->whereor('aliapp_support', 2)
-					->whereor('baiduapp_support', 2)
-					->whereor('toutiaoapp_support', 2);
-			});
+	public function deleteByName($modulename) {
+		return $this->query->where('name', $modulename)->delete();
 	}
 
 	public function getUninstallModule() {
-		return $this->searchWithUninstall()
-			->where(function ($query){
-				$query->where('account_support', 2)
-					->whereor('wxapp_support', 2)
-					->whereor('webapp_support', 2)
-					->whereor('phoneapp_support', 2)
-					->whereor('welcome_support', 2)
-					->whereor('xzapp_support', 2)
-					->whereor('aliapp_support', 2)
-					->whereor('baiduapp_support', 2)
-					->whereor('toutiaoapp_support', 2);
-			})
-			->orderby('lastupdatetime', 'desc')
-			->getall('name');
+		return $this->searchWithoutRecycle()->where(function ($query){
+			$query->where('a.install_status', MODULE_LOCAL_UNINSTALL)->whereor('a.install_status', MODULE_CLOUD_UNINSTALL);
+		})->orderby('a.lastupdatetime', 'desc')->getall('a.name');
 	}
 
-	public function getUpgradeModulesBySupportType($support) {
-		return $this->searchWithoutRecycle($support . '_support')
-			->where("{$support}_support" , MODULE_SUPPORT_ACCOUNT)
-			->where(function ($query){
-				$query->where('has_new_version', 1)->whereor('has_new_branch', 1);
-			})->getall('name');
+	public function getUpgradeTotalBySupportType($support) {
+		return $this->searchWithoutRecycle()->where('a.' . $support. '_support', 2)->where(function ($query){
+			$query->where('a.has_new_version', 1)->whereor('a.has_new_branch', 1);
+		})->getcolumn('COUNT(*)');
 	}
 }

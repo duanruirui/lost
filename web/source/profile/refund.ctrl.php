@@ -1,7 +1,7 @@
 <?php
 /**
- * 退款参数配置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('payment');
@@ -9,7 +9,8 @@ load()->model('account');
 
 $dos = array('save_setting', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('profile_payment_refund');
+permission_check_account_user('profile_setting');
+$_W['page']['title'] = '退款参数 - 公众号选项';
 
 if ($do == 'display') {
 	$setting = uni_setting_load('payment', $_W['uniacid']);

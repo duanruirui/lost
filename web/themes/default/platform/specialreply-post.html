@@ -7,7 +7,16 @@
 		</ol>
 		<div class="we7-form" id="special-reply" ng-controller="PostCtrl">
 			<form id="reply-form" class="we7-form form" action="{php echo url('platform/reply/post', array('m' => $m, 'rid' => $rid))}" method="post" enctype="multipart/form-data">
-			<div id="key">
+			<div class="form-group">
+				<label class="control-label col-sm-2">是否开启</label>
+				<div class="form-controls col-sm-2">
+					<label>
+						<input name="status" type="text" style="display:none" class="form-control"  ng-model="status">
+						<div id="switch" ng-click="change('{$type}', status)" ng-class="switch_class"></div>
+					</label>
+				</div>
+			</div>
+			<div id="key" ng-hide="status == ''">
 				{php echo module_build_form('core', $rule_id, array('keyword' => false, 'module' => false))}
 			</div>
 			<input type="submit" name="submit"  value="保存" class="btn btn-primary" style="padding: 6px 50px;"/>
@@ -18,10 +27,7 @@
 		</div>
 	</div>
 <script>
-	angular.module('replyFormApp').value('config', {
-		'url' : '{php echo url('platform/reply/change_status')}',
-		'status' : '{$setting[$type]['type']}'
-	});
+	angular.module('replyFormApp').value('config', {'class' : {if !empty($setting[$type]['type'])}'switch switchOn'{else}'switch'{/if}, 'url' : '{php echo url('platform/reply/change_status')}', 'status' : '{$setting[$type]['type']}'});
 	angular.bootstrap($('#special-reply'), ['replyFormApp']);
 </script>
 {template 'common/footer'}

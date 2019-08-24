@@ -1,17 +1,12 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
-if ($action != 'display') {
-	define('FRAME', 'account_manage');
+if ($action != 'display' && $action != 'privileges') {
+	define('FRAME', 'system');
 } else {
-	if ($action == 'display') {
-		define('FRAME', 'platform');
-	} else {
-		//高版本php引用未定义常量报错，此处定义空值兼容高版本
 		define('FRAME', '');
-	}
 }
 
 if ($controller == 'account' && $action == 'manage') {
@@ -20,9 +15,7 @@ if ($controller == 'account' && $action == 'manage') {
 	}
 }
 
-$account_all_type = uni_account_type();
-$account_all_type_sign = uni_account_type_sign();
-$account_param = WeAccount::create(array('type' => $_GPC['account_type']));
+$account_param = WeAccount::createByType($_GPC['account_type']);
 define('ACCOUNT_TYPE', $account_param->type);
 define('TYPE_SIGN', $account_param->typeSign);
 define('ACCOUNT_TYPE_NAME', $account_param->typeName);

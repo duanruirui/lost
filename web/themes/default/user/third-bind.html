@@ -34,6 +34,14 @@
 					<div class="form-group">
 						<input type="text" ng-model='smscode' class="form-control" placeholder="输入手机验证码">
 					</div>
+					{if empty($bind_mobile)}
+					<div class="form-group">
+						<input type="password" ng-model='password' class="form-control" placeholder="输入密码">
+					</div>
+					<div class="form-group">
+						<input type="password" ng-model='repassword' class="form-control" placeholder="再次输入密码">
+					</div>
+					{/if}
 					<div class="form-group text-right">
 						<button type="button" class="btn btn-primary" ng-click="mobileBind(bindmobile.third_nickname, 3)">确定</button>
 						<button type="button" class="btn smscodebtn-default" data-dismiss="modal">取消</button>
@@ -46,7 +54,7 @@
 						</div>
 						<div>请绑定QQ</div>
 						<div class="color-gray">
-							<small>绑定后，可以直接用QQ登录</small>
+							<small>绑定后，可以直接用QQ登录微擎</small>
 						</div>
 						<div>
 							<a href="{$support_bind_urls['qq']}" class="btn btn-primary">去绑定</a>
@@ -56,11 +64,11 @@
 					{if $_W['setting']['copyright']['bind'] == 'wechat'}
 					<div class="bind-wechat">
 						<div class="icon">
-							<i class="wi wi-account"></i>
+							<i class="wi wi-wechat"></i>
 						</div>
 						<div>请绑定微信</div>
 						<div class="color-gray">
-							<small>绑定后，可以直接用微信登录</small>
+							<small>绑定后，可以直接用微信登录微擎</small>
 						</div>
 						<div>
 							<a href="{$support_bind_urls['wechat']}" class="btn btn-primary">去绑定</a>

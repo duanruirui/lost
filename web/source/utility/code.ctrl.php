@@ -1,7 +1,7 @@
 <?php 
 /**
- * 登录验证码
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 error_reporting(0);
@@ -10,8 +10,7 @@ session_start();
 
 $captcha = new Captcha();
 $captcha->build(150, 40);
-$key = complex_authkey();
-$hash = md5(strtolower($captcha->phrase) . $key);
+$hash = md5(strtolower($captcha->phrase) . $_W['config']['setting']['authkey']);
 isetcookie('__code', $hash);
 $_SESSION['__code'] = $hash;
 

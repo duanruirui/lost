@@ -11,13 +11,13 @@
 				<span></span>
 			</th>
 			
-
-			
-				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 				<th class="text-right"><a href="{php echo url('user/edit/edit_modules_tpl',array('uid'=>$owner['uid']))}" class="color-default">修改</a></th>
 				{else}
 				<th class="text-right"><a href="" class="color-default"></a></th>
 				{/if}
+			
+
 			
 
 		</tr>
@@ -82,11 +82,11 @@
 				<span></span>
 			</th>
 			
-
-			
-				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 				<th class="text-right"><a class="color-default" data-toggle="modal" data-target="#change-group">修改</a></th>
 				{/if}
+			
+
 			
 
 		</tr>
@@ -151,11 +151,11 @@
 				<span></span>
 			</th>
 			
-
-			
-				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) }
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}
 				<th class="text-right"><a class="color-default" data-toggle="modal" data-target="#jurisdiction-add">修改</a></th>
 				{/if}
+			
+
 			
 
 		</tr>
@@ -180,6 +180,64 @@
 		{/if}
 	</table>
 
+	
+	{if !empty($account_buy_modules)}
+	<table class="table we7-table table-hover" >
+		<tr>
+			<th colspan="7" class="text-left">
+				<span class="we7-padding-right">商城购买模块</span>
+				<span></span>
+			</th>
+			<th class="text-left">
+				<span class="we7-padding-right">到期时间</span>
+				<span></span>
+			</th>
+			<th class="text-left">
+				<span class="we7-padding-right">操作</span>
+				<span></span>
+			</th>
+		</tr>
+		<tbody>
+		<tr>
+			<td colspan="8">
+				小程序应用
+			</td>
+		</tr>
+		{loop $account_buy_modules $module}
+		{if $module['goods_id']}
+		<tr>
+			<td>
+				<img src="{$module['logo']}" class="img-responsive icon" alt="" style="width:50px;height:50px;">
+			</td>
+			<td>
+				{$module['title']}
+			</td>
+			<td>
+				{php $expire_week = strtotime('-1 week', $module['expire_time']);}
+				{if $module['expire_time'] > TIMESTAMP && $expire_week < TIMESTAMP}
+				<span class="text text-error">即将到期</span>
+				{/if}
+			</td>
+			<td colspan="5">
+				{if $module['expire_time'] < TIMESTAMP}
+				已到期
+				{else}
+				{php echo date('Y-m-d', $module['expire_time'])}
+				{/if}
+			</td>
+
+			<td class="we7-padding-right color-default">
+				{if permission_check_account_user('see_modules_recharge')}
+				<a href="{php echo url('site/entry/goodsbuyer', array('direct' => 1, 'operate' => 'goods_info', 'm' => 'store', 'goods' => $module['goods_id']))}">续费</a>
+				{/if}
+			</td>
+
+		</tr>
+		{/if}
+		{/loop}
+		</tbody>
+	</table>
+	{/if}
 	
 
 	{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders) || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER && $owner['uid'] != $_W['uid']}

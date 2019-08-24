@@ -1,7 +1,7 @@
 <?php
 /**
- * 我的账户
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('user');
@@ -10,13 +10,13 @@ load()->classs('oauth2/oauth2client');
 load()->model('message');
 load()->model('setting');
 
-$dos = array('base', 'post', 'bind', 'validate_mobile', 'bind_mobile', 'unbind', 'modules_tpl', 'create_account', 'account_dateline');
+$dos = array('base', 'post', 'bind', 'validate_mobile', 'bind_mobile', 'unbind');
 $do = in_array($do, $dos) ? $do : 'base';
+$_W['page']['title'] = '账号信息 - 我的账户 - 用户管理';
 
 if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 	$type = trim($_GPC['type']);
-	$extra_filed_key = safe_gpc_string($_GPC['extra_field_key']);
-	$extra_filed_val = safe_gpc_string($_GPC['extra_field_val']);
+
 	if ($_W['isfounder']) {
 		$uid = is_array($_GPC['uid']) ? 0 : intval($_GPC['uid']);
 	} else {
@@ -34,7 +34,8 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 		iajax(-1, '访问错误，该用户未审核或者已被禁用，请先修改用户状态！', '');
 	}
 
-	$users_profile_exist = table('users_profile')->getByUid($uid);
+	$users_profile_exist = pdo_get('users_profile', array('uid' => $uid));
+
 	if ($type == 'birth') {
 		if ($users_profile_exist['year'] == $_GPC['year'] && $users_profile_exist['month'] == $_GPC['month'] && $users_profile_exist['day'] == $_GPC['day']) iajax(0, '未作修改！', '');
 	} elseif ($type == 'reside') {
@@ -43,7 +44,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 		if (in_array($type, array('username', 'password'))) {
 			if ($user[$type] == $_GPC[$type] && $type != 'password') iajax(0, '未做修改！', '');
 		} else {
-			if ($users_profile_exist[$type] == $_GPC[$type] && empty($extra_filed_key)) iajax(0, '未作修改！', '');
+			if ($users_profile_exist[$type] == $_GPC[$type]) iajax(0, '未作修改！', '');
 		}
 	}
 	switch ($type) {
@@ -58,8 +59,7 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 					iajax(-1, '手机号不正确', '');
 				}
 				$users_mobile = pdo_get('users_profile', array('mobile' => trim($_GPC[$type]), 'uid <>' => $uid));
-				$bind_mobile = pdo_get('users_bind', array('bind_sign' => trim($_GPC[$type]), 'uid <>' => $uid));
-				if (!empty($users_mobile) || !empty($bind_mobile)) {
+				if (!empty($users_mobile)) {
 					iajax(-1, '手机号已存在，请联系管理员', '');
 				}
 			}
@@ -73,30 +73,13 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
-			if ($type == 'mobile') {
-				$data = array(
-					'uid' => $uid,
-					'bind_sign' => trim($_GPC[$type]),
-					'third_nickname' => trim($_GPC[$type]),
-					'third_type' => USER_REGISTER_TYPE_MOBILE,
-				);
-				$users_bind_exist = pdo_get('users_bind', array('uid' => $uid, 'third_type' => USER_REGISTER_TYPE_MOBILE));
-				if ($users_bind_exist) {
-					$result_bind = pdo_update('users_bind', $data, array('uid' => $uid, 'third_type' => USER_REGISTER_TYPE_MOBILE));
-				} else {
-					$result_bind = pdo_insert('users_bind', $data);
-				}
-				if (!$result_bind) {
-					iajax(-1, '操作失败，请联系管理员解决！', '');
-				}
-			}
 			break;
 		case 'username':
 			$founders = explode(',', $_W['config']['setting']['founder']);
 			if (!in_array($_W['uid'], $founders) && $_W['uid'] != $user['owner_uid']) {
 				iajax(1, '无权限修改，请联系网站创始人！');
 			}
-			$username = safe_gpc_string($_GPC['username']);
+			$username = trim($_GPC['username']);
 			$name_exist = pdo_get('users', array('username' => $username));
 			if (!empty($name_exist)) {
 				iajax(2, '用户名已存在，请更换其他用户名！', '');
@@ -104,42 +87,28 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			$result = pdo_update('users', array('username' => $username), array('uid' => $uid));
 			break;
 		case 'vice_founder_name':
-			$userinfo = user_single(array('username' => safe_gpc_string($_GPC['vice_founder_name'])));
+			$userinfo = user_single(array('username' => $_GPC['vice_founder_name']));
 			if (empty($userinfo) || $userinfo['founder_groupid'] != ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 				iajax(1, '用户不存在或该用户不是副创始人', '');
 			}
-
-			$founder_own_user_table = table('users_founder_own_users');
-			$founder_own_user_exists = $founder_own_user_table->getFounderByUid($uid);
-			if (!empty($founder_own_user_exists)) {
-				$result = $founder_own_user_table->updateOwnUser($uid, $userinfo['uid']);
-			} else {
-				$result = $founder_own_user_table->addOwnUser($uid, $userinfo['uid']);
-			}
+			$result = pdo_update('users', array('owner_uid' => $userinfo['uid']), array('uid' => $uid));
 			break;
 		case 'remark':
-			$result = pdo_update('users', array('remark' => safe_gpc_string($_GPC['remark'])), array('uid' => $uid));
+			$result = pdo_update('users', array('remark' => trim($_GPC['remark'])), array('uid' => $uid));
 			break;
 		case 'welcome_link':
+
 			$welcome_link = intval($_GPC['welcome_link']);
 			$result = pdo_update('users', array('welcome_link' => $welcome_link), array('uid' => $uid));
 			break;
 		case 'password':
 			if ($_GPC['newpwd'] !== $_GPC['renewpwd']) iajax(2, '两次密码不一致！', '');
-			$_GPC['newpwd'] = safe_gpc_string($_GPC['newpwd']);
-			$check_safe = safe_check_password($_GPC['newpwd']);
-			if (is_error($check_safe)) {
-				iajax(4, $check_safe['message']);
-			}
-
 			if (!$_W['isfounder'] && empty($user['register_type'])) {
-				$pwd = user_password($_GPC['oldpwd'], $uid);
-				$pwd_hash = user_password_hash($pwd, $uid);
-				if ($pwd_hash != $user['hash']) iajax(3, '原密码不正确！', '');
+				$pwd = user_hash($_GPC['oldpwd'], $user['salt']);
+				if ($pwd != $user['password']) iajax(3, '原密码不正确！', '');
 			}
-			$newpwd = user_password($_GPC['newpwd'], $uid);
-			$newpwd_hash = user_password_hash($newpwd, $uid);
-			if ($newpwd_hash == $user['hash']) {
+			$newpwd = user_hash($_GPC['newpwd'], $user['salt']);
+			if ($newpwd == $user['password']) {
 				iajax(0, '未作修改！', '');
 			}
 			$result = pdo_update('users', array('password' => $newpwd), array('uid' => $uid));
@@ -150,6 +119,10 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			} else {
 				$endtime = strtotime($_GPC['endtime']);
 			}
+			
+				if (user_is_vice_founder() && !empty($_W['user']['endtime']) && ($endtime > $_W['user']['endtime'] || empty($endtime))) {
+					iajax(-1, '副创始人给用户设置的时间不能超过自己的到期时间');
+				}
 			
 			$result = pdo_update('users', array('endtime' => $endtime), array('uid' => $uid));
 			pdo_update('users_profile', array('send_expire_status' => 0), array('uid' => $uid));
@@ -175,32 +148,15 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 			}
 			break;
 		case 'reside':
-			$province = safe_gpc_string($_GPC['province']);
-			$city = safe_gpc_string($_GPC['city']);
-			$district = safe_gpc_string($_GPC['district']);
 			if ($users_profile_exist) {
-				$result = pdo_update('users_profile', array('resideprovince' => $province, 'residecity' => $city, 'residedist' => $district), array('uid' => $uid));
+				$result = pdo_update('users_profile', array('resideprovince' => $_GPC['province'], 'residecity' => $_GPC['city'], 'residedist' => $_GPC['district']), array('uid' => $uid));
 			} else {
 				$data = array(
 					'uid' => $uid,
 					'createtime' => TIMESTAMP,
-					'resideprovince' => $province,
-					'residecity' => $city,
-					'residedist' => $district
-				);
-				$result = pdo_insert('users_profile', $data);
-			}
-			break;
-		default:
-			if (empty($extra_filed_key)) {
-				iajax(1, '参数错误', '');
-			}
-			if ($users_profile_exist) {
-				$result = pdo_update('users_profile', array($extra_filed_key => $extra_filed_val), array('uid' => $uid));
-			} else {
-				$data = array(
-					'uid' => $uid,
-					$extra_filed_key => $extra_filed_val
+					'resideprovince' => $_GPC['province'],
+					'residecity' => $_GPC['city'],
+					'residedist' => $_GPC['district']
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
@@ -214,107 +170,40 @@ if ($do == 'post' && $_W['isajax'] && $_W['ispost']) {
 	}
 }
 
-//账号信息
 if ($do == 'base') {
 	$account_num = permission_user_account_num($_W['uid']);
 	$message_id = intval($_GPC['message_id']);
 	message_notice_read($message_id);
 
 	$user_type = !empty($_GPC['user_type']) ? trim($_GPC['user_type']) : PERSONAL_BASE_TYPE;
-	//基础信息
-	$user = user_single($_W['uid']);
+		$user = user_single($_W['uid']);
 	if (empty($user)) {
 		itoast('抱歉，用户不存在或是已经被删除！', url('user/profile'), 'error');
 	}
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
 	$user['joindate'] = date('Y-m-d H:i:s', $user['joindate']);
 	$user['url'] = user_invite_register_url($_W['uid']);
-	$user_founder_info = table('users_founder_own_users')->getFounderByUid($user['uid']);
 
 	$profile = pdo_get('users_profile', array('uid' => $_W['uid']));
 
 	$profile = user_detail_formate($profile);
 
 	
-	
-		if (!$_W['isfounder']) {
-			//应用模版权限
-			$groups = user_group();
-			$group_info = user_group_detail_info($user['groupid']);
-
-			//使用帐号列表
-			$account_detail = user_account_detail_info($_W['uid']);
-		}
-	
-
-	if (empty($_W['isfounder'])) {
-		$user_extra_groups = table('users_extra_group')->getUniGroupsByUid($_W['uid']);
-		$user_extra_groups = !empty($user_extra_groups) ? uni_groups(array_keys($user_extra_groups)) : array();
-
-		$extend = array();
-		$user_extend_templates_ids = array_keys((array)table('users_extra_templates')->getExtraTemplatesIdsByUid($_W['uid']));
-		if (!empty($user_extend_templates_ids)) {
-			$extend['templates'] = pdo_getall('site_templates', array('id' => $user_extend_templates_ids), array('id', 'name', 'title'));
-		}
-		$user_extend_modules = table('users_extra_modules')->getExtraModulesByUid($_W['uid']);
-		if (!empty($user_extend_modules)) {
-			foreach($user_extend_modules as $extend_module_info) {
-				$module_info = module_fetch($extend_module_info['module_name']);
-				if (!empty($module_info)) {
-					$module_info['support'] = $extend_module_info['support'];
-					$extend['modules'][] = $module_info;
-				}
+		if (!$_W['isfounder'] || user_is_vice_founder()) {
+						if ($_W['user']['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+				$groups = user_founder_group();
+				$group_info = user_founder_group_detail_info($user['groupid']);
+			} else {
+				$groups = user_group();
+				$group_info = user_group_detail_info($user['groupid']);
 			}
+
+						$account_detail = user_account_detail_info($_W['uid']);
 		}
-	}
 	
-	$extra_fields = user_available_extra_fields();
-
-	$redirect_urls = array(
-		array('id' => WELCOME_DISPLAY_TYPE, 'name' => '用户欢迎页'),
-		array('id' => PLATFORM_DISPLAY_TYPE, 'name' => '平台入口'),
-		array('id' => MODULE_DISPLAY_TYPE, 'name' => '应用入口'),
-	);
-	$support_login_urls = user_support_urls();
-
-	$lists = table('users_bind')->getAllByUid($_W['uid']);
-	$bind_qq = array();
-	$bind_wechat = array();
-	$bind_mobile = array();
-	if (!empty($lists)) {
-		foreach($lists as $list) {
-			switch($list['third_type']){
-				case USER_REGISTER_TYPE_QQ:
-					$bind_qq = $list;
-					break;
-				case USER_REGISTER_TYPE_WECHAT:
-					$bind_wechat = $list;
-					break;
-				case USER_REGISTER_TYPE_MOBILE:
-					$bind_mobile = $list;
-					break;
-			}
-		}
-	}
-
-	$extra_limit_table = table('users_extra_limit');
-	$extra_limit_info = $extra_limit_table->getExtraLimitByUid($_W['uid']);
-
-	$endtime = $user['endtime'];
-	$total_timelimit = $group_info['timelimit'] + $extra_limit_info['timelimit'];
-
-	if ($endtime == USER_ENDTIME_GROUP_EMPTY_TYPE || $endtime == USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
-		$total_timelimit = '永久';
-		$endtime = '永久';
-	} elseif ($endtime == USER_ENDTIME_GROUP_DELETE_TYPE && $total_timelimit == 0) {
-		$endtime = $total_timelimit == 0 ? date('Y-m-d', $user['joindate']) : date('Y-m-d', $user['endtime']);
-	} else {
-		$endtime = date('Y-m-d', $endtime);
-	}
-
-	$setting_sms_sign = setting_load('site_sms_sign');
-	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
-
+	
+	$table = table('core_profile_fields');
+	$extra_fields = $table->getExtraFields();
 	template('user/profile');
 }
 
@@ -322,10 +211,12 @@ if ($do == 'bind') {
 	$setting_sms_sign = setting_load('site_sms_sign');
 	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
 
-	$user = table('users')->getById($_W['uid']);
-	$user_profile = table('users_profile')->getByUid($_W['uid']);
+	$user_table = table('users');
+	$user = $user_table->usersInfo($_W['uid']);
+	$user_profile = $user_table->userProfile($_W['uid']);
 
-	$bind_info = table('users_bind')->getAllByUid($_W['uid']);
+	$user_table->bindSearchWithUser($_W['uid']);
+	$bind_info = $user_table->userBind();
 
 	$signs = array_keys($bind_info);
 
@@ -337,7 +228,8 @@ if ($do == 'bind') {
 		pdo_insert('users_bind', array('uid' => $user_profile['uid'], 'bind_sign' => $user_profile['mobile'], 'third_type' => USER_REGISTER_TYPE_MOBILE, 'third_nickname' => $user_profile['mobile']));
 	}
 
-	$lists = table('users_bind')->getAllByUid($_W['uid']);
+	$user_table->bindSearchWithUser($_W['uid']);
+	$lists = $user_table->userBind();
 
 	$bind_qq = array();
 	$bind_wechat = array();
@@ -365,12 +257,14 @@ if ($do == 'bind') {
 }
 
 if (in_array($do, array('validate_mobile', 'bind_mobile')) || $_GPC['bind_type'] == USER_REGISTER_TYPE_MOBILE && $do == 'unbind') {
-	$user_profile = table('users_profile')->getByUid($_W['uid']);
+	$user_table = table('users');
+	$user_profile = $user_table->userProfile($_W['uid']);
 
-	$mobile = safe_gpc_string($_GPC['mobile']);
+	$mobile = trim($_GPC['mobile']);
 	$type = trim($_GPC['type']);
+	$user_table = table('users');
 
-	$mobile_exists = table('users_profile')->getByMobile($mobile);
+	$mobile_exists = $user_table->userProfileMobile($mobile);
 	if (empty($mobile)) {
 		iajax(-1, '手机号不能为空');
 	}
@@ -387,7 +281,7 @@ if (in_array($do, array('validate_mobile', 'bind_mobile')) || $_GPC['bind_type']
 	}
 }
 if ($do == 'validate_mobile') {
-	$user = array('username' => safe_gpc_string($_GPC['mobile']));
+	$user = array('username' => trim($_GPC['mobile']));
 	$mobile_exists = user_check($user);
 	if ($mobile_exists) {
 		iajax(-1, '手机号已经存在');
@@ -399,7 +293,7 @@ if ($do == 'bind_mobile') {
 	if ($_W['isajax'] && $_W['ispost']) {
 		$bind_info = OAuth2Client::create('mobile')->bind();
 
-		$user = array('username' => safe_gpc_string($_GPC['mobile']));
+		$user = array('username' => trim($_GPC['mobile']));
 		$mobile_exists = user_check($user);
 		if ($mobile_exists) {
 			iajax(-1, '手机号已经存在');
@@ -429,119 +323,4 @@ if ($do == 'unbind') {
 		iajax(0, '解绑成功', url('user/profile/bind'));
 	}
 	iajax(-1, '非法请求');
-}
-
-if ($do == 'modules_tpl') {
-	$modules = user_modules($_W['uid']);
-	$templates = pdo_getall('site_templates', array(), array('id', 'name', 'title'));
-
-	$group_info = user_group_detail_info($_W['user']['groupid']);
-
-	$extend = array();
-	$users_extra_template_table = table('users_extra_templates');
-	$user_extend_templates_ids = array_keys($users_extra_template_table->getExtraTemplatesIdsByUid($_W['uid']));
-	if (!empty($user_extend_templates_ids)) {
-		$extend['templates'] = pdo_getall('site_templates', array('id' => $user_extend_templates_ids), array('id', 'name', 'title'));
-	}
-	if (!empty($templates) && !empty($user_extend_templates_ids)) {
-		foreach ($templates as $template_key => $template_val) {
-			if (in_array($template_val['id'], $user_extend_templates_ids)) {
-				$templates[$template_key]['checked'] = 1;
-			}
-		}
-	}
-
-	$users_extra_group_table = table('users_extra_group');
-	$extra_groups = $users_extra_group_table->getUniGroupsByUid($_W['uid']);
-	if (!empty($extra_groups)) {
-		$uni_groups = uni_groups(array_keys($extra_groups));
-	} else {
-		$uni_groups = array();
-	}
-
-	$users_extra_modules_table = table('users_extra_modules');
-	$user_extend_modules = array_keys($users_extra_modules_table->getExtraModulesByUid($_W['uid']));
-	if (!empty($user_extend_modules)) {
-		foreach ($user_extend_modules as $module_name) {
-			$module_info = module_fetch($module_name);
-			if (!empty($module_info)) {
-				$extend['modules'][$module_name] = $module_info;
-			}
-		}
-	}
-
-	$user_modules = array('account' => array(), 'wxapp' => array(), 'webapp' => array(), 'phoneapp' => array(), 'xzapp' => array());
-	if (!empty($modules)) {
-		foreach ($modules as $module) {
-			if ($module['issystem'] == 0) {
-				if ($module[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_SUPPORT_ACCOUNT) {
-					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
-						$module['checked'] = 1;
-					}
-					$user_modules['account'][] = $module;
-					$module['checked'] = 0;
-				}
-
-				if ($module[MODULE_SUPPORT_WXAPP_NAME] == MODULE_SUPPORT_WXAPP) {
-					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
-						$module['checked'] = 1;
-					}
-					$user_modules['wxapp'][] = $module;
-					$module['checked'] = 0;
-				}
-
-				if ($module[MODULE_SUPPORT_WEBAPP_NAME] == MODULE_SUPPORT_WEBAPP) {
-					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
-						$module['checked'] = 1;
-					}
-					$user_modules['webapp'][] = $module;
-					$module['checked'] = 0;
-				}
-
-				if ($module[MODULE_SUPPORT_PHONEAPP_NAME] == MODULE_SUPPORT_PHONEAPP) {
-					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
-						$module['checked'] = 1;
-					}
-					$user_modules['phoneapp'][] = $module;
-					$module['checked'] = 0;
-				}
-
-				if ($module[MODULE_SUPPORT_XZAPP_NAME] == MODULE_SUPPORT_XZAPP) {
-					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
-						$module['checked'] = 1;
-					}
-					$user_modules['xzapp'][] = $module;
-					$module['checked'] = 0;
-				}
-
-				if ($module[MODULE_SUPPORT_ALIAPP_NAME] == MODULE_SUPPORT_ALIAPP) {
-					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
-						$module['checked'] = 1;
-					}
-					$user_modules['aliapp'][] = $module;
-					$module['checked'] = 0;
-				}
-			}
-		}
-	}
-
-	template('user/profile-modules-tpl');
-}
-
-if ($do == 'create_account') {
-	$user_permission_account = permission_user_account_num($_W['uid']);
-
-	template('user/profile-create-account-list');
-}
-
-if ($do == 'account_dateline') {
-	$group_info = table('users_group')->getById($_W['user']['groupid']);
-	$extra_limit_table = table('users_extra_limit');
-	$extra_limit_info = $extra_limit_table->getExtraLimitByUid($_W['uid']);
-
-	$total_timelimit = $group_info['timelimit'] + $extra_limit_info['timelimit'];
-	$starttime = date('Y-m-d', $_W['user']['starttime']);
-	$endtime = date('Y-m-d', strtotime("+" . $total_timelimit . " day", strtotime($starttime)));
-
-	template('user/profile-account-dateline');
 }

@@ -1,5 +1,5 @@
 <?php
-$url = 'https://way.jd.com/jisuapi/get?channel=头条&num=10&start=0&appkey=e61ea08206439db9cb30910865faad7c';
+$url = 'https://way.jd.com/jisuapi/get?channel=头条&num=10&start=0&appkey=f8a020a5d840f7a24997c9561b7d3da3';
 $resp = ihttp_get($url);
 if ($resp['code'] == 200 && $resp['content']) {
 	$obj= json_decode($resp['content'], true);

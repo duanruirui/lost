@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('app');
@@ -11,7 +11,6 @@ load()->func('tpl');
 $card_setting = pdo_get('mc_card', array('uniacid' => $_W['uniacid']));
 $uni_setting = pdo_get('uni_settings', array('uniacid' => $_W['uniacid']), array('exchange_enable'));
 $setting = uni_setting_load(array('uc', 'passport'), $_W['uniacid']);
-//退出系统
 if($do == 'login_out') {
 	unset($_SESSION);
 	session_destroy();

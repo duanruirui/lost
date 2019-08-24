@@ -1,18 +1,15 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('utility');
-
 $openid = $_W['openid'];
-$dos = array('reset', 'forget');
-$do = in_array($do, $dos) ? $do : 'forget';
-
+$dos = array('reset', 'forget', 'verifycode');
 $setting = uni_setting($_W['uniacid'], array('uc', 'passport'));
 $uc_setting = $setting['uc'] ? $setting['uc'] : array();
-$register_mode = is_array($setting['passport']) && !empty($setting['passport']['item']) ? $setting['passport']['item'] : 'random';
+$register_mode = $setting['passport']['item'] ? $setting['passport']['item'] : 'random';
 $forward = url('mc');
 if(!empty($_GPC['forward'])) {
 	$forward = './index.php?' . base64_decode($_GPC['forward']) . '#wechat_redirect';
@@ -21,44 +18,50 @@ if(!empty($_W['member']) && (!empty($_W['member']['mobile']) || !empty($_W['memb
 	header('location: ' . $forward);
 	exit;
 }
-
-if($do == 'reset') {
+if ($do == 'verifycode') {
 	if($_W['ispost'] && $_W['isajax']) {
-		$code = safe_gpc_string($_GPC['code']);
-		$username = safe_gpc_string($_GPC['username']);
-		$member_table = table('mc_members');
-		switch ($register_mode) {
-			case 'mobile':
-				$member_table->searchWithMobile($username);
-				break;
-			case 'email':
-				$member_table->searchWithEmail($username);
-				break;
-			default:
-				$member_table->searchWithMobileOrEmail($username);
-				break;
-		}
-		$member_table->searchWithUniacid($_W['uniacid']);
-		$member_info = $member_table->get();
-		if (empty($member_info)) {
-			message('用户不存在', referer(), 'error');
-		}
-
+		$username = trim($_GPC['username']);
+		$code = trim($_GPC['code']);
+		load()->model('utility');
 		if(!code_verify($_W['uniacid'], $username, $code)) {
 			message('验证码错误', referer(), 'error');
+		} else {
+			pdo_delete('uni_verifycode', array('receiver' => $username));
+			message('验证码正确', referer(), 'success');
 		}
-
-		$password = safe_gpc_string($_GPC['password']);
-		$repassword = safe_gpc_string($_GPC['repassword']);
+	}
+}
+if($do == 'reset') {
+	if($_W['ispost'] && $_W['isajax']) {
+		$username = trim($_GPC['username']);
+		$password = trim($_GPC['password']);
+		$repassword = trim($_GPC['repassword']);
 		if ($repassword != $password) {
 			message('密码输入不一致', referer(), 'error');
 		}
-
-		$password = md5($password . $member_info['salt'] . $_W['config']['setting']['authkey']);
-		mc_update($member_info['uid'], array('password' => $password));
-
-		pdo_delete('uni_verifycode', array('receiver' => $username));
+		$sql = 'SELECT `uid`,`salt` FROM ' . tablename('mc_members') . ' WHERE `uniacid`=:uniacid';
+		$pars = array();
+		$pars[':uniacid'] = $_W['uniacid'];
+		if(preg_match('/^\d{11}$/', $username)) {
+			$type = 'mobile';
+			$sql .= ' AND `mobile`=:mobile';
+			$pars[':mobile'] = $username;
+		} elseif(preg_match("/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/", $username)) {
+			$type = 'email';
+			$sql .= ' AND `email`=:email';
+			$pars[':email'] = $username;
+		} else {
+			message('用户名格式不正确', referer(), 'error');
+		}
+		$user = pdo_fetch($sql, $pars);
+		if(empty($user)) {
+			message('用户不存在', referer(), 'error');
+		} else {
+			$password = md5($password . $user['salt'] . $_W['config']['setting']['authkey']);
+			mc_update($user['uid'], array('password' => $password));
+		}
 		message('找回成功', referer(), 'success');
 	}
 }
 template('auth/forget');
+exit;

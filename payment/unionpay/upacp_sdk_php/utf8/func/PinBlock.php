@@ -1,19 +1,14 @@
 <?php
 	/**
-	 * Author: gu_yongkang 
-	 * data: 20110510
-	 * 密码转PIN 
-	 * Enter description here ...
-	 * @param $spin
-	 */
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
+ */
 	function  Pin2PinBlock( &$sPin )
 	{
-	//	$sPin = "123456";
-		$iTemp = 1;
+			$iTemp = 1;
 		$sPinLen = strlen($sPin);
 		$sBuf = array();
-		//密码域大于10位
-		$sBuf[0]=intval($sPinLen, 10);
+				$sBuf[0]=intval($sPinLen, 10);
 	
 		if($sPinLen % 2 ==0)
 		{
@@ -34,8 +29,7 @@
 					}
 				}
 				$iTemp++;
-				$i = $i + 2;	//linshi
-			}
+				$i = $i + 2;				}
 		}
 		else
 		{
@@ -67,12 +61,7 @@
 		}
 		return $sBuf;
 	}
-	/**
-	 * Author: gu_yongkang
-	 * data: 20110510
-	 * Enter description here ...
-	 * @param $sPan
-	 */
+	
 	function FormatPan(&$sPan)
 	{
 		$iPanLen = strlen($sPan);
@@ -94,7 +83,6 @@
 		global $log;
 		$sPinBuf = Pin2PinBlock($sPin);
 		$iCardLen = strlen($sCardNO);
-//		$log->LogInfo("CardNO length : " . $iCardLen);
 		if ($iCardLen <= 10)
 		{
 			return (1);
@@ -110,15 +98,11 @@
 		
 		for ($i=0; $i<8; $i++)
 		{
-//			$sBuf[$i] = $sPinBuf[$i] ^ $sPanBuf[$i];	//十进制
-//			$sBuf[$i] = vsprintf("%02X", ($sPinBuf[$i] ^ $sPanBuf[$i]));
 			$sBuf[$i] = vsprintf("%c", ($sPinBuf[$i] ^ $sPanBuf[$i]));
 		}
 		unset($sPinBuf);
 		unset($sPanBuf);
-//		return $sBuf;
-		$sOutput = implode("", $sBuf);	//数组转换为字符串
-		return $sOutput;
+		$sOutput = implode("", $sBuf);			return $sOutput;
 	}
 
 ?>

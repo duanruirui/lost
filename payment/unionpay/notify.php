@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 error_reporting(0);
 define('IN_MOBILE', true);
@@ -52,8 +52,7 @@ if (!empty($_POST) && verify($_POST) && $_POST['respMsg'] == 'success') {
 				$ret['user'] = $log['openid'];
 				$ret['fee'] = $log['fee'];
 				$ret['tag'] = $log['tag'];
-				//支付成功后新增是否使用优惠券信息【需要模块去处理】
-				$ret['is_usecard'] = $log['is_usecard'];
+								$ret['is_usecard'] = $log['is_usecard'];
 				$ret['card_type'] = $log['card_type'];
 				$ret['card_fee'] = $log['card_fee'];
 				$ret['card_id'] = $log['card_id'];

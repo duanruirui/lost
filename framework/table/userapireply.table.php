@@ -1,7 +1,7 @@
 <?php
 /**
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -19,7 +19,7 @@ class UserapireplyTable extends We7Table {
 			foreach ($all_service[$file]['keywords'] as $keyword_info) {
 				$rule_keyword_info['content'] = $keyword_info[1];
 				$rule_keyword_info['type'] = $keyword_info[0];
-				table('rule_keyword')->fill($rule_keyword_info)->save();
+				table('rulekeyword')->fill($rule_keyword_info)->save();
 			}
 		}
 

@@ -1,23 +1,13 @@
 <?php
 /**
- * Http协议
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 模拟 http 请求
- * @param string $url 请求URL地址
- * @param string $post 请求数据
- * @param array $extra header 参数
- * @param int $timeout 超时时间
- * @return array http响应封装信息或错误信息
- */
+
 function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
-	//timeout为0时，相当于是非阻塞异步请求
-	//curl不支持timeout为0的情况，需要使用fsockopen来处理
-	if (function_exists('curl_init') && function_exists('curl_exec') && $timeout > 0) {
+			if (function_exists('curl_init') && function_exists('curl_exec') && $timeout > 0) {
 		$ch = ihttp_build_curl($url, $post, $extra, $timeout);
 		if (is_error($ch)) {
 			return $ch;
@@ -62,39 +52,18 @@ function ihttp_request($url, $post = '', $extra = array(), $timeout = 60) {
 	}
 }
 
-/**
- * 封装的 GET 请求方法
- *
- * @param string $url 请求URL地址
- * @return array
- */
+
 function ihttp_get($url) {
 	return ihttp_request($url);
 }
 
-/**
- * 封装的POST请求方法
- *
- * @param string $url 请求URL地址
- * @param array $data 请求数据
- * @return array
- */
+
 function ihttp_post($url, $data) {
 	$headers = array('Content-Type' => 'application/x-www-form-urlencoded');
 	return ihttp_request($url, $data, $headers);
 }
 
-/**
- * 非阻塞并发请求多个URL地址
- * @param array $urls 请求多个地址数组
- * @param array $posts 请求多个地址对应的POST数据
- *					 二维数据组时，需要与URL键值一一对应，每个请求不同的POST数据
- *					 一维数组时，每个请求使用此数据
- * @param array $extra 同 ihttp_request
- * @param int $timeout 同 ihttp_request
- *
- * @return array 返回结果与url键值对应结果数组
- */
+
 function ihttp_multi_request($urls, $posts = array(), $extra = array(), $timeout = 60) {
 	if (!is_array($urls)) {
 		return error(1, '请使用ihttp_request函数');
@@ -114,8 +83,7 @@ function ihttp_multi_request($urls, $posts = array(), $extra = array(), $timeout
 				continue;
 			}
 			if (curl_multi_add_handle($curl_multi, $curl) === CURLM_OK) {
-				//存到数据组中，方便之后获取结果
-				$curl_client[] = $curl;
+								$curl_client[] = $curl;
 			}
 		}
 	}
@@ -152,16 +120,14 @@ function ihttp_socketopen($hostname, $port = 80, &$errno, &$errstr, $timeout = 1
 	return $fp;
 }
 
-/**
- * 对请求得到的数据的进行分析和封装
- *
- * @param string $data
- * @param boolean $chunked
- * @return array error 或 $data 的封装
- */
+
 function ihttp_response_parse($data, $chunked = false) {
 	$rlt = array();
 
+	$headermeta = explode('HTTP/', $data);
+	if (count($headermeta) > 2) {
+		$data = 'HTTP/' . array_pop($headermeta);
+	}
 	$pos = strpos($data, "\r\n\r\n");
 	$split1[0] = substr($data, 0, $pos);
 	$split1[1] = substr($data, $pos + 4, strlen($data));
@@ -237,12 +203,7 @@ function ihttp_response_parse_unchunk($str = null) {
 	return $str;
 }
 
-/**
- * 格式化请求URL
- * @param string $url 要格式化检查的URL
- * @param boolean $set_default_port 是否根据协议指定默认端口
- * @return array
- */
+
 function ihttp_parse_url($url, $set_default_port = false) {
 	if (empty($url)) {
 		return error(1);
@@ -278,11 +239,7 @@ function ihttp_parse_url($url, $set_default_port = false) {
 	return $urlset;
 }
 
-/**
- *  是否允许指定host访问
- * @param $host
- * @return bool
- */
+
 function ihttp_allow_host($host) {
 	global $_W;
 	if (strexists($host, '@')) {
@@ -298,12 +255,7 @@ function ihttp_allow_host($host) {
 	return true;
 }
 
-/**
- * 创建一个curl请求对象
- * 参数同 ihttp_request
- *
- * @return curl response
- */
+
 function ihttp_build_curl($url, $post, $extra, $timeout) {
 	if (!function_exists('curl_init') || !function_exists('curl_exec')) {
 		return error(1, 'curl扩展未开启');
@@ -332,8 +284,7 @@ function ihttp_build_curl($url, $post, $extra, $timeout) {
 	if ($post) {
 		if (is_array($post)) {
 			$filepost = false;
-			// 5.6版本后，'@'上传，使用CURLFile替代
-			foreach ($post as $name => &$value) {
+						foreach ($post as $name => &$value) {
 				if (version_compare(phpversion(), '5.5') >= 0 && is_string($value) && substr($value, 0, 1) == '@') {
 					$post[$name] = new CURLFile(ltrim($value, '@'));
 				}
@@ -454,14 +405,7 @@ function ihttp_build_httpbody($url, $post, $extra) {
 	return $fdata;
 }
 
-/**
- * 发送Email
- * @param string $to 收件人邮箱
- * @param string $subject 邮件主题
- * @param string $body 邮件内容
- * @param boolean $global 是否使用系统邮箱配置信息
- * @return mixed 发送成功返回 true, 失败返回错误信息
- */
+
 function ihttp_email($to, $subject, $body, $global = false) {
 	static $mailer;
 	set_time_limit(0);

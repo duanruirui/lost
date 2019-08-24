@@ -1,28 +1,57 @@
 {template 'common/header'}
-<ol class="breadcrumb we7-breadcrumb">
-	<a href="{php echo url('site/multi')}"><i class="wi wi-back-circle"></i> </a>
-	<li>
-		<a href="{php echo url('site/multi')}">微官网列表</a>
-	</li>
-	<li>
-		编辑
-	</li>
-</ol>
 <form action="" method="post" class="panel panel-cut" id="js-wesite-post" ng-controller="WesitePost" ng-cloak>
 	<input type="hidden" name="multiid" value="{$_GPC['multiid']}">
-	<div class="wesite-post">
-		
+	<div class="panel-heading">
+		<ol class="breadcrumb we7-breadcrumb">
+			<a href="{php echo url('site/multi')}"><i class="wi wi-back-circle"></i> </a>
+			<li>
+				<a href="{php echo url('site/multi')}">微官网列表</a>
+			</li>
+			<li>
+				编辑
+			</li>
+		</ol>
+	</div>
+	<div class="panel-body">
+		<div class="site-select-tem">
+			<div class="select-tem-heading">选择模板</div>
+			<div class="select-tem-filter">
+				<div class="form-group">
+					分类
+					<select class="we7-select col-sm-12" ng-model="temtype" ng-options="tem.title for tem in temtypes">
+					</select>
+				</div>
+				<div class="form-group">
+					搜索
+					<div class="input-group">
+						<input type="text" class="form-control" placeholder="输入模板名" ng-model="searchedStyleName">
+						<span class="input-group-btn" ng-click="searchStyle()"><a class="btn btn-default"> <i class="fa fa-search"></i></a></span>
+					</div>
+				</div>
+			</div>
+			<div class="select-tem-list">
+				<ul>
+					<li class="select-tem-item" ng-repeat="style in styles" ng-class="{'active': multi.style.id == style.id}" ng-click="selectStyle(style)" ng-show="temtype.name == 'all' || temtype.name == style.type">
+						<input type="text" name="styleid" ng-model="multi.style.id" ng-style="{'display': 'none'}">
+						<img ng-src="../app/themes/{{style.tname}}/preview.jpg" />
+						<a href="javascript:;" class="cover-dark" ng-style="{'padding': '5px'}">
+							<i class="fa fa-check cover-selected"></i>
+							<span ng-bind="style.name" class="text-over" ng-style="{'position': 'absolute', 'bottom': '1px', 'color': 'white'}"></span>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</div>
 
 		<div class="site-view">
 			<div class="we7-iphone-view">
-				<div class="template-name" ng-bind="multi.style && multi.style.name">模板名称</div>	
-				<div ng-style="">
-					<iframe ng-src="{{siteEntrance}}" frameborder="0" width="300" height="553" scrolling="no" id="preview-iframe"></iframe>
-					<span class="btn btn-primary" ng-style="{'margin-left': '36%'}" onclick="document.getElementById('preview-iframe').contentWindow.location.reload(true);">预览刷新</span> <a href="javascript:;" data-toggle="tooltip" data-placement="bottom" title="预览刷新功能只支持幻灯片、导航菜单、底部菜单功能。其他请点击完成按钮再行查看！"><i class="wi wi-info" ></i></a> 
-					<!-- <div class="help-block">
+				<div ng-style="{'background': 'url(./resource/images/new/iphone6.png) no-repeat 9px 0px', 'margin-top': '-30px'}">
+					<iframe ng-src="{{siteEntrance}}" frameborder="0" width="320" height="568" scrolling="no" id="preview-iframe" ng-style="{'transform': 'scale(0.7)', 'margin-left': '-10px', 'margin-top': '-44px'}"></iframe>
+					<span class="btn btn-primary" ng-style="{'margin-left': '36%'}" onclick="document.getElementById('preview-iframe').contentWindow.location.reload(true);">预览刷新</span>
+					<div class="help-block">
 						<span class="color-red">温馨提示：</span>
-						预览刷新功能只支持幻灯片、导航菜单、底部菜单功能。其他请点击完成按钮再行查看！
-					</div> -->
+						预览刷新功能只支持幻灯片、导航菜单、底部菜单功能。其他请点击"完成"按钮再行查看！
+					</div>
 				</div>
 				<div class="nav-menu" ng-hide="1">
 					<div class="js-quickmenu nav-menu-wx clearfix" ng-class="{0 : 'has-nav-0', 1 : 'has-nav-1', 2: 'has-nav-2', 3: 'has-nav-3', 4 : 'has-nav-3'}[activeItem.menus.length]" ng-if="activeItem.navStyle == 1">
@@ -133,9 +162,6 @@
 			<div class="site-edit-nav">
 				<ul>
 					<li class="site-edit-item active">
-						<a href="#template" data-toggle="tab">选择模板</a>
-					</li>
-					<li class="site-edit-item">
 						<a href="#entrance" data-toggle="tab">微官网入口</a>
 					</li>
 					<li class="site-edit-item">
@@ -154,36 +180,11 @@
 			</div>
 			<div class="tab-content site-edit-content">
 				<!--入口-->
-				<div class="tab-pane active" id="template">
-					<div class="site-select-tem" >
-						<div class="select-tem-filter search-box">
-							<div class="form-group">
-								<select class="we7-select col-sm-12" ng-model="temtype" ng-options="tem.title for tem in temtypes">
-								</select>
-							</div>
-							<div class="form-group">
-								<div class="input-group">
-									<input type="text" class="form-control" placeholder="输入模板名" ng-model="searchedStyleName">
-									<span class="input-group-btn" ng-click="searchStyle()"><a class="btn btn-default"> <i class="fa fa-search"></i></a></span>
-								</div>
-							</div>
-						</div>
-						<div class="select-tem-list">
-							<ul>
-								<li class="select-tem-item" ng-repeat="style in styles" ng-class="{'active': multi.style.id == style.id}" ng-click="selectStyle(style)" ng-show="temtype.name == 'all' || temtype.name == style.type">
-									<input type="text" name="styleid" ng-model="multi.style.id" ng-style="{'display': 'none'}">
-									<img ng-src="../app/themes/{{style.tname}}/preview.jpg" />
-									<a href="javascript:;" class="cover-dark" ng-style="{'padding': '5px'}">
-										<i class="fa fa-check cover-selected"></i>
-										<span ng-bind="style.name" class="text-over" ng-style="{'position': 'absolute', 'bottom': '1px', 'color': 'white'}"></span>
-									</a>
-								</li>
-							</ul>
-						</div>
+				<div class="we7-form tab-pane active" id="entrance">
+					<div class="site-edit-heading">
+						微官网入口
 					</div>
-				</div>
-				<div class="we7-form tab-pane " id="entrance">
-					<div class="entrance-url ">
+					<div class="entrance-url site-edit-heading">
 						<div class="form-group">
 							<label for="" class="control-label col-sm-2">微官网链接</label>
 							<div class="form-controls col-sm-10 form-control-static">
@@ -225,6 +226,9 @@
 
 				<!--基础信息-->
 				<div class="tab-pane fade in" id="default">
+					<div class="site-edit-heading">
+						基础信息
+					</div>
 					<div class="we7-form">
 						<div class="form-group">
 							<label for="" class="control-label col-sm-2">微站名称</label>
@@ -272,6 +276,7 @@
 				<div class="tab-pane fade" id="slide">
 					<!--幻灯片列表-->
 					<div class="site-slide-list">
+						<div class="site-edit-heading">幻灯片</div>
 						<ul>
 							<li ng-repeat="list in slideLists">
 								<div class="site-slide-item media">
@@ -310,6 +315,7 @@
 
 				<!--首页导航菜单-->
 				<div class="tab-pane fade homemenu" id="homemenu">
+					<div class="site-edit-heading">首页导航菜单</div>
 					<div class="panel panel-warning" ng-show="!addHomemenuStatus">
 						<div class="panel-body">
 							<p>当前使用的风格为：<span ng-bind="multi.style.name"></span>；</p>
@@ -401,11 +407,11 @@
 									<span class="help-block">导航排序，越大越靠前</span>
 								</div>
 							</div>
-							<div class="penel we7-panel panel-new">
+							<div class="penel we7-panel">
 								<div class="panel-heading">
 									导航样式
 								</div>
-								<div class="panel-body we7-padding-top">
+								<div class="panel-body we7-margin">
 									<div class="we7-form">
 										<div class="form-group">
 											<label for="" class="control-label col-sm-2">图标类型</label>
@@ -467,13 +473,14 @@
 									</div>
 								</div>
 							</div>
-							<div class="btn btn-primary we7-padding-horizontal site-btn-bottom col-sm-offset-2" ng-click="saveMenu()">保存</div>
+							<div class="btn btn-primary we7-padding-horizontal site-btn-bottom" ng-click="saveMenu()">保存</div>
 						</div>
 					</div>
 				</div>
 
 				<!--底部菜单-->
 				<div class="tab-pane fade shopNav" id="quickmenu">
+					<div class="site-edit-heading">导航快捷菜单</div>
 					<div class="we7-form app-side">
 						<div class="form-group">
 							<label for="" class="control-label col-sm-2">是否开启</label>
@@ -790,7 +797,7 @@
 										<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 										<h4 class="modal-title" id="myModalLabel">选择导航模板</h4>
 									</div>
-									<div class="modal-body clearfix overflow-auto">
+									<div class="modal-body clearfix">
 										<div class="alert">
 											<input id="wx-radio" type="radio" value="1" ng-model="activeItem.navStyle" ng-checked="activeItem.navStyle == 1">
 											<label for="wx-radio">微信公众号自定义菜单样式</label>
@@ -836,7 +843,7 @@
 										<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 										<h4 class="modal-title">选择忽略模块</h4>
 									</div>
-									<div class="modal-body clearfix overflow-auto">
+									<div class="modal-body clearfix">
 										<table class="table table-hover">
 											<thead class="navbar-inner">
 												<tr>
@@ -860,16 +867,20 @@
 								</div>
 							</div>
 						</div>
-						<div class="btn btn-primary we7-padding-horizontal site-btn-bottom col-sm-offset-2 " ng-click="saveQucikMenu()">保存</div>
+						<div class="btn btn-primary we7-padding-horizontal site-btn-bottom" ng-click="saveQucikMenu()">保存</div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-	<div class="text-center we7-padding">
-		<input type="submit" name="submit" value="完成" class="btn btn-primary">
-		<input type="hidden" name="token" value="{$_W['token']}">
-	</div>
+	<nav class="navbar navbar-wxapp-bottom navbar-fixed-bottom" role="navigation">
+		<div class="container">
+			<div class="pager">
+				<input type="submit" name="submit" value="完成" class="btn btn-primary">
+				<input type="hidden" name="token" value="{$_W['token']}">
+			</div>
+		</div>
+	</nav>
 </form>
 <script>
 require(['underscore'], function(){

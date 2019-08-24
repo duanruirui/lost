@@ -1,16 +1,14 @@
 <?php
 /**
- * 基本文字回复处理类
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 class CustomModuleProcessor extends WeModuleProcessor {
 	
 	public function respond() {
-		//如果是规则id是-1,说明触发多客服的途径不是按照关键字触发的,是通过特殊回复触发的。
-		if($this->rule == -1) {
+				if($this->rule == -1) {
 			return $this->respCustom();
 		}
 

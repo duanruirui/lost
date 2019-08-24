@@ -35,8 +35,7 @@ if(!empty($_POST)) {
 				$params = array();
 				$params[':uniontid'] = $out_trade_no;
 				$log = pdo_fetch($sql, $params);
-				//此处判断微信请求消息金额必须与系统发起的金额一致
-				if(!empty($log) && $log['status'] == '0' && ($_POST['total_fee'] == $log['card_fee'])) {
+								if(!empty($log) && $log['status'] == '0' && ($_POST['total_fee'] == $log['card_fee'])) {
 					$log['transaction_id'] = $_POST['trade_no'];
 					$record = array();
 					$record['status'] = '1';

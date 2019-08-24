@@ -1,11 +1,10 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-//判断是否是操作店员，如果是，返回店员的信息
 function clerk_check() {
 	global $_W;
 	if(empty($_W['openid'])) {

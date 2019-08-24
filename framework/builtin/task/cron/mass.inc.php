@@ -1,7 +1,7 @@
 <?php
 /**
- * 微信消息定时群发
- * @author WeEngine Team
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 global $_W, $_GPC;
@@ -10,7 +10,7 @@ $data = pdo_get('mc_mass_record', array('uniacid' => $_W['uniacid'], 'id' => $id
 if(empty($data)) {
 	$this->addCronLog($id, -1100, '未找到群发的设置信息');
 }
-$acc = WeAccount::createByUniacid();
+$acc = WeAccount::create($_W['acid']);
 if(is_error($acc)) {
 	$this->addCronLog($id, -1101, '创建公众号操作对象失败');
 }

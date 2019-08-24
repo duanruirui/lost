@@ -1,14 +1,14 @@
 <?php
 /**
- * 云服务代理文件，跳转至云服务上
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [美仑授权系统 System] Copyright (c) 2018 WEBY.CC
+ * 美仑授权系统 is NOT a free software, it under the license terms, visited http://www.weby.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('cloud');
 load()->func('communication');
 
-$dos = array('profile', 'callback', 'appstore', 'buybranch', 'sms', 'vsx');
+$dos = array('profile', 'callback', 'appstore', 'buybranch', 'sms');
 $do = in_array($do, $dos) ? $do : 'profile';
 
 if($do == 'profile') {
@@ -19,14 +19,9 @@ if($do == 'profile') {
 
 if($do == 'sms') {
 	define('ACTIVE_FRAME_URL', url('cloud/sms'));
-	permission_check_account_user('system_cloud_sms');
+	uni_user_permission_check('system_cloud_sms');
 	$iframe = cloud_auth_url('sms');
 	$title = '云短信';
-}
-if ($do == 'vsx') {
-	$url = safe_gpc_string($_GPC['url']);
-	cloud_v_to_xs($url);
-	exit;
 }
 
 if($do == 'appstore') {
@@ -55,7 +50,7 @@ if ($do == 'buybranch') {
 	$response = json_decode($response['content'], true);
 
 	if (is_error($response['message'])) {
-		itoast($response['message']['message'], url('module/manage-system'), 'error');
+		itoast($response['message']['message'], url('system/module'), 'error');
 	}
 
 	$params = array(
@@ -74,12 +69,8 @@ if ($do == 'buybranch') {
 if($do == 'callback') {
 	$secret = $_GPC['token'];
 	if(strlen($secret) == 32) {
-		$cache = cache_read(cache_system_key('cloud_auth_transfer'));
-		//兼容处理一下更新时，旧缓存名获取数据
-		if (empty($cache) || empty($cache['secret'])) {
-			$cache = cache_read('cloud:auth:transfer');
-		}
-		cache_delete(cache_system_key('cloud_auth_transfer'));
+		$cache = cache_read('cloud:auth:transfer');
+		cache_delete('cloud:auth:transfer');
 		if(!empty($cache) && $cache['secret'] == $secret) {
 			$site = $cache;
 			unset($site['secret']);

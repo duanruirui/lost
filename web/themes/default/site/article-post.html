@@ -64,7 +64,7 @@
 			<label for="" class="control-label col-sm-2">缩略图</label>
 			<div class="form-controls col-sm-8">
 				<div class="we7-input-img input-more input-img" ng-class="{'active': item.thumb}">
-					<img ng-src="{{item.thumb}}" ng-if="item.thumb">
+					<img src="{{item.thumb}}" ng-if="item.thumb">
 					<a href="javascript:;" class="input-addon" ng-click="uploadImage()" ng-hide="category.icon"><span>+</span></a>
 					<input type="text" name="thumb" ng-model="item.thumb" ng-style="{'display' : 'none'}">
 					<div class="cover-dark">
@@ -84,13 +84,13 @@
 		</div>
 		<div class="form-group form-inline">
 			<label class="control-label col-sm-2">文章类别</label>
-			<div class="form-controls col-sm-4" style="z-index: 1001">
+			<div class="form-controls col-sm-4">
 				{php echo tpl_form_field_category_2level('category', $parent, $children, $pcate, $ccate)}
 			</div>
 		</div>
 		<div class="form-group">
 			<label class="control-label col-sm-2">选择内容模板</label>
-			<div class="form-controls col-sm-8" style="z-index: 1000">
+			<div class="form-controls col-sm-8">
 				<select name="template" class="form-control">
 					<option value="">使用默认设置</option>
 					{loop $template $v}

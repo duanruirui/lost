@@ -1,7 +1,7 @@
 <?php
 /**
- * 自动回复
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('reply');
@@ -12,14 +12,14 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 $m = empty($_GPC['m']) ? 'keyword' : trim($_GPC['m']);
 if (in_array($m, array('keyword', 'special', 'welcome', 'default', 'apply', 'service', 'userapi'))) {
-	permission_check_account_user('platform_reply_' . $m);
+	permission_check_account_user('platform_reply');
 } else {
 	permission_check_account_user('', true, 'reply');
 	$modules = uni_modules();
 	$_W['current_module'] = $modules[$m];
 	define('IN_MODULE', $m);
 }
-
+$_W['page']['title'] = '自动回复';
 if (empty($m)) {
 	itoast('错误访问.', '', '');
 }
@@ -48,8 +48,7 @@ if ($m == 'special') {
 	}
 }
 
-//功能模块用
-$sysmods = module_system();
+$sysmods = system_modules();
 if (in_array($m, array('custom'))) {
 	$site = WeUtility::createModuleSite('reply');
 	$site_urls = $site->getTabUrls();
@@ -106,8 +105,7 @@ if ($do == 'display') {
 					if (!empty($entries)) {
 						$item['options'] = $entries['rule'];
 					}
-					//若是模块，获取模块图片
-					if (!in_array($item['module'], array("basic", "news", "images", "voice", "video", "music", "wxcard", "reply"))) {
+										if (!in_array($item['module'], array("basic", "news", "images", "voice", "video", "music", "wxcard", "reply"))) {
 						$item['module_info'] = module_fetch($item['module']);
 					}
 				}
@@ -125,8 +123,7 @@ if ($do == 'display') {
 		$setting = uni_setting($_W['uniacid'], array($m));
 		if (!empty($setting[$m])) {
 			$rule_keyword_id = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $setting[$m]), 'rid');
-			//触发的关键字，module_build_form()函数使用，因为一个规则可能对应多个关键字
-			$setting_keyword = $setting[$m];
+						$setting_keyword = $setting[$m];
 		}
 	}
 	if ($m == 'service') {
@@ -181,7 +178,7 @@ if ($do == 'post') {
 			}
 			$keyword = preg_replace('/，/', ',', $keyword);
 			$keyword_arr = explode(',', $keyword);
-			$result = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'content IN' => $keyword_arr), array('rid'));
+			$result = pdo_getall('rule_keyword', array('uniacid' => $_W['uniacid'], 'content IN' => $keyword_arr, 'status !=' => 1), array('rid'));
 			if (!empty($result)) {
 				$keywords = array();
 				foreach ($result as $reply) {
@@ -261,7 +258,7 @@ if ($do == 'post') {
 				itoast($msg.$user_module_error_msg, '', '');
 			}
 			if (!empty($rid)) {
-				$result = pdo_update('rule', $rule, array('id' => $rid, 'uniacid' => $_W['uniacid']));
+				$result = pdo_update('rule', $rule, array('id' => $rid));
 			} else {
 				$result = pdo_insert('rule', $rule);
 				$rid = pdo_insertid();
@@ -327,8 +324,7 @@ if ($do == 'post') {
 			$rule_id = $setting[$type]['module'];
 		} else {
 			$rule_id = pdo_getcolumn('rule_keyword', array('uniacid' => $_W['uniacid'], 'content' => $setting[$type]['keyword']), 'rid');
-			//触发的关键字，module_build_form()函数使用，因为一个规则可能对应多个关键字
-			$setting_keyword = $setting[$type]['keyword'];
+						$setting_keyword = $setting[$type]['keyword'];
 		}
 		template('platform/specialreply-post');
 	}
@@ -363,7 +359,7 @@ if ($do == 'post') {
 				unset($installedmodulelist[$key]);
 				continue;
 			}
-			$value['official'] = empty($value['issystem']) && (strexists($value['author'], 'WeEngine Team') || strexists($value['author'], '微擎团队'));
+			$value['official'] = empty($value['issystem']) && (strexists($value['author'], 'WeEngine Team') || strexists($value['author'], ''));
 		}
 		unset($value);
 		foreach ($installedmodulelist as $name => $module) {
@@ -414,11 +410,9 @@ if ($do == 'delete') {
 		if (empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
 			itoast('抱歉，您操作的规则不在存或是已经被删除！', url('platform/reply', array('m' => $m)), 'error');
 		}
-		//删除回复，关键字及规则
-		if (pdo_delete('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']))) {
-			pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
-			//调用模块中的删除
-			if (!in_array($m, $sysmods)) {
+				if (pdo_delete('rule', array('id' => $rid))) {
+			pdo_delete('rule_keyword', array('rid' => $rid));
+						if (!in_array($m, $sysmods)) {
 				$reply_module = $m;
 			} else {
 				if ($m == 'userapi') {
@@ -433,11 +427,9 @@ if ($do == 'delete') {
 			}
 		}
 	}
-	reply_check_uni_default_keyword();
 	itoast('规则操作成功！', referer(), 'success');
 }
 
-//非文字自动回复切换开启关闭状态
 if ($do == 'change_status') {
 	$m = $_GPC['m'];
 	if ($m == 'service') {
@@ -480,17 +472,16 @@ if ($do == 'change_status') {
 }
 
 if ($do == 'change_keyword_status') {
-	/*改变状态：是否开启该关键字*/
+	
 	$id = intval($_GPC['id']);
 	$result = pdo_get('rule', array('id' => $id), array('status'));
 	if (!empty($result)) {
 		$rule = $rule_keyword = false;
 		if ($result['status'] == 1) {
-			$rule = pdo_update('rule', array('status' => 0), array('id' => $id, 'uniacid' => $_W['uniacid']));
+			$rule = pdo_update('rule', array('status' => 0), array('id' => $id));
 			$rule_keyword = pdo_update('rule_keyword', array('status' => 0), array('uniacid' => $_W['uniacid'], 'rid' => $id));
-			reply_check_uni_default_keyword();
 		} else {
-			$rule = pdo_update('rule', array('status' => 1), array('id' => $id, 'uniacid' => $_W['uniacid']));
+			$rule = pdo_update('rule', array('status' => 1), array('id' => $id));
 			$rule_keyword = pdo_update('rule_keyword', array('status' => 1), array('uniacid' => $_W['uniacid'], 'rid' => $id));
 		}
 		if ($rule && $rule_keyword) {

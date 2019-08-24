@@ -1,6 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 namespace We7\Table\System;
 
@@ -24,6 +25,7 @@ class StatVisit extends \We7Table {
 		'updatetime' => '',
 	);
 
+
 	public function deleteVisitRecord($uid, $delete_modules = array()) {
 		if (!empty($delete_modules)) {
 			$this->query->where('modulename', $delete_modules);
@@ -35,13 +37,5 @@ class StatVisit extends \We7Table {
 
 	public function getVistedModule($uid) {
 		return $this->query->where('uid', $uid)->where('uniacid', 0)->getall('modulename');
-	}
-
-	public function getVisitedModuleById($id) {
-		return $this->query->where('id', $id)->get();
-	}
-
-	public function updateVisitedModuleUniacid($id, $uniacid) {
-		return $this->where('id', $id)->fill('uniacid', $uniacid)->save();
 	}
 }

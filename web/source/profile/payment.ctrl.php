@@ -1,7 +1,7 @@
 <?php
 /**
- * 支付参数配置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -9,9 +9,10 @@ load()->model('payment');
 load()->model('account');
 load()->func('communication');
 
-$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch', 'change_status', 'get_account_wechatpay_proxy');
+$dos = array('save_setting', 'display', 'test_alipay', 'get_setting', 'switch', 'change_status');
 $do = in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('profile_payment_pay');
+permission_check_account_user('profile_pay_setting');
+$_W['page']['title'] = '支付参数 - 公众号选项';
 
 if ($do == 'get_setting') {
 	$pay_setting = payment_setting();
@@ -45,6 +46,10 @@ if ($do == 'save_setting') {
 	$param = $_GPC['param'];
 	$setting = uni_setting_load('payment', $_W['uniacid']);
 	$pay_setting = $setting['payment'];
+	
+		if ($type == 'wechat_facilitator') {
+			$param['switch'] = $param['switch'] == 'true' ? true : false;
+		}
 	
 	if ($type == 'wechat') {
 		$param['account'] = $_W['acid'];
@@ -105,6 +110,10 @@ MFF/yA==
 	$payment = iserializer($pay_setting);
 	uni_setting_save('payment', $payment);
 	
+		if ($type == 'wechat_facilitator') {
+			cache_clean(cache_system_key('proxy_wechatpay_account:'));
+		}
+	
 	iajax(0, '设置成功！', referer());
 }
 
@@ -132,6 +141,7 @@ if ($do == 'change_status') {
 }
 
 if ($do == 'display' || $do == 'switch') {
+	$proxy_wechatpay_account = account_wechatpay_proxy();
 	$pay_setting = payment_setting();
 	$accounts = array();
 	$accounts[$_W['acid']] = array_elements(array('name', 'acid', 'key', 'secret', 'level'), $_W['account']);
@@ -141,10 +151,5 @@ if ($do == 'switch') {
 	if (empty($payment_types[$_GPC['type']])) {
 		itoast('参数错误', url('profile/payment'), 'error');
 	}
-}
-
-if ($do == 'get_account_wechatpay_proxy') {
-	$proxy_wechatpay_account = account_wechatpay_proxy();
-	iajax(0, $proxy_wechatpay_account);
 }
 template('profile/payment');

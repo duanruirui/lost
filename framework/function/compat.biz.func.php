@@ -1,7 +1,7 @@
 <?php
 /**
- * $sn: pro/framework/function/compat.biz.func.php : v 1c53ee809f76 : 2015/04/23 02:12:39 : RenChao $
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -17,12 +17,7 @@ if (isset($_W['member']['uid'])) {
 	}
 }
 
-/**
- * 获取一个或多个微擎用户某个或多个字段的信息.
- * @param number|array $uid 一个或多个用户 uid
- * @param array $fields 一个、多个或所有字段
- * @return array array('uid1'=>array()) or $user =array()
- */
+
 if (!function_exists('fans_search')) {
 	function fans_search($user, $fields = array()) {
 		global $_W;
@@ -31,8 +26,7 @@ if (!function_exists('fans_search')) {
 		if(empty($uid)) {
 			$uid = pdo_fetchcolumn("SELECT uid FROM ".tablename('mc_mapping_fans')." WHERE openid = :openid AND acid = :acid", array(':openid' => $user, ':acid' => $_W['acid']));
 			if (empty($uid)) {
-				return array(); //得到UID
-			}
+				return array(); 			}
 		}
 		return mc_fetch($uid, $fields);
 	}
@@ -53,8 +47,7 @@ if(!function_exists('fans_update')) {
 		if(empty($uid)) {
 			$uid = pdo_fetchcolumn("SELECT uid FROM ".tablename('mc_mapping_fans')." WHERE openid = :openid AND acid = :acid", array(':openid' => $user, ':acid' => $_W['acid']));
 			if (empty($uid)) {
-				return false; //得到UID
-			}
+				return false; 			}
 		}
 		return mc_update($uid, $fields);
 	}
@@ -128,6 +121,5 @@ if (!function_exists('uni_user_permission_check')) {
 	}
 }
 if (!defined('CACHE_KEY_MODULE_SETTING')) {
-	//模块配置信息
-	define('CACHE_KEY_MODULE_SETTING', 'module_setting:%s:%s');
+		define('CACHE_KEY_MODULE_SETTING', 'module_setting:%s:%s');
 }

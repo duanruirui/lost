@@ -1,7 +1,7 @@
 <?php
 /**
- *
  * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -27,9 +27,7 @@ if (empty($entry) || empty($entry['do'])) {
 }
 
 $module = module_fetch($entry['module']);
-
 if (empty($module)) {
-	
 	itoast("访问非法, 没有操作权限. (module: {$entry['module']})", '', '');
 }
 
@@ -44,8 +42,7 @@ if (!$entry['direct']) {
 			itoast('', $_W['siteurl'] . '&version_id=' . $referer['version_id']);
 	}
 	
-	
-		if (empty($_W['uniacid'])) {
+		if (empty($_W['uniacid']) && $entry['entry'] != 'system_welcome' && $_GPC['module_type'] != 'system_welcome') {
 			if (!empty($_GPC['version_id'])) {
 				itoast('', url('account/display', array('type' => WXAPP_TYPE_SIGN)));
 			} else {
@@ -53,19 +50,18 @@ if (!$entry['direct']) {
 			}
 		}
 	
+	
 
 	if ($entry['entry'] == 'menu') {
 		$permission = permission_check_account_user_module($entry['module'] . '_menu_' . $entry['do'], $entry['module']);
 	} else {
 		$permission = permission_check_account_user_module($entry['module'] . '_rule', $entry['module']);
 	}
-	$module_permissions = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
-	if (!$permission && $module_permissions[0] != 'all') {
+	if (!$permission) {
 		itoast('您没有权限进行该操作', '', '');
 	}
 
-	// 兼容历史性问题：模块内获取不到模块信息$module的问题
-	define('CRUMBS_NAV', 1);
+		define('CRUMBS_NAV', 1);
 
 	$_W['page']['title'] = $entry['title'];
 	define('ACTIVE_FRAME_URL', url('site/entry/', array('eid' => $entry['eid'], 'version_id' => $_GPC['version_id'])));
@@ -86,9 +82,15 @@ $_GPC['do'] = $entry['do'];
 $_W['current_module'] = $module;
 
 
+	if ($entry['entry'] == 'system_welcome' || $_GPC['module_type'] == 'system_welcome') {
+		$_GPC['module_type'] = 'system_welcome';
+		define('SYSTEM_WELCOME_MODULE', true);
+		$site = WeUtility::createModuleSystemWelcome($entry['module']);
+	} else {
+		$site = WeUtility::createModuleSite($entry['module']);
+	}
 
 
-	$site = WeUtility::createModuleSite($entry['module']);
 
 
 define('IN_MODULE', $entry['module']);
@@ -97,13 +99,14 @@ if (!is_error($site)) {
 	if ($_W['role'] == ACCOUNT_MANAGE_NAME_OWNER) {
 		$_W['role'] = ACCOUNT_MANAGE_NAME_MANAGER;
 	}
-	$sysmodule = module_system();
+	$sysmodule = system_modules();
 	if (in_array($m, $sysmodule)) {
 		$site_urls = $site->getTabUrls();
 	}
 	
-		$method = 'doWeb' . ucfirst($entry['do']);
 	
+		$do_function = defined('SYSTEM_WELCOME_MODULE') ? 'doPage' : 'doWeb';
+		$method = $do_function . ucfirst($entry['do']);
 	
 	exit($site->$method());
 }

@@ -1,20 +1,17 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 设置入口封面
- * @param array $cover
- */
+
 function site_cover($coverparams = array()) {
-	$coverreply_table = table('core_cover_reply');
+	$coverreply_table = table('coverreply');
 	if (!empty($coverparams['multiid'])) {
 		$coverreply_table->searchWithMultiid(intval($coverparams['multiid']));
 	}
-	$cover = $coverreply_table->getByModuleAndUniacid($coverparams['module'], $coverparams['uniacid']);
+	$cover = $coverreply_table->getCoverReplayInfo($coverparams['module'], $coverparams['uniacid']);
 	if (empty($cover['rid'])) {
 		$rule = array(
 			'uniacid' => intval($coverparams['uniacid']),
@@ -32,8 +29,7 @@ function site_cover($coverparams = array()) {
 		$rid = $cover['rid'];
 	}
 	if (!empty($rid)) {
-		//更新，添加，删除关键字
-		pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $coverparams['uniacid']));
+				pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $coverparams['uniacid']));
 		
 		$keywordrow = array(
 			'rid' => $rid,
@@ -44,7 +40,7 @@ function site_cover($coverparams = array()) {
 			'type' => 1,
 			'content' => safe_gpc_string($coverparams['keyword']),
 		);
-		table('rule_keyword')->fill($keywordrow)->save();
+		table('rulekeyword')->fill($keywordrow)->save();
 	}
 	$entry = array(
 		'uniacid' => intval($coverparams['uniacid']),
@@ -59,9 +55,9 @@ function site_cover($coverparams = array()) {
 	);
 
 	if (empty($cover['id'])) {
-		$coverreply_table->fill($entry)->save();
+		table('coverreply')->fill($entry)->save();
 	} else {
-		$coverreply_table->fill($entry)->whereId($cover['id'])->save();
+		table('coverreply')->fill($entry)->whereId($cover['id'])->save();
 	}
 	return true;
 }
@@ -69,12 +65,14 @@ function site_cover($coverparams = array()) {
 function site_cover_delete($page_id) {
 	global $_W;
 	$page_id = intval($page_id);
-	$coverreply_table = table('core_cover_reply');
+	$coverreply_table = table('coverreply');
 	$coverreply_table->searchWithMultiid($page_id);
-	$cover = $coverreply_table->getByModuleAndUniacid('page', $_W['uniacid']);
+	$cover = $coverreply_table->getCoverReplayInfo('page', $_W['uniacid']);
 	if(!empty($cover)) {
 		$rid = intval($cover['rid']);
-		uni_delete_rule($rid, 'cover_reply');
+		pdo_delete('rule', array('id' => $rid));
+		pdo_delete('rule_keyword', array('rid' => $rid));
+		pdo_delete('cover_reply', array('id' => $cover['id']));
 	}
 	return true;
 }

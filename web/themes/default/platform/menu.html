@@ -1,21 +1,19 @@
 {template 'common/header'}
 <div id="wechat_menu">
+	<div class="we7-page-title hide">自定义菜单</div>
 	<ul class="we7-page-tab">
-		{loop $active_sub_permission $active_menu}
-		{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-		<li {if $active_menu['active'] == 'post' && $type == 1 || $do == $active_menu['active'] && $type == 3}class="active"{/if}>
-			<a href="{$active_menu['url']}">{$active_menu['title']}</a>
-		</li>
+		<li {if $type == MENU_CURRENTSELF}class="active" {/if}><a href="{url 'platform/menu/post'}">默认菜单</a></li>
+		{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
+		<li {if $type == MENU_CONDITIONAL}class="active"{/if}><a href="{url 'platform/menu' array('type' => MENU_CONDITIONAL)}">个性化菜单</a></li>
 		{/if}
-		{/loop}
 	</ul>
 	{if $do == 'display'}
 	<div class="clearfix" ng-controller="menuDisplay" id="menuDisplay">
 		<div class="we7-margin-bottom clearfix">
 			{if $type != MENU_CONDITIONAL}
-			<ul class="btn-group-sub" style="margin-bottom: 0;">
-				<a href="{url 'platform/menu/post'}" class="btn">当前菜单</a>
-				<a href="{url 'platform/menu/display'}" class="btn active">历史菜单</a>
+			<ul class="btn-group we7-btn-group" style="margin-bottom: 0;">
+				<a href="{url 'platform/menu/post'}" class="btn">当前默认菜单</a>
+				<a href="{url 'platform/menu/display'}" class="btn active">历史菜单列表</a>
 			</ul>
 			{/if}
 			<div class="pull-right">
@@ -101,7 +99,7 @@
 						{/if}
 						{/if}
 						{if $da['type'] != MENU_CURRENTSELF || ($da['type'] == MENU_CURRENTSELF && $da['status'] == STATUS_OFF)}
-						<a href="javascript:void(0);" class="del" onclick="deleteMenu('{php echo url("platform/menu/delete", array("id" => $da["id"]));}')">删除</a>
+						<a href="{php echo url('platform/menu/delete', array('id' => $da['id']));}" class="del" onclick="if(!confirm('{if $da['type'] == MENU_CURRENTSELF}删除默认菜单会清空所有菜单记录，确定吗？{else}确定删除菜单?{/if}')) return false;">删除</a>
 						{/if}
 					</div>
 				</td>
@@ -116,13 +114,13 @@
 
 	{if $do == 'post'}
 	{if $type != MENU_CONDITIONAL && !empty($default_menu)}
-	<ul class="btn-group-sub we7-margin-bottom">
-		<a href="{url 'platform/menu/post'}" class="btn active">当前菜单</a>
-		<a href="{url 'platform/menu/display'}" class="btn">历史菜单</a>
+	<ul class="btn-group we7-btn-group we7-margin-bottom">
+		<a href="{url 'platform/menu/post'}" class="btn active">当前默认菜单</a>
+		<a href="{url 'platform/menu/display'}" class="btn">历史菜单列表</a>
 	</ul>
 	<a href="{php echo url('platform/menu/post', array('type' => MENU_CURRENTSELF));}" class="btn btn-primary pull-right"><span>+</span>添加新菜单</a>
 	{/if}
-	<div class="conditionMenu menu-post-page" ng-controller="conditionMenuDesigner" id="conditionMenuDesigner" ng-cloak>
+	<div class="conditionMenu" ng-controller="conditionMenuDesigner" id="conditionMenuDesigner" ng-cloak>
 		<div class="new">
 			{if empty($default_menu)}
 			<ol class="breadcrumb we7-breadcrumb">
@@ -150,43 +148,42 @@
 				{if $type != 1}
 				<div class="form-group">
 					<label for="" class="control-label col-sm-2">菜单显示对象</label>
-					<div class="form-controls col-sm-8" style="z-index: 2">
-						<select class="pull-left we7-margin-right" ng-model="context.group.matchrule.sex" ng-disabled="context.group.disabled" {if $params['matchrule']['sex'] == 0}ng-init="context.group.matchrule.sex = '0'"{/if}>
-							<option value="0" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.sex == 0">性别不限</option>
-							<option value="1" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.sex == 1">男</option>
-							<option value="2" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.sex == 2">女</option>
+					<div class="form-controls col-sm-8">
+						<select class="we7-select" ng-model="context.group.matchrule.sex" ng-disabled="context.group.disabled" {if $params['matchrule']['sex'] == 0}ng-init="context.group.matchrule.sex = '0'"{/if}>
+						<option value="0" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.sex == 0">性别不限</option>
+						<option value="1" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.sex == 1">男</option>
+						<option value="2" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.sex == 2">女</option>
 						</select>
-						<select class="pull-left we7-margin-right" ng-model="context.group.matchrule.group_id" ng-disabled="context.group.disabled" {if $params['matchrule']['group_id'] == -1 || empty($params)}ng-init="context.group.matchrule.group_id = '-1'"{/if}>
+						<select class="we7-select" ng-model="context.group.matchrule.group_id" ng-disabled="context.group.disabled" {if $params['matchrule']['group_id'] == -1 || empty($params)}ng-init="context.group.matchrule.group_id = '-1'"{/if}>
 						<option value="-1" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.group_id == -1">粉丝分组不限</option>
 						{loop $groups $group}
 						<option value="{$group['id']}" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.group_id == {$group['id']}">{$group['name']}</option>
 						{/loop}
 						</select>
-						<select class="pull-left we7-margin-right" ng-model="context.group.matchrule.client_platform_type" ng-disabled="context.group.disabled" {if $params['matchrule']['client_platform_type'] == 0}ng-init="context.group.matchrule.client_platform_type = '0'"{/if}>
-							<option value="0" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.client_platform_type == 0" >手机系统不限</option>
-							<option value="1" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.client_platform_type == 1">IOS(苹果)</option>
-							<option value="2" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.client_platform_type == 2">Android(安卓)</option>
-							<option value="3" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.client_platform_type == 3">Others(其他)</option>
+						<select class="we7-select" ng-model="context.group.matchrule.client_platform_type" ng-disabled="context.group.disabled" {if $params['matchrule']['client_platform_type'] == 0}ng-init="context.group.matchrule.client_platform_type = '0'"{/if}>
+						<option value="0" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.client_platform_type == 0" >手机系统不限</option>
+						<option value="1" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.client_platform_type == 1">IOS(苹果)</option>
+						<option value="2" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.client_platform_type == 2">Android(安卓)</option>
+						<option value="3" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.client_platform_type == 3">Others(其他)</option>
 						</select>
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="" class="control-label col-sm-2"></label>
-					<div class="form-controls col-sm-8" style="z-index: 1">
-						<select class="pull-left we7-margin-right" ng-model="context.group.matchrule.language" ng-disabled="context.group.disabled">
+					<div class="form-controls col-sm-8">
+						<select class="we7-select" ng-model="context.group.matchrule.language" ng-disabled="context.group.disabled">
 							<option value="" ng-selected="context.group.matchrule.language == ''">语言不限</option>
 							{loop $languages $language}
 							<option value="{$language['en']}" ng-disabled="context.group.disabled" ng-selected="context.group.matchrule.language == '{$language['en']}'">{$language['ch']}</option>
 							{/loop}
 						</select>
-						<span class="tpl-district-container ">
-							<select data-value="{$menu['data']['matchrule']['province']}" ng-model="context.group.matchrule.province" ng-disabled="context.group.disabled" class="tpl-province we7-select pull-left we7-margin-right">
-							</select>
-							<select data-value="{$menu['data']['matchrule']['city']}" ng-model="context.group.matchrule.city" ng-disabled="context.group.disabled" class="tpl-city we7-select pull-left we7-margin-right">
-							</select>
-						</span>
-						<div class="clearfix"></div>
-						<span class="help-block "> 根据条件对显示对象进行筛选</span>
+						<span class="tpl-district-container">
+						<select data-value="{$menu['data']['matchrule']['province']}" ng-model="context.group.matchrule.province" ng-disabled="context.group.disabled" class="tpl-province we7-select">
+						</select>
+						<select data-value="{$menu['data']['matchrule']['city']}" ng-model="context.group.matchrule.city" ng-disabled="context.group.disabled" class="tpl-city we7-select">
+						</select>
+					</span>
+						<span class="help-block"> 根据条件对显示对象进行筛选</span>
 					</div>
 				</div>
 				{/if}
@@ -233,7 +230,7 @@
 								<div class="menu-form-hd">
 									<span class="pull-left font-defalut">当前菜单</span>
 									<div class="text-right">
-										<a href="javascript:void(0);" class="color-default" ng-click="context.removeBut(context.activeItem, context.activeType)">删除该菜单</a>
+										<a href="javascript:void(0);" class="color-default" ng-click="context.removeBut(context.activeItem, context.activeType)">删除菜单</a>
 									</div>
 								</div>
 								<div style="display: none;" class="we7-padding-top color-gray">已添加子菜单，仅可设置菜单名称。</div>
@@ -243,7 +240,7 @@
 										<div class="form-controls col-sm-8">
 											<div class="input-group">
 												<input type="text" name="" class="form-control" placeholder=""  id="title" ng-model="context.activeItem.name" ng-disabled="context.group.disabled">
-												<span ng-if="!context.group.disabled" class="input-group-btn bg-default color-default" ng-click="context.selectEmoji();"><a href="javascript:;" class="btn btn-default">添加表情</a></span>
+												<span ng-if="!context.group.disabled" class="input-group-addon bg-default color-default" ng-click="context.selectEmoji();"><a href="">添加表情</a></span>
 											</div>
 											<span class="help-block">字数不超过4个汉字或8个字母</span>
 										</div>
@@ -278,69 +275,51 @@
 										</div>
 									</div>
 									<div class="menu-content" ng-show="(context.activeItem.type == 'view' || context.activeItem.type == 'miniprogram')  && context.activeItem.forceHide == 0">
-										<div class="panel we7-panel panel-new">
-											<div class="panel-heading">
-												<span ng-show="context.activeItem.type == 'view'">跳转网页</span>
-												<span ng-show="context.activeItem.type == 'miniprogram'">关联小程序</span>
-												<span class="color-gray" ng-show="context.activeItem.type == 'view'">订阅者点击该子菜单会跳转到以下链接</span>
-												<span class="color-gray" ng-show="context.activeItem.type == 'miniprogram'">点击该菜单跳转到关联的小程序</span>
+										<div class="form-group">
+											<p class="color-gray" ng-show="context.activeItem.type == 'view'">订阅者点击该子菜单会跳转到以下链接</p>
+											<p class="color-gray" ng-show="context.activeItem.type == 'miniprogram'">点击该菜单跳转到关联的小程序</p>
+											<label for="" class="control-label col-sm-2" ng-show="context.activeItem.type == 'view'">页面地址</label>
+											<div class="form-controls col-sm-8" ng-show="context.activeItem.type == 'view'">
+												<input type="text" class="form-control" id="ipt-url" type="text" ng-model="context.activeItem.url" ng-disabled="context.group.disabled">
+												<span ng-if="!context.group.disabled" class="form-control-addon color-default" id="search" ng-click="context.select_link()">选择地址</span>
+												<span class="help-block">指定点击此菜单时要跳转的链接（注：链接需加http://）</span>
 											</div>
-											<div class="panel-body">
-												<div class="form-group" ng-show="context.activeItem.type == 'view'">
-													<label for="" class="control-label col-sm-2" >页面地址</label>
-													<div class="form-controls col-sm-8" >
-														<div class=" input-group">	
-														<input type="text" class="form-control" id="ipt-url" type="text" ng-model="context.activeItem.url" ng-disabled="context.group.disabled">
-														<span ng-if="!context.group.disabled" class="input-group-btn color-default" id="search" ng-click="context.select_link()"><a class="btn btn-default">选择地址</a> </span>
-														</div>
-														
-														<span class="help-block">指定点击此菜单时要跳转的链接（注：链接需加http://）</span>
-													</div>
-												</div>
-													<!-- 小程序 -->
-												<div class="form-group col-sm-12" ng-show="context.activeItem.type == 'miniprogram'">
-													<label for="ipt-url-appid" class="control-label col-sm-2">APPID</label>
-													<div class="form-controls col-sm-7">
-														<input type="text" class="form-control" id="ipt-url-appid" ng-model="context.activeItem.appid" ng-disabled="context.group.disabled" placeholder="请确保小程序与公众号已关联，填写小程序的APPID">
-														<span class="help-block">
-															<a href="http://weixiao.qq.com/notice/view?mid=0&cid=2&id=274" target="_blank">如何获取</a>
-														</span>
-													</div>
-												</div>
-												<div class="form-group col-sm-12" ng-show="context.activeItem.type == 'miniprogram'">
-													<label for="ipt-url-pagepath" class="control-label col-sm-2">页面</label>
-													<div class="form-controls col-sm-7">
-														<input type="text" class="form-control" id="ipt-url-pagepath" ng-model="context.activeItem.pagepath" ng-disabled="context.group.disabled" placeholder="请填写跳转页面的小程序访问路径">
-														<span class="help-block"><a href="http://weixiao.qq.com/notice/view?mid=0&cid=2&id=275" target="_blank">填写指引</a></span>
-													</div>
-												</div>
-												<div class="form-group col-sm-12" ng-show="context.activeItem.type == 'miniprogram'">
-													<label for="ipt-url-url" class="control-label col-sm-2">备用网页</label>
-													<div class="form-controls col-sm-10">
-														<input type="text" class="form-control" id="ipt-url-url" ng-model="context.activeItem.url" ng-disabled="context.group.disabled" placeholder="写入要跳转的链接">
-														<span class="help-block">旧版微信客户端不支持小程序，用户点击菜单时会打开该网页</span>
-													</div>
+											<!-- 小程序 -->
+											<div class="form-controls col-sm-12" ng-show="context.activeItem.type == 'miniprogram'">
+												<label for="ipt-url-appid" class="control-label col-sm-2">APPID</label>
+												<div class="form-controls col-sm-7">
+													<input type="text" class="form-control" id="ipt-url-appid" ng-model="context.activeItem.appid" ng-disabled="context.group.disabled" placeholder="请确保小程序与公众号已关联，填写小程序的APPID">
+													<span class="help-block">
+														<a href="http://weixiao.qq.com/notice/view?mid=0&cid=2&id=274" target="_blank">如何获取</a>
+													</span>
 												</div>
 											</div>
-										</div>	
-										
+											<div class="form-controls col-sm-12" ng-show="context.activeItem.type == 'miniprogram'">
+												<label for="ipt-url-pagepath" class="control-label col-sm-2">页面</label>
+												<div class="form-controls col-sm-7">
+													<input type="text" class="form-control" id="ipt-url-pagepath" ng-model="context.activeItem.pagepath" ng-disabled="context.group.disabled" placeholder="请填写跳转页面的小程序访问路径">
+													<span class="help-block"><a href="http://weixiao.qq.com/notice/view?mid=0&cid=2&id=275" target="_blank">填写指引</a></span>
+												</div>
+											</div>
+											<div class="form-controls col-sm-12" ng-show="context.activeItem.type == 'miniprogram'">
+												<label for="ipt-url-url" class="control-label col-sm-2">备用网页</label>
+												<div class="form-controls col-sm-10">
+													<input type="text" class="form-control" id="ipt-url-url" ng-model="context.activeItem.url" ng-disabled="context.group.disabled" placeholder="写入要跳转的链接">
+													<span class="help-block">旧版微信客户端不支持小程序，用户点击菜单时会打开该网页</span>
+												</div>
+											</div>
+										</div>
 									</div>
-									<div class="panel we7-panel panel-new" ng-show="context.activeItem.type != 'view' && context.activeItem.type != 'click' && context.activeItem.type != 'miniprogram' && context.activeItem.forceHide == 0" style="width:100%;">
+									<div class="panel we7-panel" ng-show="context.activeItem.type != 'view' && context.activeItem.type != 'click' && context.activeItem.type != 'miniprogram' && context.activeItem.forceHide == 0" style="width:100%;">
 										<div class="panel-heading">
-											<span ng-show="context.activeItem.type == 'location_select'">地理位置</span>
-											<span ng-show="context.activeItem.type == 'pic_sysphoto'">拍照发图</span>
-											<span ng-show="context.activeItem.type == 'pic_photo_or_album'">拍照发图</span>
-											<span ng-show="context.activeItem.type == 'pic_weixin'">相册发图</span>
-											<span ng-show="context.activeItem.type == 'scancode_push'">扫码</span>
-											<span ng-show="context.activeItem.type == 'scancode_waitmsg'">扫码（等待信息）</span>
-											<span class="color-gray" ng-show="context.activeItem.type == 'location_select'">菜单内容为地理位置，那么点击这个菜单时，系统发送当前地理位置</span>
-											<span class="color-gray"  ng-show="context.activeItem.type == 'pic_sysphoto' || context.activeItem.type == 'pic_photo_or_album'">菜单内容为系统拍照发图/拍照或者相册发图，那么点击这个菜单是，系统拍照</span>
-											<span class="color-gray" ng-show="context.activeItem.type == 'pic_weixin'">菜单内容为微信相册发图，那么点击这个菜单是，选择图片发送</span>
-											<span class="color-gray" ng-show="context.activeItem.type == 'scancode_push' || context.activeItem.type == 'scancode_waitmsg'">菜单内容为扫码，那么点击这个菜单是，手机扫描二维码</span>
+											回复内容
 										</div>
 										<!--<label for="" class="control-label">选择</label>-->
 										<div class="panel-body we7-padding">
-											
+											<p class="color-gray" ng-show="context.activeItem.type == 'location_select'">菜单内容为地理位置，那么点击这个菜单是，系统发送当前地理位置</p>
+											<p class="color-gray"  ng-show="context.activeItem.type == 'pic_sysphoto' || context.activeItem.type == 'pic_photo_or_album'">菜单内容为系统拍照发图/拍照或者相册发图，那么点击这个菜单是，系统拍照</p>
+											<p class="color-gray" ng-show="context.activeItem.type == 'pic_weixin'">菜单内容为微信相册发图，那么点击这个菜单是，选择图片发送</p>
+											<p class="color-gray" ng-show="context.activeItem.type == 'scancode_push' || context.activeItem.type == 'scancode_waitmsg'">菜单内容为扫码，那么点击这个菜单是，手机扫描二维码</p>
 											<ul class="keywords-list">
 												<li ng-if="context.activeItem.material[0].etype == 'click'">
 													<div>
@@ -370,21 +349,19 @@
 													</div>
 												</li>
 											</ul>
-
-											<div class=" we7-padding-vertical-max" ng-show="context.activeItem.type == 'scancode_push' || context.activeItem.type == 'scancode_waitmsg' || context.activeItem.type == 'pic_photo_or_album' || context.activeItem.type == 'pic_weixin' || context.activeItem.type == 'location_select' || context.activeItem.type == 'pic_sysphoto'">
-												<ul class="tab-reply-list">
-													<li class="tab-reply-item tab-cardmsg"  ng-click="context.select_mediaid('keyword', '1');">
-														<div>
-															<img src="./resource/images/reply/keyword-icon.png" />
-															<p class="msg-tab-title">触发关键字</p>
-														</div>
+											<div class="we7-select-msg we7-padding-vertical-max">
+												<ul class="tab-navs">
+													<li class="tab-nav tab-video" ng-click="context.select_mediaid('module');">
+														<a href="javascript:void(0);">&nbsp;<i class="icon-msg-sender "></i><span class="msg-tab-title">模块</span></a>
+													</li>
+													<li class="tab-nav tab-cardmsg" ng-click="context.select_mediaid('keyword', '1');">
+														<a href="javascript:void(0);">&nbsp;<i class="icon-msg-sender "></i><span class="msg-tab-title">触发关键字</span></a>
 													</li>
 												</ul>
 											</div>
-
 										</div>
 									</div>
-									<div class="panel we7-panel panel-new" style="width: 100%;" ng-show="context.activeItem.type == 'click' && context.activeItem.forceHide == 0">
+									<div class="panel we7-panel" style="width: 100%;" ng-show="context.activeItem.type == 'click' && context.activeItem.forceHide == 0">
 										<div class="panel-heading">
 											回复内容
 										</div>
@@ -463,38 +440,23 @@
 												</li>
 
 											</ul>
-											<div class=" we7-padding-vertical-max">
-												<ul class="tab-reply-list">
-													<li class="tab-reply-item tab-appmsg" ng-click="context.select_mediaid('news', 'wx');">
-														<div>
-															<img src="./resource/images/reply/appmsg-icon.png" />
-															<p class="msg-tab-title">图文</p>
-														</div>
+											<div class="we7-select-msg we7-padding-vertical-max">
+												<ul class="tab-navs">
+													<li class="tab-nav tab-appmsg" ng-click="context.select_mediaid('news', 'wx');">
+														<a href="javascript:void(0);">&nbsp;<i class="wi wi-appmsg"></i><span class="msg-tab-title">图文</span></a>
 													</li>
 													{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
-													<li class="tab-reply-item tab-img" ng-click="context.select_mediaid('image');">
-														<div>
-															<img src="./resource/images/reply/image-icon.png" />
-															<p class="msg-tab-title">图片</p>
-														</div>
+													<li class="tab-nav tab-img" ng-click="context.select_mediaid('image');">
+														<a href="javascript:void(0);">&nbsp;<i class="wi wi-img"></i><span class="msg-tab-title">图片</span></a>
 													</li>
-													<li class="tab-reply-item tab-audio" ng-click="context.select_mediaid('voice');">
-														<div>
-															<img src="./resource/images/reply/radio-icon.png" />
-															<p class="msg-tab-title">语音</p>
-														</div>
+													<li class="tab-nav tab-audio" ng-click="context.select_mediaid('voice');">
+														<a href="javascript:void(0);">&nbsp;<i class="wi wi-radio"></i><span class="msg-tab-title">语音</span></a>
 													</li>
-													<li class="tab-reply-item tab-video" ng-click="context.select_mediaid('video');">
-														<div>
-															<img src="./resource/images/reply/vedio-icon.png" />
-															<p class="msg-tab-title">视频</p>
-														</div>
+													<li class="tab-nav tab-video" ng-click="context.select_mediaid('video');">
+														<a href="javascript:void(0);">&nbsp;<i class="wi wi-video "></i><span class="msg-tab-title">视频</span></a>
 													</li>
-													<li class="tab-reply-item tab-cardmsg" ng-click="context.select_mediaid('keyword', '1');">
-														<div>
-															<img src="./resource/images/reply/keyword-icon.png" />
-															<p class="msg-tab-title">触发关键字</p>
-														</div>
+													<li class="tab-nav tab-cardmsg" ng-click="context.select_mediaid('keyword', '1');">
+														<a href="javascript:void(0);">&nbsp;<i class="wi wi-file "></i><span class="msg-tab-title">触发关键字</span></a>
 													</li>
 													{/if}
 
@@ -504,7 +466,7 @@
 									</div>
 								</div>
 							</div>
-							<span class="editor-arrow-wrp hidden">
+							<span class="editor-arrow-wrp">
 								<i class="editor-arrow editor-arrow-out"></i>
 								<i class="editor-arrow editor-arrow-in"></i>
 							</span>
@@ -512,11 +474,11 @@
 					</div>
 				</div>
 				<div class="menu-submit">
-					<input type="submit" name="" value="完成" class="btn btn-primary" ng-if="{php echo ($type == 1 || empty($id) || $copy == 1)}" ng-click="context.submit('publish');"/>
 					{if empty($default_menu) && $type == 1}
-					<input type="submit" name="" value="仅保存" class="btn btn-default" ng-if="{php echo ($type == 1 || empty($id) || $copy == 1)}" ng-click="context.submit('save');"/>
+					<input type="submit" name="" value="仅&nbsp;&nbsp;&nbsp;保&nbsp;&nbsp;&nbsp;存" class="btn btn-primary" style="padding: 6px 50px;" ng-if="{php echo ($type == 1 || empty($id) || $copy == 1)}" ng-click="context.submit('save');"/>
 					{/if}
-					<input type="button" name="" value="预览" class="btn btn-default" data-toggle="modal" data-target="#mobileDiv"/>
+					<input type="submit" name="" value="发&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;布" class="btn btn-primary" style="padding: 6px 50px;" ng-if="{php echo ($type == 1 || empty($id) || $copy == 1)}" ng-click="context.submit('publish');"/>
+					<input type="button" name="" value="预&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;览" class="btn btn-primary" style="padding: 6px 50px;" data-toggle="modal" data-target="#mobileDiv"/>
 				</div>
 				<div class="modal fade" id="mobileDiv" role="dialog" aria-hidden="true">
 					<div class="mobile-preview" >
@@ -554,13 +516,6 @@
 	{/if}
 </div>
 <script type="text/javascript">
-	function deleteMenu(url) {
-		util.confirm(function () {
-			window.location.href = url;
-		}, function () {
-			return false;
-		}, '删除默认菜单会清空所有菜单记录，确定吗？?');
-	}
 	$(function(){
 		var push_url = "{php echo url('platform/menu/push')}";
 		type = "{$type}";

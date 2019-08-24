@@ -1,10 +1,10 @@
 {template 'common/header'}
+<div class="we7-page-title">微官网</div>
 <ul class="we7-page-tab">
-	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-	<li {if $action == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
-	{/if}
-	{/loop}
+	<li class="active"><a href="{php echo url('site/multi')}" >微官网列表</a></li>
+	<li><a href="{php echo url('site/style')}">微官网模板</a></li>
+	<li><a href="{php echo url('site/article')}">文章管理</a></li>
+	<li><a href="{php echo url('site/category')}">文章分类管理</a></li>
 </ul>
 <div id="js-wesite-display" ng-controller="WesiteDisplay" ng-cloak>
 	<div class="we7-page-search we7-padding-bottom clearfix">
@@ -20,7 +20,7 @@
 			<a href="{php echo url('site/multi/post')}" class="btn btn-primary we7-padding-horizontal">+新建微官网</a>
 		</div>
 	</div>
-	<div class="alert alert-info we7-page-alert">
+	<div class="alert alert-info">
 		<p><i class="fa fa-exclamation-circle"></i> 默认微站默认开启，不可关闭</p>
 	</div>
 	<table class="table we7-table table-hover site-list">
@@ -79,7 +79,7 @@
 					<span class="link-group text-left">
 						<a ng-href="{{links.post}}multiid={{multi.id}}" class="we7-margin-right">编辑</a>
 						<a ng-href="{{links.copy}}multiid={{multi.id}}" class="we7-margin-right">复制站点</a>
-						<a href="javascript:void(0);" class="del" ng-if="default_site != multi.id" ng-click="deleteMulti(links.del, multi.id)">删除</a>
+						<a ng-href="{{links.del}}id={{multi.id}}" class="del" ng-if="default_site != multi.id" onclick="if(!confirm('删除后将不可恢复,确定删除吗?')) return false;">删除</a>
 					</span>
 					<a href="javascript:;" class="label label-success" ng-if="default_site == multi.id">默认微站</a>
 				</div>
@@ -111,6 +111,7 @@ require(['underscore'], function(){
 			appHome: "{php echo murl('home', array(), true, true)}",
 		},
 	});
+
 	angular.bootstrap($('#js-wesite-display'), ['wesiteApp']);
 });
 </script>

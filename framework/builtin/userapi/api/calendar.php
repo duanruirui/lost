@@ -1,4 +1,5 @@
 <?php 
+$url = 'http://www.zdic.net/nongli/' . date('Y-n-j') . '.htm';
 $week = array();
 $week[0] = '日';
 $week[1] = '一';
@@ -9,27 +10,36 @@ $week[5] = '五';
 $week[6] = '六';
 
 $reply = '今天是 ' . date('Y年n月j日') . ' 星期' . $week[date('w')];
-
-$url = 'http://hl.zdic.net/j/gl/'. date('Y/n') .'.php';
-$response = ihttp_get($url);
-if ($response['code'] == 200 && !empty($response['content'])) {
-	preg_match('[{.*}]', $response['content'], $content);
-	$data = json_decode("[{$content[0]}]", true);
-	if (is_array($data)) {
-		$today = date('Y-m-d');
-		foreach ($data as $item) {
-			if ($item['date'] == $today) {
-				$reply .= "\n==================\n";
-				$reply .= $item['nongliDay'];
-
-				$reply .= "\n==================\n";
-				$reply .= "宜: \n";
-				$reply .= $item['yi'];
-
-				$reply .= "\n==================\n";
-				$reply .= "忌: \n";
-				$reply .= $item['ji'];
-				break;
+$resp = ihttp_get($url);
+if ($resp['code'] == 200 && $resp['content']) {
+	$content = $resp['content'];
+	$reply .= "==================\n";
+	if(preg_match('/<td colspan="2" class="l3">(?P<block>.+?)<\/td>/s', $content, $block)) {
+		$date = explode('<br>', $block['block']);
+		array_pop($date);
+		if(count($date) < 4) {
+			$shift = array_shift($date);
+			$year = substr($shift, -9);
+			array_unshift($date, $year);
+			array_unshift($date, str_replace($year, '', $shift));
+		}
+		$reply .= '农历: ' . implode(' ', $date);
+	}
+	if(preg_match('/<td colspan="2" class="ly2">(?P<block>.+?)<\/td>/s', $content, $block)) {
+		if(preg_match_all('/title=\'(?P<line>.+?)\'/', $block['block'], $lines)) {
+			$reply .= "==================\n";
+			$reply .= "宜: \n";
+			foreach($lines['line'] as $l) {
+				$reply .= "{$l}\n";
+			}
+		}
+	}
+	if(preg_match('/<td colspan="4" class="lj2">(?P<block>.+?)<\/td>/s', $content, $block)) {
+		if(preg_match_all('/title=\'(?P<line>.+?)\'/', $block['block'], $lines)) {
+			$reply .= "==================\n";
+			$reply .= "忌: \n";
+			foreach($lines['line'] as $l) {
+				$reply .= "{$l}\n";
 			}
 		}
 	}

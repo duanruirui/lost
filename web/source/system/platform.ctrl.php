@@ -1,7 +1,7 @@
 <?php
 /**
- * 开放平台设置
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -10,6 +10,7 @@ load()->classs('weixin.platform');
 setting_load('platform');
 
 $founders = explode(',', $_W['config']['setting']['founder']);
+$_W['page']['title'] = '开放平台设置';
 
 if($_W['isajax'] && $_W['ispost']) {
 	$data = array();
@@ -44,6 +45,9 @@ if(empty($_W['setting']['platform'])) {
 	setting_save($_W['setting']['platform'],'platform');
 }
 $siteroot_parse_array = parse_url($_W['siteroot']);
-$account_platform = new WeixinPlatform();
+if (!function_exists('mcrypt_module_open')) {
+	itoast('抱歉，您的系统不支持加解密 mcrypt 模块，无法进行平台接入', '', '');
+}
+$account_platform = new WeiXinPlatform();
 $authurl = $account_platform->getAuthLoginUrl();
 template('system/platform');

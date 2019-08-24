@@ -1,16 +1,12 @@
 <?php
-/**
- * 接口文件
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/api.php : v 24db125c5a0f : 2015/09/14 10:42:33 : RenChao $
- */
+
 define('IN_API', true);
 require_once './framework/bootstrap.inc.php';
 load()->model('reply');
 load()->model('attachment');
-load()->model('visit');
-load()->model('app');
+
+	load()->model('visit');
+
 load()->app('common');
 load()->classs('wesession');
 $hash = $_GPC['hash'];
@@ -35,10 +31,7 @@ if(empty($id)) {
 }
 if (!empty($id)) {
 	$uniacid = pdo_getcolumn('account', array('acid' => $id), 'uniacid');
-	$_W['account'] = $_W['uniaccount'] = uni_fetch($uniacid);
-	if (!empty($_W['account']['uniacid']) && app_pass_visit_limit($_W['account']['uniacid'])) {
-		exit('success');
-	}
+	$_W['account'] = uni_fetch($uniacid);
 }
 if(empty($_W['account'])) {
 	exit('initial error hash or id');
@@ -49,60 +42,45 @@ if(empty($_W['account']['token'])) {
 $_W['debug'] = intval($_GPC['debug']);
 $_W['acid'] = $_W['account']['acid'];
 $_W['uniacid'] = $_W['account']['uniacid'];
+$_W['uniaccount'] = uni_fetch($_W['uniacid']);
 $_W['account']['groupid'] = $_W['uniaccount']['groupid'];
 $_W['account']['qrcode'] = $_W['attachurl'].'qrcode_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['account']['avatar'] = $_W['attachurl'].'headimg_'.$_W['acid'].'.jpg?time='.$_W['timestamp'];
 $_W['attachurl'] = attachment_set_attach_url();
 
-register_shutdown_function('visit_update_today', 'app', 'we7_api');
+	visit_update_today('web', 'we7_api');
+
 
 $engine = new WeEngine();
 if (!empty($_W['setting']['copyright']['status'])) {
 	$engine->died('抱歉，站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason']);
 }
-if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime'] && !in_array($_W['uniaccount']['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE))) {
+if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']) {
 	$engine->died('抱歉，您的公众号已过期，请及时联系管理员');
 }
 
-//flag==1对消息加密，并生成签名
 if($_W['isajax'] && $_W['ispost'] && $_GPC['flag'] == 1) {
 	$engine->encrypt();
 }
-//flag==2对消息解密，并验证签名，返回解密后xml
 if($_W['isajax'] && $_W['ispost'] && $_GPC['flag'] == 2) {
 	$engine->decrypt();
 }
+load()->func('compat.biz');
 $_W['isajax'] = false;
 $engine->start();
 
-/**
- * 公众号消息解析引擎
- */
+
 class WeEngine {
-	/**
-	 * 公众号操作对象
-	 * @var WeAccount
-	 */
+	
 	private $account = null;
-	/**
-	 * 可用模块名称标识的集合
-	 * @var array
-	 */
+	
 	private $modules = array();
-	/**
-	 * 关键字 - ??
-	 * @var array
-	 */
+	
 	public $keyword = array();
-	/**
-	 * 粉丝消息
-	 * @var array
-	 */
+	
 	public $message = array();
 
-	/**
-	 * WeEngine 构造方法
-	 */
+	
 	public function __construct() {
 		global $_W;
 		$this->account = WeAccount::create($_W['account']);
@@ -116,9 +94,7 @@ class WeEngine {
 		}
 	}
 
-	/**
-	 *  对消息进行加密，并生成签名，返回签名
-	 */
+	
 	public function encrypt() {
 		global $_W;
 		if(empty($this->account)) {
@@ -146,9 +122,7 @@ class WeEngine {
 		exit(json_encode($array));
 	}
 
-	/**
-	 * 对消息进行解密，并验证签名，返回解密后的信息
-	 */
+	
 	public function decrypt() {
 		global $_W;
 		if(empty($this->account)) {
@@ -163,9 +137,7 @@ class WeEngine {
 		exit($resp);
 	}
 
-	/**
-	 * 启动消息分析引擎
-	 */
+	
 	public function start() {
 		global $_W;
 		if(empty($this->account)) {
@@ -183,8 +155,7 @@ class WeEngine {
 		}
 		if(strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
 			$postStr = file_get_contents('php://input');
-			//如果是加密方式，则先解密
-			if(!empty($_GET['encrypt_type']) && $_GET['encrypt_type'] == 'aes') {
+						if(!empty($_GET['encrypt_type']) && $_GET['encrypt_type'] == 'aes') {
 				$postStr = $this->account->decryptMsg($postStr);
 			}
 			WeUtility::logging('trace', $postStr);
@@ -253,8 +224,7 @@ class WeEngine {
 			WeUtility::logging('params', var_export($hitParam, true));
 			WeUtility::logging('response', $response);
 			$resp = $this->account->response($response);
-			//如果是加密方式，则先加密
-			if(!empty($_GET['encrypt_type']) && $_GET['encrypt_type'] == 'aes') {
+						if(!empty($_GET['encrypt_type']) && $_GET['encrypt_type'] == 'aes') {
 				$resp = $this->account->encryptMsg($resp);
 				$resp = $this->account->xmlDetract($resp);
 			}
@@ -323,10 +293,7 @@ class WeEngine {
 		return false;
 	}
 
-	/**
-	 * 粉丝关注或取消关注
-	 * @param $message array 统一消息结构
-	 */
+	
 	private function booking($message) {
 		global $_W;
 		if ($message['event'] == 'unsubscribe' || $message['event'] == 'subscribe') {
@@ -442,18 +409,12 @@ class WeEngine {
 			@$obj->receive();
 		}
 		load()->func('communication');
-		if (empty($subscribe[$this->message['type']]) && !empty($this->message['event'])) {
-			$subscribe[$this->message['type']] = $subscribe[strtolower($this->message['event'])];
+		if (empty($subscribe[$this->message['type']])) {
+			$subscribe[$this->message['type']] = $subscribe[$this->message['event']];
 		}
 		if (!empty($subscribe[$this->message['type']])) {
 			foreach ($subscribe[$this->message['type']] as $modulename) {
-				if (!in_array($modulename, array_keys($modules))) {
-					continue;
-				}
-				//fsockipen可用时，设置timeout为0可以无需等待高效请求
-				//部分nginx+apache的服务器由于Nginx设置不支持为0的写法，故兼容为10秒
-				//发现部分用户请求127.0.0.1无法请求，报错误或其他，故再增加完整URL兼容写法
-				$params = array(
+																$params = array(
 					'i' => $GLOBALS['uniacid'],
 					'modulename' => $modulename,
 					'request' => json_encode($par),
@@ -468,24 +429,7 @@ class WeEngine {
 		}
 	}
 
-	/**
-	 * 分析消息包, 返回处理器列表
-	 * 处理器格式:
-	 * &nbsp;&nbsp;&nbsp;module => 处理这个消息要使用的模块名称
-	 * &nbsp;&nbsp;&nbsp;rule => 处理这个消息关联的回复规则编号
-	 * &nbsp;&nbsp;&nbsp;priority => 处理这个消息的优先级别
-	 * &nbsp;&nbsp;&nbsp;context => 处理这个消息是否在上下文中
-	 * 处理方式:
-	 * 消息到达时
-	 * 1. 关注 / 点击菜单操作 / 扫描二维码操作 --&gt; 返回重定向的文本匹配到的【处理器列表】
-	 * 2. 文本消息并且在上下文中 --&gt; 取得优先级在当前锁定的上下文优先级之上的 匹配到的 【处理器列表】, 附加上 上下文中锁定的【处理器】
-	 * 3. 其他情况  --&gt; 返回 匹配到的【处理器列表】
-	 *
-	 * 其中 subscribe, qr, click, 将会被重定向为 text 消息, 原来的数据保存在 source 中, 并将 redirection 设置为 true
-	 *
-	 * @param $message array 统一消息结构
-	 * @return array 处理器列表
-	 */
+	
 	private function analyze(&$message) {
 		global $_W;
 		$params = array();
@@ -535,13 +479,13 @@ class WeEngine {
 		if(!empty($message['scene'])) {
 			$message['source'] = 'qr';
 			$sceneid = trim($message['scene']);
+			$scene_condition = '';
 			if (is_numeric($sceneid)) {
-				$scene_condition = " `qrcid` = :sceneid";
+				$scene_condition = " `qrcid` = '{$sceneid}'";
 			}else{
-				$scene_condition = " `scene_str` = :sceneid";
+				$scene_condition = " `scene_str` = '{$sceneid}'";
 			}
-			$condition = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
-			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = :uniacid", $condition);
+			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}'");
 			if(!empty($qr)) {
 				$message['content'] = $qr['keyword'];
 				if (!empty($qr['type']) && $qr['type'] == 'scene') {
@@ -573,20 +517,20 @@ class WeEngine {
 		if(!empty($message['scene'])) {
 			$message['source'] = 'qr';
 			$sceneid = trim($message['scene']);
+			$scene_condition = '';
 			if (is_numeric($sceneid)) {
-				$scene_condition = " `qrcid` = :sceneid";
+				$scene_condition = " `qrcid` = '{$sceneid}'";
 			}else{
-				$scene_condition = " `scene_str` = :sceneid";
+				$scene_condition = " `scene_str` = '{$sceneid}'";
 			}
-			$condition_params = array(':sceneid' => $sceneid, ':uniacid' => $_W['uniacid']);
-			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = :uniacid AND `type` = 'scene'", $condition_params);
+			$qr = pdo_fetch("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE {$scene_condition} AND `uniacid` = '{$_W['uniacid']}'");
 
 		}
 		if (empty($qr) && !empty($message['ticket'])) {
 			$message['source'] = 'qr';
 			$ticket = trim($message['ticket']);
 			if(!empty($ticket)) {
-				$qr = pdo_fetchall("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE `uniacid` = :uniacid AND ticket = :ticket", array(':uniacid' => $_W['uniacid'], ':ticket' => $ticket));
+				$qr = pdo_fetchall("SELECT `id`, `keyword` FROM " . tablename('qrcode') . " WHERE `uniacid` = '{$_W['uniacid']}' AND ticket = '{$ticket}'");
 				if(!empty($qr)) {
 					if(count($qr) != 1) {
 						$qr = array();
@@ -615,13 +559,7 @@ class WeEngine {
 		if(!isset($message['content'])) {
 			return $pars;
 		}
-		//关键字先查缓存有没有匹配规则，缓存超时为5分钟
-		$cachekey = cache_system_key('keyword', array('content' => md5($message['content']), 'uniacid' => $_W['uniacid']));
-		$keyword_cache = cache_load($cachekey);
-		if (!empty($keyword_cache) && $keyword_cache['expire'] > TIMESTAMP) {
-			return $keyword_cache['data'];
-		}
-		$condition = <<<EOF
+				$condition = <<<EOF
 `uniacid` IN ( 0, {$_W['uniacid']} )
 AND
 (
@@ -650,12 +588,7 @@ EOF;
 		if(empty($keywords)) {
 			return $pars;
 		}
-		//系统模块处理回复，则走缓存机制；其他模块不走缓存（可能有动态处理）
-		$system_module_reply = true;
 		foreach($keywords as $keyword) {
-			if (!in_array($keyword['module'], array('defalut', 'cover', 'reply'))) {
-				$system_module_reply = false;
-			}
 			$params = array(
 				'message' => $message,
 				'module' => $keyword['module'],
@@ -665,13 +598,6 @@ EOF;
 				'reply_type' => $keyword['reply_type']
 			);
 			$pars[] = $params;
-		}
-		if (!empty($system_module_reply)) {
-			$cache = array(
-				'data' => $pars,
-				'expire' => TIMESTAMP + 5 * 60,
-			);
-			cache_write($cachekey, $cache);
 		}
 		return $pars;
 	}
@@ -771,12 +697,7 @@ EOF;
 		}
 	}
 
-	/**
-	 * 处理特殊消息类型包括, video, location, link, unsubscribe, trace, view, enter
-	 *
-	 * @param $type
-	 * @return array
-	 */
+	
 	private function handler($type) {
 		if(empty($type)) {
 			return array();
@@ -805,12 +726,7 @@ EOF;
 		return array();
 	}
 
-	/**
-	 * 调用模块的消息处理器
-	 *
-	 * @param $param
-	 * @return bool | array false |$response
-	 */
+	
 	private function process($param) {
 		global $_W;
 		if(empty($param['module']) || !in_array($param['module'], $this->modules)) {
@@ -834,9 +750,7 @@ EOF;
 		return $response;
 	}
 
-	/**
-	 * checkauth处理
-	 */
+	
 	public function died($content = '') {
 		global $_W, $engine;
 		if (empty($content)) {
@@ -858,3 +772,5 @@ EOF;
 		exit($resp);
 	}
 }
+
+

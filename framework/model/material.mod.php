@@ -2,13 +2,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->func('file');
 
-/**
- * 同步微信素材
- * @param array $material 从微信接口拉取到的素材数据
- * @param array $exist_material 微信与本地同时存在的素材id集合（用于删除微信端不存在，本地存在的素材）
- * @param array $type 素材类型
- * @return array() 本地与微信端都存在的素材id集合
- */
+
 function material_sync($material, $exist_material, $type) {
 	global $_W;
 	$material = empty($material) ? array() : $material;
@@ -88,11 +82,7 @@ function material_sync($material, $exist_material, $type) {
 	return $exist_material;
 }
 
-/**
- * 生成本地图文素材
- * @param array $post_data
- * @return int 本地图文素材ID
- */
+
 function material_news_set($data, $attach_id) {
 	global $_W;
 	$attach_id = intval($attach_id);
@@ -131,7 +121,9 @@ function material_news_set($data, $attach_id) {
 			return error('-2', '编辑素材不存在');
 		}
 		$wechat_attachment['model'] = 'local';
-		pdo_update('wechat_attachment', $wechat_attachment, array('id' => $attach_id, 'uniacid' => $_W['uniacid']));
+		pdo_update('wechat_attachment', $wechat_attachment, array(
+			'id' => $attach_id
+		));
 		pdo_delete('wechat_news', array('attach_id' => $attach_id, 'uniacid' => $_W['uniacid']));
 		foreach ($post_news as $id => $news) {
 			$news['attach_id'] = $attach_id;
@@ -158,24 +150,21 @@ function material_news_set($data, $attach_id) {
 	return $attach_id;
 }
 
-/**
- * 获取素材
- * @param array $material 素材的id或者mediaid
- * @return array() 素材内容
- */
+
 function material_get($attach_id) {
 	if (empty($attach_id)) {
 		return error(1, "素材id参数不能为空");
 	}
 	if (is_numeric($attach_id)) {
-		$material = table('wechat_attachment')->getById($attach_id);
+		$material = pdo_get('wechat_attachment', array('id' => $attach_id));
 	} else {
 		$media_id = trim($attach_id);
-		$material = table('wechat_attachment')->getByMediaId($media_id);
+		$material = pdo_get('wechat_attachment', array('media_id' => $media_id));
 	}
 	if (!empty($material)) {
 		if ($material['type'] == 'news') {
-			$news = table('wechat_news')->getAllByAttachId($material['id']);
+			$material_table = table('material');
+			$news = $material_table->materialNewsList($material['id']);
 			if (!empty($news)) {
 				foreach ($news as &$news_row) {
 					$news_row['content_source_url'] = $news_row['content_source_url'];
@@ -206,11 +195,7 @@ function material_get($attach_id) {
 	}
 }
 
-/**
- * 构造素材回复消息结构
- * @param array $material 素材的id
- * @return array() 回复消息结构
- */
+
 function material_build_reply($attach_id) {
 	if (empty($attach_id)) {
 		return error(1, "素材id参数不能为空");
@@ -238,10 +223,7 @@ function material_build_reply($attach_id) {
 	return $reply;
 }
 
-/**
- *将内容中通过tomeida()转义的微信图片代理地址替换成微信图片原生地址
- * @param $content string 待处理的图文内容
- */
+
 function material_strip_wechat_image_proxy($content) {
 	global $_W;
 	$match_wechat = array();
@@ -256,11 +238,7 @@ function material_strip_wechat_image_proxy($content) {
 	return $content;
 }
 
-/**
- * 获取内容中所有非微信图片的图片地址
- * @param $content string 待处理的内容
- * @param $images array 内容中所有图片的地址
- */
+
 function material_get_image_url($content) {
 	global $_W;
 	$content = htmlspecialchars_decode ($content);
@@ -281,10 +259,7 @@ function material_get_image_url($content) {
 	return $images;
 }
 
-/**
- * 替换图文素材内容中图片url地址（把非微信url替换成微信url）
- * @param $content string 待处理的图文内容
- */
+
 function material_parse_content($content) {
 	global $_W;
 	$content = material_strip_wechat_image_proxy($content);
@@ -296,7 +271,7 @@ function material_parse_content($content) {
 				return $thumb;
 			}
 			$thumb = ATTACHMENT_ROOT . $thumb;
-			$account_api = WeAccount::createByUniacid();
+			$account_api = WeAccount::create($_W['acid']);
 			$result = $account_api->uploadNewsThumb($thumb);
 			if (is_error($result)) {
 				return $result;
@@ -307,13 +282,10 @@ function material_parse_content($content) {
 	}
 	return $content;
 }
-/**
- * 根据附件ID将，本地图文上传至微信服务器
- * @param int $attach_id
- */
+
 function material_local_news_upload($attach_id) {
 	global $_W;
-	$account_api = WeAccount::createByUniacid();
+	$account_api = WeAccount::create($_W['acid']);
 	$material = material_get($attach_id);
 	if (is_error($material)){
 		return error('-1', '获取素材文件失败');
@@ -377,15 +349,10 @@ function material_local_news_upload($attach_id) {
 	}
 	return $material;
 }
-/**
- * 目前图片、音频、视频素材上传都用这个方法
- * 上传素材文件到微信，获取mediaId
- * @param string $url
- *
- */
+
 function material_local_upload_by_url($url, $type='images') {
 	global $_W;
-	$account_api = WeAccount::createByUniacid();
+	$account_api = WeAccount::create($_W['acid']);
 	if (! empty($_W['setting']['remote']['type'])) {
 		$remote_file_url = tomedia($url);
 		$filepath = file_remote_attach_fetch($remote_file_url,0,'');
@@ -400,18 +367,13 @@ function material_local_upload_by_url($url, $type='images') {
 		$filepath = ATTACHMENT_ROOT . $url;
 	}
 	$filesize = filesize($filepath);
-	$filesize = sizecount($filesize, true);
-	if ($filesize > 10 && $type == 'videos') {
+	if ($filesize > 1024 * 1024 && $type == 'videos') {
 		return error(-1, '要转换的微信素材视频不能超过10M');
 	}
 	return $account_api->uploadMediaFixed($filepath, $type);
 }
 
-/**
- * 同步本地素材到微信
- * @param int $material_id
- * @return array
- */
+
 function material_local_upload($material_id){
 	global $_W;
 	$type_arr = array('1' => 'images', '2' => 'voices', '3' => 'videos');
@@ -422,11 +384,7 @@ function material_local_upload($material_id){
 	return material_local_upload_by_url($material['attachment'], $type_arr[$material['type']]);
 }
 
-/**
- * 获取后台设置上传文件大小限制
- *
- * @return array
- */
+
 function material_upload_limit() {
 	global $_W;
 	$default = 5 * 1024 * 1024;
@@ -446,12 +404,7 @@ function material_upload_limit() {
 	return $upload_limit;
 }
 
-/**
- * 删除图文素材
- * @param int $material_id 素材id
- * @type string $type 素材类型
- *
- */
+
 function material_news_delete($material_id){
 	global $_W;
 	$permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'system');
@@ -467,7 +420,7 @@ function material_news_delete($material_id){
 		return error('-2', '素材文件不存在或已删除');
 	}
 	if (!empty($material['media_id'])){
-		$account_api = WeAccount::createByUniacid();
+		$account_api = WeAccount::create($_W['acid']);
 		$result = $account_api->delMaterial($material['media_id']);
 	}
 	if (is_error($result)){
@@ -478,11 +431,7 @@ function material_news_delete($material_id){
 	return $result;
 }
 
-/**
- * 删除除图文外其他素材
- * @param int $material_id 素材id
- * @param string $location 微信/本地 素材
- */
+
 function material_delete($material_id, $location){
 	global $_W;
 	if (empty($_W['isfounder']) && !permission_check_account_user('platform_material_delete')) {
@@ -495,12 +444,10 @@ function material_delete($material_id, $location){
 		return error('-2', '素材文件不存在或已删除');
 	}
 	if ($location == 'wechat' && !empty($material['media_id'])){
-		$account_api = WeAccount::createByUniacid();
+		$account_api = WeAccount::create($_W['acid']);
 		$result = $account_api->delMaterial($material['media_id']);
 	} else {
-		//若素材归属某一账号，则主管理员以上权限才不判断是否有权限；
-		//若素材不归属某一账号，则判断素材是否是该uid所属
-		if (!empty($material['uniacid'])) {
+						if (!empty($material['uniacid'])) {
 			$role = permission_account_user_role($_W['uid'], $material['uniacid']);
 			if (in_array($role, array(ACCOUNT_MANAGE_NAME_OPERATOR, ACCOUNT_MANAGE_NAME_MANAGER)) && $_W['uid'] != $material['uid']) {
 				return error('-1', '您没有权限删除该文件');
@@ -510,10 +457,6 @@ function material_delete($material_id, $location){
 		}
 		if (!empty($_W['setting']['remote']['type'])) {
 			$result = file_remote_delete($material['attachment']);
-			//图片未上传到远程附件时, 删除本地图片
-			if (file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $material['attachment'])) {
-				$result = file_delete($material['attachment']);
-			}
 		} else {
 			$result = file_delete($material['attachment']);
 		}
@@ -521,71 +464,66 @@ function material_delete($material_id, $location){
 	if (is_error($result)) {
 		return error('-3', '删除文件操作发生错误');
 	}
-	pdo_delete($table, array('id' => $material_id, 'uniacid' => $_W['uniacid']));
+	pdo_delete($table, array('id' => $material_id));
 	return $result;
 }
 
-/**
- * 验证输入内容是否为合法链接
- * @param $url
- * @return boolean
- */
+
 function material_url_check($url) {
 	if (empty($url)){
 		return true;
 	} else {
 		$pattern ="/^((https|http|tel):\/\/|\.\/index.php)[^\s]+/i";
-		return preg_match($pattern, trim($url));
+		return preg_match($pattern, $url);
 	}
 }
 
 function material_news_list($server = '', $search ='', $page = array('page_index' => 1, 'page_size' => 24)) {
 	global $_W;
-	$wechat_news_table = table('wechat_news');
-	$wechat_attachment_table = table('wechat_attachment');
+	$conditions[':uniacid'] = $_W['uniacid'];
+	$news_model_sql = '';
+	if (!empty($server)) {
+		$news_model_sql = " AND a.model = :news_model";
+		$conditions[':news_model'] = $server;
+	}
+
+	$search_sql = '';
+	if (!empty($search)) {
+		$search_sql = " AND (b.title LIKE :search_title OR b.author = :search_author OR b.digest LIKE :search_digest)";
+		$conditions[':search_title'] = "%{$search}%";
+		$conditions[':search_author'] = "%{$search}%";
+		$conditions[':search_digest'] = "%{$search}%";
+	}
+
+	$select_sql = "SELECT  %s FROM " . tablename('wechat_attachment') . " AS a RIGHT JOIN " . tablename('wechat_news') . " AS b ON a.id = b.attach_id WHERE  a.uniacid = :uniacid AND a.type = 'news' AND a.id <> '' " . $news_model_sql . $search_sql . "%s";
+	$list_sql = sprintf($select_sql, "a.id as id, a.filename, a.attachment, a.media_id, a.type, a.model, a.tag, a.createtime, b.displayorder, b.title, b.digest, b.thumb_url, b.thumb_media_id, b.attach_id, b.url", " ORDER BY a.createtime DESC, b.displayorder ASC LIMIT " . ($page['page_index'] - 1) * $page['page_size'] . ", " . $page['page_size']);
+	$total_sql = sprintf($select_sql, "count(*)", '');
+	$total = pdo_fetchcolumn($total_sql, $conditions);
+	$news_list = pdo_fetchall($list_sql, $conditions);
+
 	$material_list = array();
-	if (empty($search)) {
-		$wechat_attachment_table->searchWithUniacid($_W['uniacid']);
-		$wechat_attachment_table->searchWithType('news');
-		if (!empty($server) && in_array($server, array('local', 'perm'))) {
-			$wechat_attachment_table->searchWithModel($server);
-		}
-		$wechat_attachment_table->searchWithPage($page['page_index'], $page['page_size']);
-		$news_list = $wechat_attachment_table->orderby('createtime DESC')->getall();
-		$total = $wechat_attachment_table->getLastQueryTotal();
-
-		if (! empty($news_list)) {
-			foreach ($news_list as $news) {
-				$news['items'] = $wechat_news_table->getAllByAttachId($news['id']);
-				$material_list[$news['id']] = $news;
-			}
-		}
-	} else {
-		$wechat_news_table->searchKeyword("%$search%");
-		$wechat_news_table->searchWithUniacid($_W['uniacid']);
-		$search_attach_id = $wechat_news_table->getall();
-
-		if (!empty($search_attach_id)) {
-			foreach ($search_attach_id as $news) {
-				if (isset($material_list[$news['attach_id']]) && !empty($material_list[$news['attach_id']])) {
-					continue;
-				}
-				$wechat_attachment = $wechat_attachment_table->getById($news['attach_id']);
-				if (empty($wechat_attachment)) {
-					continue;
-				}
-				$material_list[$news['attach_id']] = $wechat_attachment;
-				$material_list[$news['attach_id']]['items'] = $wechat_news_table->getAllByAttachId($news['attach_id']);
+	if (! empty($news_list)) {
+		foreach ($news_list as $news){
+			if (isset($material_list[$news['attach_id']])){
+				$material_list[$news['attach_id']]['items'][$news['displayorder']] = $news;
+			}else{
+				$material_list[$news['attach_id']] = array(
+					'id' => $news['id'],
+					'filename' => $news['filename'],
+					'attachment' => $news['attachment'],
+					'media_id' => $news['media_id'],
+					'type' => $news['type'],
+					'model' => $news['model'],
+					'tag' => $news['tag'],
+					'createtime' => $news['createtime'],
+					'items' => array($news['displayorder'] => $news),
+				);
 			}
 		}
 	}
 
-	// 转换微信图片地址
-	foreach ($material_list as $key => &$news) {
+		foreach ($material_list as $key => &$news) {
 		if (isset($news['items']) && is_array($news['items'])) {
-			if (empty($news['items'][0])) {
-				$news['items'] = array_values($news['items']);
-			}
 			foreach ($news['items'] as &$item) {
 				$item['thumb_url'] = tomedia($item['thumb_url']);
 			}
@@ -621,9 +559,6 @@ function material_list($type = '', $server = '', $page = array('page_index' => 1
 			if ($type == 'video'){
 				foreach ($material_list as &$row) {
 					$row['tag'] = $row['tag'] == '' ? array() : iunserializer($row['tag']);
-					if (empty($row['filename'])) {
-						$row['filename'] = $row['tag']['title'];
-					}
 				}
 				unset($row);
 			}
@@ -634,14 +569,9 @@ function material_list($type = '', $server = '', $page = array('page_index' => 1
 }
 
 
-/**
- *  微信图文转本地
- * @param $resourceid
- * @return array|int
- */
+
 function material_news_to_local($attach_id) {
-	// 如果是 news 类型
-	$material = material_get($attach_id);
+		$material = material_get($attach_id);
 	if(is_error($material)) {
 		return $material;
 	}
@@ -649,18 +579,10 @@ function material_news_to_local($attach_id) {
 	if(is_error($attach_id)) {
 		return $attach_id;
 	}
-	$material['items'] = $material['news'];// 前台用的items
-	return $material;
+	$material['items'] = $material['news'];	return $material;
 }
 
-/**
- *  图片 视频  语音转为 本地
- * @param $resourceid
- * @param $uniacid
- * @param $uid
- * @param $type
- * @return array|string
- */
+
 function material_to_local($resourceid, $uniacid, $uid, $type = 'image') {
 	$material = material_get($resourceid);
 	if(is_error($material)) {
@@ -669,30 +591,15 @@ function material_to_local($resourceid, $uniacid, $uid, $type = 'image') {
 	return material_network_image_to_local($material['url'], $uniacid, $uid);
 }
 
-/**
- *  网络图片转本地
- * @param $url
- * @param $uniacid
- * @param $uid
- * @param int $type
- * @return array|string
- */
+
 function material_network_image_to_local($url, $uniacid, $uid) {
 	return material_network_to_local($url, $uniacid, $uid, 'image');
 }
 
 
-/**
- *  网络资源转本地 支持视频 图片
- * @param $url
- * @param $uniacid
- * @param $uid
- * @param int $type
- * @return array|string
- */
+
 function material_network_to_local($url, $uniacid, $uid, $type = 'image') {
-	$path = file_remote_attach_fetch($url); //网络转本地图片路径
-	if(is_error($path)) {
+	$path = file_remote_attach_fetch($url); 	if(is_error($path)) {
 		return $path;
 	}
 	$filename = pathinfo($path,PATHINFO_FILENAME);
@@ -710,16 +617,9 @@ function material_network_to_local($url, $uniacid, $uid, $type = 'image') {
 }
 
 
-/**
- *  本地图片 视频 语音 转换为微信 资源
- * @param $attach_id
- * @param $uniacid
- * @param $uid
- * @param $acid
- */
+
 function material_to_wechat($attach_id, $uniacid, $uid, $acid, $type = 'image') {
-	$result = material_local_upload($attach_id); //本地资源上传到服务器
-	if (is_error($result)) {
+	$result = material_local_upload($attach_id); 	if (is_error($result)) {
 		return $result;
 	}
 	$tag = $result['url'];
@@ -742,19 +642,14 @@ function material_to_wechat($attach_id, $uniacid, $uid, $acid, $type = 'image') 
 }
 
 
-/**
- *  网络图片上传到微信
- */
+
 function material_network_image_to_wechat($url, $uniacid, $uid, $acid) {
 	return material_network_to_wechat($url, $uniacid, $uid, $acid, 'image');
 }
 
-/**
- *  网络视频  图片上传到微信
- */
+
 function material_network_to_wechat($url, $uniacid, $uid, $acid, $type = 'image') {
-	$local = material_network_to_local($url, $uniacid, $uid, $type); //网络图片先转为本地资源
-	if (is_error($local)) {
+	$local = material_network_to_local($url, $uniacid, $uid, $type); 	if (is_error($local)) {
 		return $local;
 	}
 	return material_to_wechat($local['id'], $uniacid, $uid, $acid, $type);

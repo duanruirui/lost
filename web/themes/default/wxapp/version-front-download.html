@@ -2,23 +2,21 @@
 <!--小程序前端下载-->
 
 {if $do != 'custom'}
-{if $_W['account']['type_sign'] != 'wxapp'}
-<ul class="we7-page-tab">
-	<li class="{if $do == 'front_download'}active{/if}">
-		<a href="{php echo url('wxapp/front-download/', array('version_id' => $version_id));}">{$account_all_type[$_W['account']['type']]['title']}下载</a>
-	</li>
-</ul>
-{else}
 <ul class="we7-page-tab">
 	<li class="{if $do == 'front_download'}active{/if}">
 		<a href="{php echo url('wxapp/front-download/front_download', array('version_id' => $version_id));}">小程序上传</a>
 	</li>
-	<li class="{if $do == 'tominiprogram'}active{/if}">
-		<a href="{php echo url('wxapp/front-download/tominiprogram', array('version_id' => $version_id))}">可跳转小程序设置</a>
+	<li class="{if $do == 'domainset'}active{/if}">
+		<a href="{php echo url('wxapp/front-download/domainset', array('version_id' => $version_id))}">小程序域名设置</a>
 	</li>
 	
+		{if ($is_single_module_wxapp)}
+		<li class="{if $do == 'entrychoose'}active{/if}">
+			<a href="{php echo url('wxapp/front-download/entrychoose', array('version_id' => $version_id))}">小程序入口配置</a>
+		</li>
+		{/if}
+	
 </ul>
-{/if}
 {else}
 <ol class="breadcrumb" style="background-color: transparent;">
 	<a href="{php echo url('wxapp/front-download/front_download', array('version_id' => $version_id));}">
@@ -73,7 +71,7 @@
 						<label class="col-xs-3 control-label">小程序标题</label>
 						<div class="col-xs-9">
 							<input type="text" required="required" ng-model="window.navigationBarTitleText"
-								   placeholder="小程序标题" class="form-control">
+							       placeholder="小程序标题" class="form-control">
 						</div>
 					</div>
 					<div class="form-group">
@@ -195,8 +193,10 @@
 			</div>
 		</div>
 	</div>
-	<button class="btn btn-primary" ng-click="default()">恢复默认</button>
-	<button class="btn btn-primary" ng-click="save()">保存</button>
+	<a href="{php echo url('wxapp/front-download/custom_default', array('version_id' => $version_id));}" class="btn btn-primary">恢复默认</a>
+	<a href="{php echo url('wxapp/front-download/custom_save', array('version_id' => $version_id));}" class="btn btn-primary">保存</a>
+	<!--<button class="btn btn-primary" ng-click="default()">恢复默认</button>
+	<button class="btn btn-primary" ng-click="save()">保存</button>-->
 </div>
 
 <script type="text/javascript">
@@ -210,37 +210,51 @@
 	angular.bootstrap($('#codeappjson'), ['we7codeAppjsonApp']);
 </script>
 {/if}
-
-{if $do == 'front_download'}
-{if $_W['account']['type_sign'] != 'wxapp'}
-<div class="front-download">
-	<div class="alert we7-page-alert">
-		<p>
-			<i class="wi wi-info-sign"></i>
-			下载{$account_all_type[$_W['account']['type']]['title']}模块zip包, 然后用{$account_all_type[$_W['account']['type']]['title']}开发者工具上传开发版本
-		</p>
-		<p>
-			<i class="wi wi-info-sign"></i>
-			{$account_all_type[$_W['account']['type']]['title']}开发者工具下载链接：
-			{if $_W['account']['type_sign'] == ALIAPP_TYPE_SIGN}
-			<a href="https://docs.alipay.com/mini/ide/download" target="_blank">https://docs.alipay.com/mini/ide/download/</a>
-			{elseif $_W['account']['type_sign'] == BAIDUAPP_TYPE_SIGN}
-			<a href="https://smartprogram.baidu.com/docs/develop/devtools/show_sur/" target="_blank">https://smartprogram.baidu.com/docs/develop/devtools/show_sur/</a>
-			{elseif $_W['account']['type_sign'] == TOUTIAOAPP_TYPE_SIGN}
-			<a href="https://developer.toutiao.com/docs/devtool/versionUpdate.html" target="_blank">https://developer.toutiao.com/docs/devtool/versionUpdate.html</a>
-			{/if}
-		</p>
-	</div>
-	<div class="app-down-box">
-		<img src="{$module['logo']}" alt="{$module['title']}" class="logo">
-		<div class="title">{$module['title']}{$account_all_type[$_W['account']['type']]['title']}zip包</div>
-		<a class="btn btn-primary" href="{php echo url('wxapp/front-download/getpackage', array('version_id' => $version_id))}">
-			立即下载
-		</a>
+{if $do == 'domainset'}
+<div class="panel we7-panel">
+	<div class="panel-heading">小程序配置</div>
+	<div class="panel-body we7-padding">
+		<form
+		      action="./index.php?c=wxapp&a=front-download&do=domainset&version_id={$version_id}"
+		      class="we7-form" enctype="multipart/form-data"
+		      method="post">
+			<div class="form-group">
+				<label class="control-label col-sm-2">设置小程序URL</label>
+				<div class="col-sm-10">
+					<input type="text" class="form-control" name="appurl" value="{$appurl}" placeholder="">
+					<label style="color: red;">https://域名/app/index.php</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label col-sm-2">小程序业务域名校验文件</label>
+				<div class="col-sm-10">
+					<input type="file" class="form-control"
+					       name="file" value="" placeholder="没有可不传"/>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label col-sm-2"></label>
+				<div class="col-sm-10">
+					<button class="btn btn-primary" type="submit">更新</button>
+					<a href="{$appurl}?i={$uniacid}&c=utility&a=visit&do=health" class="btn btn-primary" target="_blank">https访问检测</a>
+				</div>
+			</div>
+		</form>
 	</div>
 </div>
+<div class="wxapp-download-procedure">
+	<div class="title color-gray">设置小程序域名说明：</div>
+	<div class="step">1.设置链接域名，可以在系统后台设置操作小程序。设置完成后到小程序审核发布里点击下载后，域名更新。</div>
+	<div class="step">2.设置后的生效页面（<a href="#" class="color-default">站点管理</a><span class="color-default"><i
+			class="wi wi-angle-right"></i></span> <a href="#" class="color-default">站点设置</a>）
+	</div>
+	<div class="img">
+		<img src="/web/resource/images/wxapp/12.png" alt="" class="img-responsive">
+	</div>
+</div>
+{/if}
 
-{else}
+{if $do == 'front_download'}
 <!--在微信小程序后台提交审核-->
 {if $uptype == 'normal'}
 <div class="media media-wechat-setting">
@@ -302,7 +316,7 @@
 	</div>
 </div>
 {/if}
-<div class="panel we7-panel wxapp-examine-self panel-table we7-margin-top" id="codeupload" ng-controller="code_upload_ctrl">
+<div class="panel we7-panel wxapp-examine-self we7-margin-top" id="codeupload" ng-controller="code_upload_ctrl">
 	<div class="panel-heading">上传小程序</div>
 	<div class="panel-body">
 		<div class="step we7-flex">
@@ -345,6 +359,7 @@
 	</div>
 
 	<div class="panel-footer bg-light-gray" id="readycommit" ng-show="!show_wait">
+
 		<form action="" class="we7-form" id="codeform" ng-show="show_step1" ng-init="user_version = '{$user_version}'; user_desc = '{$version_info['description']}'">
 			<div class="form-group">
 				<label class="control-label col-sm-2">版本号</label>
@@ -368,15 +383,6 @@
 						<i class="wi wi-warning-sign color-red"></i>
 						<span class="color-gray">如果您的应用支持定制主题，您可以在这步设置主题</span>
 						<a class="text-right pull-right link-item" href="{php echo url('wxapp/front-download/custom', array('version_id' => $version_id));}" style="color: #45a2f3;">前往设置</a>
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label col-sm-2">可跳转小程序数量</label>
-				<div class="col-sm-10">
-					<div class="form-control" id="theme">
-						<span class="color-gray">{php echo count($version_info['tominiprogram'])}个</span>
-						<a class="text-right pull-right link-item" href="{php echo url('wxapp/front-download/tominiprogram', array('version_id' => $version_id));}" style="color: #45a2f3;">去添加</a>
 					</div>
 				</div>
 			</div>
@@ -442,85 +448,5 @@
 </script>
 
 {/if}
-{/if}
-{/if}
-
-{if $do == 'tominiprogram'}
-<div class="alert alert-info we7-page-alert">
-	<p><i class="wi wi-info-sign"></i>最多可添加10个跳转小程序</p>
-</div>
-<div class="pull-right clearfix we7-margin-bottom search-box">
-	<a href="javascript:;" data-toggle="modal" data-target="#addminiprogram" class="btn btn-primary">添加</a>
-</div>
-<table class="table we7-table table-hover table-manage vertical-middle" id="js-users-display">
-	<col width="150px">
-	<col width="">
-	<col width="170px">
-	<tr>
-		<th>序号</th>
-		<th class="text-center">APPID</th>
-		<th class="text-center">小程序名称</th>
-		<th class="text-right">操作</th>
-	</tr>
-	{if $tomini_lists}
-	{php $num = 0}
-	{loop $tomini_lists $list}
-	<tr>
-		<td>{php echo $num+1}</td>
-		<td class="color-default text-center">{$list['appid']}</td>
-		<td class="color-default text-center">{$list['app_name']}</td>
-		<td class="">
-			<div class="link-group">
-				<a href="javascript:;" onclick="delAppid('{$list["appid"]}', '{$version_id}')" class="del">删除</a>
-			</div>
-		</td>
-	</tr>
-	{php $num++}
-	{/loop}
-	{else}
-	<tr>
-		<td colspan="4" class="text-center">暂无数据</td>
-	</tr>
-	{/if}
-</table>
-<div class="modal fade" id="addminiprogram" tabindex="-1" role="dialog" aria-hidden="true">
-	<div class="we7-modal-dialog modal-dialog we7-form">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-				<div class="modal-title">添加要跳转的小程序APPID</div>
-			</div>
-			<form action="" method="post">
-				<input type="hidden" name="c" value="wxapp">
-				<input type="hidden" name="a" value="front-download">
-				<input type="hidden" name="do" value="tominiprogram">
-				<input type="hidden" name="version_id" value="{$version_id}">
-				<input type="hidden" name="token" value="{$_W['token']}">
-				<div class="modal-body">
-					<div class="form-group">
-						<input type="text" name="appid" class="form-control" placeholder="要跳转的小程序APPID" required="required">
-						<span class="help-block"></span>
-						<input type="text" name="app_name" class="form-control" placeholder="要跳转的小程序名称" required="required">
-						<span class="help-block"></span>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button type="submit" class="btn btn-primary" name="submit" value="submit">确定</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-				</div>
-			</form>
-		</div>
-	</div>
-</div>
-<script>
-	function delAppid(appid, version_id) {
-		var url = "{php echo url('wxapp/front-download/del_tominiprogram')}" + "&appid=" + appid + "&version_id=" + version_id;
-		util.confirm(function () {
-			window.location.href = url;
-		}, function () {
-
-		}, '确认删除吗?');
-	}
-</script>
 {/if}
 {template 'common/footer'}

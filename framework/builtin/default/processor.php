@@ -1,10 +1,7 @@
 <?php
 /**
- * 默认回复处理类
- * 优先回复“优先级”大于默认级别的模块。
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/framework/builtin/default/processor.php : v b352eceaaed4 : 2015/01/09 03:19:15 : RenChao $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 

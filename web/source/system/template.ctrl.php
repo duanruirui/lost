@@ -1,7 +1,7 @@
 <?php
 /**
- * Date: 2017/1/18
- * 模板管理
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -17,8 +17,7 @@ if ($do == 'get_upgrade_info') {
 	if (!empty($template_name)) {
 		$template_info = pdo_get('site_templates', array('name' => $template_name));
 		if (!empty($template_info)) {
-			$cloud_t_upgrade_info = cloud_t_upgradeinfo($template_name);//获取模块更新信息
-			if (is_error($cloud_t_upgrade_info)) {
+			$cloud_t_upgrade_info = cloud_t_upgradeinfo($template_name);			if (is_error($cloud_t_upgrade_info)) {
 				iajax(1, $cloud_t_upgrade_info['message'], '');
 			}
 			$template_upgrade_info = array(
@@ -56,9 +55,7 @@ if ($do == 'check_upgrade') {
 		} else {
 			if (in_array($template['name'], array_keys($cloud_template_list))) {
 				$template['from'] = 'cloud';
-				$site_branch = $cloud_template_list[$template['name']]['branch'];//当前站点模块分之号
-				$cloud_branch_version = $cloud_template_list[$template['name']]['branches'][$site_branch]['version'];//云服务模块分之版本号
-				$best_branch = current($cloud_template_list[$template['name']]['branches']);
+				$site_branch = $cloud_template_list[$template['name']]['branch'];				$cloud_branch_version = $cloud_template_list[$template['name']]['branches'][$site_branch]['version'];				$best_branch = current($cloud_template_list[$template['name']]['branches']);
 				if (version_compare($template['version'], $cloud_branch_version) == -1 || ($cloud_template_list[$template['name']]['branch'] < $best_branch['id'])) {
 					$template['upgrade'] = 1;
 				} else {
@@ -71,33 +68,20 @@ if ($do == 'check_upgrade') {
 }
 
 if ($do == 'installed') {
+	$_W['page']['title'] = '已安装的微站风格 - 风格主题';
 	$pindex = max(1, $_GPC['page']);
 	$pagesize = 20;
 	$param = empty($_GPC['type']) ? array() : array('type' => $_GPC['type']);
 	if (!empty($_GPC['keyword'])) {
 		$param['title LIKE'] = "%". trim($_GPC['keyword'])."%";
 	}
-
-	if (!$_W['isfounder'] || user_is_vice_founder()) {
-		$group_info = pdo_get('users_founder_group', array('id' => $_W['user']['groupid']));
-		$group_info['package'] = unserialize($group_info['package']);
-		$uni_groups = pdo_getall('uni_group', array('uniacid' => 0, 'id' => $group_info['package']), array(), '', array('id DESC'));
-		$templates = array();
-		foreach ($uni_groups as $key => $group) {
-			$ids = unserialize($group['templates']);
-			foreach ($ids as $val) {
-				$templates[] = $val;
-			}
-		}
-		$param['id'] = $templates;
-	}
-
 	$template_list = pdo_getslice('site_templates', $param, array($pindex, $pagesize), $total, array(), 'name');
 	$pager = pagination($total, $pindex, $pagesize);
 	$temtypes = ext_template_type();
 }
 
 if ($do == 'not_install') {
+	$_W['page']['title'] = '安装微站风格 - 风格主题 - 扩展';
 	$installed_template = pdo_getall("site_templates", array(), array(), 'name');
 	$uninstall_template = array();
 

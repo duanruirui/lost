@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/framework/class/weixin.platform.class.php : v cbf1b98ef490 : 2015/09/18 07:28:57 : RenChao $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -72,11 +72,7 @@ class WxAppPlatform extends WeiXinPlatform {
 		cache_write(cache_system_key('account_auth_accesstoken', array('key' => $this->account['key'])), $token);
 	}
 
-	/**
-	 *
-	 * @param string $encryptData 待解密的数据
-	 * @param string $vi
-	 */
+	
 	public function pkcs7Encode($encrypt_data, $iv) {
 		$key = base64_decode($_SESSION['session_key']);
 		$result = aes_pkcs7_decode($encrypt_data, $key, $iv);

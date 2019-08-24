@@ -1,17 +1,12 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 
-/**
- * 更新今日访问信息
- * @param string $type 更新类型：web:后端、app:手机端、api:微信api
- * @param string $module_name 模块名
- * @return boolean
- */
+
 function visit_update_today($type, $module_name = '') {
 	global $_W;
 	$module_name = trim($module_name);
@@ -24,57 +19,26 @@ function visit_update_today($type, $module_name = '') {
 	}
 
 	$today = date('Ymd');
-	$stat_visit_teble = table('stat_visit');
-	$stat_visit_teble->searchWithDate($today);
-	$stat_visit_teble->searchWithModule($module_name);
-	$stat_visit_teble->searchWithUnacid($_W['uniacid']);
-	$stat_visit_teble->searchWithType($type);
-	$today_exist = $stat_visit_teble->get();
-
+	$params = array('date' => $today, 'uniacid' => $_W['uniacid'], 'module' => $module_name, 'type' => $type);
+	$today_exist = table('statistics')->visitList($params, 'one');
 	if (empty($today_exist)) {
 		$insert_data = array(
 			'uniacid' => $_W['uniacid'],
 			'module' => $module_name,
 			'type' => $type,
 			'date' => $today,
-			'count' => 1,
-			'ip_count' => 0
+			'count' => 1
 		);
 		pdo_insert('stat_visit', $insert_data);
-		$today_exist = $insert_data;
-		$today_exist['id'] = pdo_insertid();
 	} else {
 		$data = array('count' => $today_exist['count'] + 1);
 		pdo_update('stat_visit' , $data, array('id' => $today_exist['id']));
 	}
 
-	if (!empty($today_exist['id'])) {
-		$ip = ip2long(getip());
-		$stat_ip_visit_table = table('stat_visit_ip');
-		$stat_ip_visit_table->searchWithIp($ip);
-		$stat_ip_visit_table->searchWithDate($today);
-		$ip_today_exist = $stat_ip_visit_table->get();
-		if (empty($ip_today_exist)) {
-			$ip_insert_data = array(
-				'ip' => $ip,
-				'uniacid' => $_W['uniacid'],
-				'module' => $module_name,
-				'type' => $type,
-				'date' => $today,
-			);
-			pdo_insert('stat_visit_ip', $ip_insert_data);
-			pdo_update('stat_visit', array('ip_count' => $today_exist['ip_count'] + 1), array('id' => $today_exist['id']));
-		}
-	}
 	return true;
 }
 
-/**
- * 访问uniacid或者module的记录或者自己设置置顶的功能($displayorder=true)
- * @param $system_stat_visit
- * @param bool $displayorder
- * @return bool
- */
+
 function visit_system_update($system_stat_visit, $displayorder = false) {
 	global $_W;
 	load()->model('user');
@@ -92,9 +56,7 @@ function visit_system_update($system_stat_visit, $displayorder = false) {
 
 	$condition['uid'] = $_W['uid'];
 	if (!empty($system_stat_visit['uniacid'])) {
-		$account_info = uni_fetch($system_stat_visit['uniacid']);
-		$type = $account_info->typeSign;
-		$own_uniacid = uni_owned($_W['uid'], false, $type);
+		$own_uniacid = uni_owned($_W['uid'], false);
 		$uniacids = !empty($own_uniacid) ? array_keys($own_uniacid) : array();
 		if (empty($uniacids) || !in_array($system_stat_visit['uniacid'], $uniacids)) {
 			return true;
@@ -134,11 +96,8 @@ function visit_system_update($system_stat_visit, $displayorder = false) {
 	return true;
 }
 
-/**
- * 根据uid删除用户没有权限的访问统计模块
- * @param $uid
- * @return bool
- */
+
+
 function visit_system_delete($uid) {
 	load()->model('user');
 	$user_modules = user_modules($uid);

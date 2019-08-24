@@ -1,26 +1,26 @@
 {template 'common/header'}
 <div class="we7-page-title">小程序管理</div>
 <ul class="we7-page-tab">
-	<li class="active"><a href="{php echo url ('account/manage', array('account_type' => ACCOUNT_TYPE_APP_NORMAL))}">小程序列表</a></li>
+	<li class="active"><a href="{php echo url ('account/manage', array('account_type' => '4'))}">小程序列表</a></li>
 	
-	
-		{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
+		{if $_W['role'] == ACCOUNT_MANAGE_NAME_OWNER || $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
 		<li><a href="{php echo url ('account/recycle', array('account_type' => '4'))}">小程序回收站</a></li>
 		{/if}
+	
 	
 </ul>
 <div class="clearfix we7-margin-bottom">
 	
-	
-		{if !$_W['isfounder'] && !empty($account_info['wxapp_limit'])}
+		{if !$_W['isfounder'] && !empty($account_info['wxapp_limit']) || user_is_vice_founder()}
 		<div class="alert alert-warning hidden">
 			温馨提示：
 			<i class="fa fa-info-circle"></i>
-			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>
+			Hi，<span class="text-strong">{$_W['username']}</span>，您所在的会员组： <span class="text-strong">{$account_info['group_name']}</span>，{if !user_is_vice_founder() && !empty($account_info['vice_group_name'])} <span class="text-strong">{$account_info['vice_group_name']}，</span>{/if}
 			账号有效期限：<span class="text-strong">{php echo date('Y-m-d', $_W['user']['starttime'])} ~~ {if empty($_W['user']['endtime'])}无限制{else}{php echo date('Y-m-d', $_W['user']['endtime'])}{/if}</span>，
 			可创建 <span class="text-strong">{$account_info['maxwxapp']} </span>个小程序，已创建<span class="text-strong"> {$account_info['wxapp_num']} </span>个，还可创建 <span class="text-strong">{$account_info['wxapp_limit']} </span>个小程序。
 		</div>
 		{/if}
+	
 	
 	<form action="" class="form-inline  pull-left" method="get">
 		<input type="hidden" name="c" value="account">
@@ -32,12 +32,12 @@
 		</div>
 	</form>
 	
-	
-		{if !empty($account_info['wxapp_limit']) || $_W['isfounder']}
+		{if !empty($account_info['wxapp_limit']) && (!empty($account_info['founder_wxapp_limit']) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()}
 		<div class="pull-right">
 			<a href="{php echo url('wxapp/post/design_method')}" class="btn btn-primary we7-padding-horizontal">添加小程序</a>
 		</div>
 		{/if}
+	
 	
 </div>
 <table class="table we7-table table-hover vertical-middle table-manage" id="js-system-account-display" ng-controller="SystemAccountDisplay" ng-cloak>
@@ -71,7 +71,7 @@
 	</tr>
 	<tr>
 		<th colspan="2" class="text-left">小程序应用</th>
-		<th>平台过期时间</th>
+		<th>有效期</th>
 		<th class="text-right">操作</th>
 	</tr>
 	<tr class="color-gray" ng-repeat="list in lists">
@@ -102,7 +102,6 @@
 				<a href="{{links.post}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder' || list.role == 'vice_founder'">基础信息</a>
 				<a href="{{links.postUser}}&do=edit&uniacid={{list.uniacid}}&acid={{list.acid}}">使用者管理</a>
 				<a href="{{links.postVersion}}&do=display&uniacid={{list.uniacid}}&acid={{list.acid}}">版本管理</a>
-				<a href="{{links.post}}&do=modules_tpl&uniacid={{list.uniacid}}&acid={{list.acid}}&account_type={{list.type}}">可用应用模板/模块</a>
 				{if $_W['role'] != ACCOUNT_MANAGE_NAME_MANAGER}
 				<a ng-href="{{links.del}}&acid={{list.acid}}&uniacid={{list.uniacid}}" ng-show="list.role == 'owner' || list.role == 'founder' || list.role == 'vice_founder'" onclick="if(!confirm('确认放入回收站吗？')) return false;" class="del">停用</a>
 				{/if}

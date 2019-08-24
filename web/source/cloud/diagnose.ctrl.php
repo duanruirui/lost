@@ -1,35 +1,28 @@
 <?php 
 /**
- * 云服务诊断
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [美仑授权系统 System] Copyright (c) 2018 WEBY.CC
+ * 美仑授权系统 is NOT a free software, it under the license terms, visited http://www.weby.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-load()->classs('cloudapi');
 load()->model('cloud');
 load()->model('setting');
 
 $dos = array('display', 'testapi');
 $do = in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('system_cloud_diagnose');
+uni_user_permission_check('system_cloud_diagnose');
+
+$_W['page']['title'] = '云服务诊断 - 云服务';
 
 if ($do == 'testapi') {
 	$starttime = microtime(true);
-	$response = cloud_request('http://api-upgrade.w7.cc', array(), array('ip' => $_GPC['ip']));
+	$response = cloud_request(HTTP_X_FOR .'we7.rewlkj.com/app/api.php', array(), array('ip' => $_GPC['ip']));
 	$endtime = microtime(true);
 	iajax(0,'请求接口成功，耗时 '.(round($endtime - $starttime, 5)).' 秒');
 } else {
 	if(checksubmit()) {
-		$result = cloud_reset_siteinfo();
-		$api = new CloudApi();
-		$api->deleteCer();
-
-		if (is_error($result)) {
-			itoast($result['message'], '', 'error');
-		} else {
-			cache_delete('cloud_site_register_info');
-			itoast('重置成功', 'refresh', 'success');
-		}
+		setting_save('', 'site');
+		itoast('成功清除站点记录.', 'refresh', 'success');
 	}
 	if (checksubmit('updateserverip')) {
 		if (!empty($_GPC['ip'])) {
@@ -47,13 +40,13 @@ if ($do == 'testapi') {
 		$checkips[] = $_W['setting']['cloudip']['ip'];
 	}
 	if (strexists(strtoupper(PHP_OS), 'WINNT')) {
-		$cloudip = gethostbyname('api-upgrade.w7.cc');
+		$cloudip = gethostbyname('we7.rewlkj.com');
 		if (!in_array($cloudip, $checkips)) {
 			$checkips[] = $cloudip;
 		}
 	} else {
 		for ($i = 0; $i <= 10; $i++) {
-			$cloudip = gethostbyname('api-upgrade.w7.cc');
+			$cloudip = gethostbyname('we7.rewlkj.com');
 			if (!in_array($cloudip, $checkips)) {
 				$checkips[] = $cloudip;
 			}

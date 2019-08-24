@@ -1,19 +1,20 @@
 <?php
 /**
- * 小程序入口
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
 
-load()->model('miniapp');
+load()->model('wxapp');
 
 if (strexists($_SERVER['HTTP_REFERER'], 'https://servicewechat.com/')) {
 	$referer_url = parse_url($_SERVER['HTTP_REFERER']);
 	list($appid, $version) = explode('/', ltrim($referer_url['path'], '/'));
 }
 if (!empty($_W['uniacid'])) {
-	$version_info = miniapp_version_by_version(safe_gpc_string(trim($_GPC['v'])));
+	$version = trim($_GPC['v']);
+	$version_info = wxapp_version_by_version($version);
 	if (!empty($version_info['modules'])) {
 		foreach ($version_info['modules'] as $module) {
 			if (!empty($module['account']) && intval($module['account']['uniacid']) > 0) {

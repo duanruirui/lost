@@ -1,7 +1,7 @@
 <?php
 /**
- * 文章评论 - 微官网
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('article');
@@ -17,14 +17,14 @@ if ($do == 'display') {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
 
-	$comment_table = table('site_article_comment');
+	$comment_table = table('sitearticlecomment');
 	$comment_table->searchWithArticleid($articleId);
 	$comment_table->searchWithParentid(ARTICLE_COMMENT_DEFAULT);
 	$comment_table->searchWithPage($pindex, $psize);
 
 	$order_sort = !empty($_GPC['order']) ? intval($_GPC['order']) : 2;
 	$order = $order_sort == 1 ? 'ASC' : 'DESC';
-	$comment_table->orderby('id', $order);
+	$comment_table->articleCommentOrder($order);
 
 
 	$is_comment = intval($_GPC['iscommend']);
@@ -32,7 +32,7 @@ if ($do == 'display') {
 		$comment_table->searchWithIscomment($is_comment);
 	}
 
-	$article_lists = $comment_table->getAllByCurrentUniacid();
+	$article_lists = $comment_table->articleCommentList();
 	$total = $comment_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
 	$article_lists = article_comment_detail($article_lists);

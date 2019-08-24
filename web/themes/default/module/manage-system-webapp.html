@@ -5,9 +5,12 @@
 <ul class="we7-page-tab">
 	<li {if $do == 'installed'}class="active"{/if}><a href="{php echo url('module/manage-system/installed', array('account_type' => ACCOUNT_TYPE))}">已安装PC应用  </a></li>
 	{if $_W['isfounder'] && uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
-	<li {if $do == 'not_installed' && $_GPC['status'] != 'recycle'}class="active"{/if}><a href="{php echo url('module/manage-system/not_installed', array('account_type' => ACCOUNT_TYPE))}">未安装PC应用<span class="color-red">  ({$total_uninstalled}) </span></a></li>
+	<li {if $do == 'not_installed' && $_GPC['status'] != 'recycle' && $_GPC['status'] != 'uninstalled_recycle'}class="active"{/if}><a href="{php echo url('module/manage-system/not_installed', array('account_type' => ACCOUNT_TYPE))}">未安装PC应用<span class="color-red">  ({$total_uninstalled}) </span></a></li>
 	<li {if $do == 'not_installed' && $_GPC['status'] == 'recycle'}class="active"{/if}><a href="{php echo url('module/manage-system/not_installed', array('status' => 'recycle', 'account_type' => ACCOUNT_TYPE))}">已停用PC应用</a></li>
 	{/if}
+	<li {if $status == 'uninstalled_recycle'}class="active"{/if}><a href="{php echo url('module/manage-system/not_installed', array('account_type' => ACCOUNT_TYPE, 'status' => 'uninstalled_recycle'))}" ng-if="isFounder == 1">PC应用回收站<span class="color-red">  ({$total_uninstalled_recycle}) </span></a></li>
+
+
 </ul>
 {if $do == 'installed'}
 <div id="js-system-module" ng-controller="installedCtrl" ng-cloak>
@@ -264,8 +267,9 @@
 				<div class="input-group we7-margin-bottom">
 					<input type="hidden" name="c" value="module">
 					<input type="hidden" name="a" value="manage-system">
-					<input type="hidden" name="do" value="not_installed">
-					<input type="hidden" name="status" value="{if $status == 'recycle'}recycle{else}uninstalled{/if}">
+					<input type="hidden" name="do" value="{$do}">
+					<input type="hidden" name="type" value="{$type}">
+					<input type="hidden" name="support" value="{$module_support_name}">
 					<input type="hidden" name="letter" value="{$letter}">
 					<input class="form-control" name="title" value="{$title}" type="text" placeholder="名称" >
 					<span class="input-group-btn"><button id="search" class="btn btn-default"><i class="fa fa-search"></i></button></span>
@@ -284,7 +288,13 @@
 			<th colspan="2" class="text-left">公众号应用名</th>
 			<th class="text-right">操作</th>
 		</tr>
+		{if $status == 'uninstalled'}
+		<tr ng-repeat="module in module_list" ng-show="!module.is_delete">
+			{elseif $status == 'uninstalled_recycle'}
+		<tr ng-repeat="module in module_list" ng-show="module.is_delete">
+			{elseif $status == 'recycle'}
 		<tr ng-repeat="module in module_list">
+		{/if}
 			<td class="text-left module-img">
 				<img ng-src="{{ module.logo }}" alt="" style="width:50px;height:50px;" ng-if="module.main_module == ''">
 				<div class="img" ng-if="module.main_module != ''">
@@ -298,8 +308,17 @@
 			</td>
 			<td class="text-right">
 				{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
-				<a href="{php echo url('module/manage-system/upgrade')}&module_name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="module.upgrade_support == true" class="btn btn-primary">安装应用模块</a>
-				<a href="{php echo url('module/manage-system/install')}&module_name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="module.upgrade_support != true" class="btn btn-primary">安装应用模块</a>
+				<a href="{php echo url('module/manage-system/upgrade')}&module_name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="module.upgrade_support == true" class="btn btn-primary">{if $_GPC['status'] == 'recycle'}启用{else}安装应用模块{/if}</a>
+				<a href="{php echo url('module/manage-system/install')}&module_name={{ module.name }}&account_type={ACCOUNT_TYPE}" ng-if="module.upgrade_support != true" class="btn btn-primary">{if $_GPC['status'] == 'recycle'}启用{else}安装应用模块{/if}</a>
+				{if $status == 'uninstalled' &&  permission_check_account_user('see_module_manage_system_stop')}
+				<a href="{php echo url('module/manage-system/uninstalled_recycle', array('account_type' => ACCOUNT_TYPE))}&module_name={{ module.name }}&opt=0" class="btn btn-primary" onclick="return confirm('确认要删除模块吗？')">删除</a>
+				{/if}
+				{if $_GPC['status'] == 'uninstalled_recycle' &&  permission_check_account_user('see_module_manage_system_stop')}
+				<a href="{php echo url('module/manage-system/uninstalled_recycle', array('account_type' => ACCOUNT_TYPE))}&module_name={{ module.name }}&opt=1" class="btn btn-primary">恢复</a>
+				{/if}
+				{if $_GPC['status'] == 'recycle'}
+				<a href="{php echo url('module/manage-system/recycle_uninstall', array('account_type' => ACCOUNT_TYPE))}&module_name={{ module.name }}" ng-if="module.upgrade_support != true" class="btn btn-primary">卸载模块</a>
+				{/if}
 				{/if}
 			</td>
 		</tr>
@@ -329,8 +348,8 @@
 
 	</ol>
 	<div class="user-head-info we7-padding-bottom">
-		<span class="icon pull-left" ng-if="moduleinfo.app_support == 2"><i class="wi wi-wx-apply"></i></span>
-		<span class="icon pull-left" ng-if="moduleinfo.wxapp_support == 2 && moduleinfo.app_support != 2"><i class="wi wi-wxapp-apply"></i></span>
+		<span class="icon pull-left" ng-if="moduleinfo.{MODULE_SUPPORT_ACCOUNT_NAME} == 2"><i class="wi wi-wx-apply"></i></span>
+		<span class="icon pull-left" ng-if="moduleinfo.wxapp_support == 2 && moduleinfo.{MODULE_SUPPORT_ACCOUNT_NAME} != 2"><i class="wi wi-wxapp-apply"></i></span>
 		<div class="img pull-left" ng-if="moduleinfo.main_module != ''">
 			<img alt="子应用icon" class="plugin-img" ng-src="{{ moduleinfo.logo }}"/>
 			<img alt="主应用icon" class="module-img" ng-src="{{ moduleinfo.main_module_logo }}"/>
@@ -353,17 +372,9 @@
 		{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, false)}
 		<a  href="javascript:;" ng-click="changeShow('upgrade')" class="btn " ng-class="{'active' : show == 'upgrade'}" ng-show="checkupgrade == 1">升级</a>
 		{/if}
-		<a  href="javascript:;" ng-click="changeShow('workorder')" ng-class="{'active' : show == 'workorder'}" class="btn">工单系统</a>
+
 	</div>
-	<div class="panel we7-panel" ng-show="show == 'workorder'">
-		<div class="panel-heading">
-			工单系统
-		</div>
-		<div class="panel-body" id="iframepanel">
-			<iframe src="" frameborder="0" width="100%"  scrolling="no" id="workorderiframe">
-			</iframe>
-		</div>
-	</div>
+
 	<table class="table we7-table table-hover table-form" ng-show="show == 'base' || show == ''">
 		<col width="140px">
 		<col />

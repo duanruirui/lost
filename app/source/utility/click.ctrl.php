@@ -1,18 +1,16 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/app/source/utility/click.ctrl.php : v 9db086b9ae3d : 2014/11/06 06:04:46 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 $ret = array();
-//必须要有的参数
 if(empty($_GPC['module']) || empty($_GPC['sign']) || empty($_W['uniacid']) || empty($_GPC['action'])) {
 	return false;
 }
 
 $name = trim($_GPC['module']);
 $site = WeUtility::createModuleSite($name);
-//creditOperate方法需要返回积分上限和当前操作所需的积分数
 $return = $site->creditOperate($_GPC['sign'], $_GPC['action']);
 
 if(empty($return)) {
@@ -23,7 +21,6 @@ if(empty($return)) {
 }
 
 $ret = array();
-//判断积分是否达到上限
 $total = pdo_fetchcolumn('SELECT SUM(credit_value) FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND module = :module AND sign = :sign', array(':uniacid' => $_W['uniacid'], ':module' => $_GPC['module'], ':sign' => $_GPC['sign']));
 $credit_total = intval($return['credit_total']);
 if($total >= $credit_total) {
@@ -55,7 +52,6 @@ if(empty($_GPC['fuid'])) {
 }
 
 
-//判断用户是否已经加过积分
 if(!empty($_GPC['action'])) {
 	$sql = 'SELECT id FROM ' . tablename('mc_handsel') . ' WHERE uniacid = :uniacid AND touid = :touid AND fromuid = :fromuid AND module = :module AND sign = :sign AND action = :action';
 	$parm = array(':uniacid' => $_W['uniacid'], ':touid' => $tuid, ':fromuid' => $fuid, ':module' => $_GPC['module'], ':sign' => $_GPC['sign'], ':action' => $_GPC['action']);

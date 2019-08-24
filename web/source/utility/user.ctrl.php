@@ -1,7 +1,7 @@
 <?php
 /**
- * 上传图片
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('user');
@@ -34,11 +34,8 @@ if ($do == 'browser') {
 		$params[':username'] = "%{$_GPC['keyword']}%";
 	}
 	if (user_is_vice_founder()) {
-		$founder_users = table('users_founder_own_users')->getFounderOwnUsersList($_W['uid']);
-		if (!empty($founder_users)) {
-			$founder_users = implode(',', array_keys($founder_users));
-			$where .= " AND `uid` in ($founder_users)";
-		}
+		$where .= ' AND `owner_uid` = :owner_uid';
+		$params[':owner_uid'] = $_W['uid'];
 	}
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 10;
@@ -47,18 +44,7 @@ if ($do == 'browser') {
 	$list = pdo_fetchall("SELECT uid, groupid, username, remark FROM ".tablename('users')." {$where} ORDER BY `uid` LIMIT ".(($pindex - 1) * $psize).",{$psize}", $params);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('users'). $where , $params);
 	$pager = pagination($total, $pindex, $psize, '', array('ajaxcallback'=>'null','mode'=>$mode,'uids'=>$uids));
-	$usergroups = array();
-	if (!empty($list)) {
-		$group_ids = array();
-		foreach ($list as $item) {
-			if (!empty($item['groupid']) && !in_array($item['groupid'], $group_ids)) {
-				$group_ids[] = $item['groupid'];
-			}
-		}
-		if (!empty($group_ids)) {
-			$usergroups = table('users_group')->getAllById($group_ids);
-		}
-	}
+	$usergroups = user_group();
 	template('utility/user-browser');
 	exit;
 }

@@ -1,7 +1,7 @@
 <?php
 /**
- * 长链接转二维码
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -11,7 +11,8 @@ load()->library('qrcode');
 
 $dos = array('display', 'change', 'qr', 'chat', 'down_qr');
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('platform_qr_qr');
+permission_check_account_user('platform_qr');
+$_W['page']['title'] = '长链接转二维码';
 
 if ($do == 'display') {
 	template('platform/url2qr');
@@ -20,8 +21,7 @@ if ($do == 'display') {
 if ($do == 'change') {
 	if ($_W['ispost'] && $_W['isajax']) {
 		$longurl = trim($_GPC['longurl']);
-		$token = $_W['account']->getAccessToken();
-
+		$token = WeAccount::token();
 		$url = "https://api.weixin.qq.com/cgi-bin/shorturl?access_token={$token}";
 		$send = array();
 		$send['action'] = 'long2short';

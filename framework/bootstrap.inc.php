@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/framework/bootstrap.inc.php : v f5d0e9240317 : 2015/09/08 07:12:51 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 define('IN_IA', true);
 define('STARTTIME', microtime());
@@ -18,7 +18,7 @@ if(!file_exists($configfile)) {
 		require IA_ROOT . '/framework/version.inc.php';
 		echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
 		echo "·如果你还没安装本程序，请运行<a href='".(strpos($_SERVER['SCRIPT_NAME'], 'web') === false ? './install.php' : '../install.php')."'> install.php 进入安装&gt;&gt; </a><br/><br/>";
-		echo "&nbsp;&nbsp;<a href='http://www.w7.cc' style='font-size:12px' target='_blank'>Power by WE7 " . IMS_VERSION . " &nbsp;微擎公众平台自助开源引擎</a>";
+		echo "&nbsp;&nbsp;<a href='http://www.we7.cc' style='font-size:12px' target='_blank'>Power by WE7 " . IMS_VERSION . " &nbsp;微擎公众平台自助开源引擎</a>";
 		exit();
 	} else {
 		header('Content-Type: text/html; charset=utf-8');
@@ -32,7 +32,6 @@ require IA_ROOT . '/framework/const.inc.php';
 require IA_ROOT . '/framework/class/loader.class.php';
 load()->func('global');
 load()->func('compat');
-load()->func('compat.biz');
 load()->func('pdo');
 load()->classs('account');
 load()->model('cache');
@@ -57,7 +56,6 @@ $_W['clientip'] = CLIENT_IP;
 unset($configfile, $config);
 
 
-// 附件地址绝对路径
 define('ATTACHMENT_ROOT', IA_ROOT .'/attachment/');
 error_reporting(0);
 
@@ -79,28 +77,25 @@ if(!empty($_W['config']['setting']['memory_limit']) && function_exists('ini_get'
 if (isset($_W['config']['setting']['https']) && $_W['config']['setting']['https'] == '1') {
 	$_W['ishttps'] = $_W['config']['setting']['https'];
 } else {
-	$_W['ishttps'] = isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443 ||
+	$_W['ishttps'] = $_SERVER['SERVER_PORT'] == 443 ||
 	(isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off') ||
-	isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' ||
-	isset($_SERVER['HTTP_X_CLIENT_SCHEME']) && strtolower($_SERVER['HTTP_X_CLIENT_SCHEME']) == 'https' //阿里云判断方式
-			? true : false;
+	strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https' ||
+	strtolower($_SERVER['HTTP_X_CLIENT_SCHEME']) == 'https' 			? true : false;
 }
 
 $_W['isajax'] = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-$_W['ispost'] = isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST';
+$_W['ispost'] = $_SERVER['REQUEST_METHOD'] == 'POST';
 
 $_W['sitescheme'] = $_W['ishttps'] ? 'https://' : 'http://';
 $_W['script_name'] = htmlspecialchars(scriptname());
 $sitepath = substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
-$_W['siteroot'] = htmlspecialchars($_W['sitescheme'] . (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '') . $sitepath);
+$_W['siteroot'] = htmlspecialchars($_W['sitescheme'] . $_SERVER['HTTP_HOST'] . $sitepath);
 
 if(substr($_W['siteroot'], -1) != '/') {
 	$_W['siteroot'] .= '/';
 }
 $urls = parse_url($_W['siteroot']);
 $urls['path'] = str_replace(array('/web', '/app', '/payment/wechat', '/payment/alipay', '/payment/jueqiymf', '/api'), '', $urls['path']);
-$urls['scheme'] = !empty($urls['scheme']) ? $urls['scheme'] : 'http';
-$urls['host'] = !empty($urls['host']) ? $urls['host'] : '';
 $_W['siteroot'] = $urls['scheme'].'://'.$urls['host'].((!empty($urls['port']) && $urls['port']!='80') ? ':'.$urls['port'] : '').$urls['path'];
 
 if(MAGIC_QUOTES_GPC) {
@@ -108,7 +103,6 @@ if(MAGIC_QUOTES_GPC) {
 	$_POST = istripslashes($_POST);
 	$_COOKIE = istripslashes($_COOKIE);
 }
-//全局过滤GET中的XSS
 foreach($_GET as $key => $value) {
 	if (is_string($value) && !is_numeric($value)) {
 		$value = safe_gpc_string($value);
@@ -139,14 +133,13 @@ if (!$_W['isajax']) {
 	}
 	unset($input, $__input);
 }
-$_W['uniacid'] = $_W['uid'] = 0;
 
 setting_load();
 if (empty($_W['setting']['upload'])) {
 	$_W['setting']['upload'] = array_merge($_W['config']['upload']);
 }
 
-define('DEVELOPMENT', $_W['config']['setting']['development'] == 1);
+define('DEVELOPMENT', $_W['setting']['copyright']['develop_status'] == 1 || $_W['config']['setting']['development'] == 1);
 if(DEVELOPMENT) {
 	ini_set('display_errors', '1');
 	error_reporting(E_ALL ^ E_NOTICE);
@@ -156,7 +149,7 @@ if ($_W['config']['setting']['development'] == 2) {
 	if (class_exists('Raven_Autoloader')) {
 		error_reporting(E_ALL ^ E_NOTICE);
 		Raven_Autoloader::register();
-		$client = new Raven_Client('http://8d52c70dbbed4133b72e3b8916663ae3:0d84397f72204bf1a3f721edf9c782e1@sentry.w7.cc/6');
+//		$client = new Raven_Client('http://8d52c70dbbed4133b72e3b8916663ae3:0d84397f72204bf1a3f721edf9c782e1@sentry.w7.cc/6');
 		$error_handler = new Raven_ErrorHandler($client);
 		$error_handler->registerExceptionHandler();
 		$error_handler->registerErrorHandler();
@@ -184,17 +177,11 @@ if(Agent::isMicroMessage() == Agent::MICRO_MESSAGE_YES) {
 	$_W['container'] = 'iphone';
 } elseif ($_W['container'] == Agent::BROWSER_TYPE_IPOD) {
 	$_W['container'] = 'ipod';
-} elseif ($_W['container'] == Agent::BROWSER_TYPE_XZAPP) {
-	$_W['container'] = 'baidu';
 } else {
 	$_W['container'] = 'unknown';
 }
 
-if ($_W['container'] == 'wechat' || $_W['container'] == 'baidu') {
-	$_W['platform'] = 'account';
-}
-
-$controller = !empty($_GPC['c']) ? $_GPC['c'] : '';
-$action = !empty($_GPC['a']) ? $_GPC['a'] : '';
-$do = !empty($_GPC['do']) ? $_GPC['do'] : '';
+$controller = $_GPC['c'];
+$action = $_GPC['a'];
+$do = $_GPC['do'];
 header('Content-Type: text/html; charset=' . $_W['charset']);

@@ -1,6 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 namespace We7\Table\Modules;
 
@@ -15,11 +16,7 @@ class Plugin extends \We7Table {
 		'name' => '',
 		'main_module' => '',
 	);
-
-	public function getAllByNameOrMainModule($modulenams) {
-		return $this->where('name', $modulenams)->whereor('main_module', $modulenams)->getall();
-	}
-
+	
 	public function deleteByMainModule($modulename) {
 		if (empty($modulename)) {
 			return true;

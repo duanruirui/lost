@@ -1,14 +1,12 @@
 {template 'common/header'}
 {template 'profile/common'}
 <div id="js-profile-tplnotice" ng-controller="tplCtrl" ng-cloak>
-	<table class="table we7-table table-form">
+	<table class="table we7-table table-hover table-form">
 		<col width="200px " />
 		<col />
 		<col width="100px" />
 		<tr>
-			<th>设置通知模板</th>
-			<th></th>
-			<th></th>
+			<th class="text-left" colspan="3">设置通知模板</th>
 		</tr>
 		<tr ng-repeat="(key, tpl) in tplList track by key">
 			<td class="text-left">
@@ -17,7 +15,7 @@
 			<td class="text-left color-gray">
 				{{ tpl.tpl }}
 			</td>
-			<td >
+			<td class="text-left ">
 				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#jsauth_acid" ng-click="changeActive(key)">修改</a></div>
 			</td>
 		</tr>

@@ -1,44 +1,44 @@
 <?php 
 /**
- * 数据库相关操作
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
-//防止30秒运行超时的错误（Maximum execution time of 30 seconds exceeded).
 set_time_limit(0);
 
 load()->func('file');
 load()->model('cloud');
 load()->func('db');
 load()->model('system');
-$dos = array('backup', 'restore', 'trim', 'optimize', 'run', 'scrap_table', 'delete_scrap_table', 'load_scrap_table_data');
+$dos = array('backup', 'restore', 'trim', 'optimize', 'run');
 $do = in_array($do, $dos) ? $do : 'backup';
 
-//备份
 if ($do == 'backup') {
+	$_W['page']['title'] = '备份 - 数据库 - 常用系统工具 - 系统管理';
 	if ($_GPC['status']) {
 		if (empty($_W['setting']['copyright']['status'])) {
 			itoast('为了保证备份数据完整请关闭站点后再进行此操作', url('system/site'), 'error');
 		}	
 		$sql = "SHOW TABLE STATUS LIKE '{$_W['config']['db']['tablepre']}%'";
 		$tables = pdo_fetchall($sql);
+		
 		if (empty($tables)) {
 			itoast('数据已经备份完成', url('system/database/'), 'success');
 		}	
 		$series = max(1, intval($_GPC['series']));
-		if (!empty($_GPC['volume_suffix']) && !preg_match('/[^0-9A-Za-z-_]/', $_GPC['volume_suffix'])) {
+		if (!empty($_GPC['volume_suffix'])) {
 			$volume_suffix =  $_GPC['volume_suffix'];
 		} else {
 			$volume_suffix = random(10);
 		}	
-		if (!empty($_GPC['folder_suffix']) && !preg_match('/[^0-9A-Za-z-_]/', $_GPC['folder_suffix'])) {
+		if (!empty($_GPC['folder_suffix'])) {
 			$folder_suffix = $_GPC['folder_suffix'];
 		} else {
 			$folder_suffix = TIMESTAMP . '_' . random(8);
 		}
 		$bakdir = IA_ROOT . '/data/backup/' . $folder_suffix;
 		if (trim($_GPC['start'])) {
-			$result = mkdirs($bakdir);
+			$result = mkdirs($bakdir);		
 		}
 		$size = 300;
 		$volumn = 1024 * 1024 * 2;
@@ -61,19 +61,20 @@ if ($do == 'backup') {
 			if (!empty($dump)) {
 				$dump .= "\n\n";
 			}
+			
 			if ($table != $last_table) {
-				$row = db_table_schemas($table);
+				$row = db_table_schemas(pdo(),$table);
 				$dump .= $row;
 			}
 			$index = 0;
 			if (!empty($_GPC['index'])) {
-				$index = intval($_GPC['index']);
+				$index = $_GPC['index'];
 				$_GPC['index'] = 0;
 			}
-			//枚举所有表的INSERT语句
-			while (true) {
+			 while (true) {
 				$start = $index * $size;
-				$result = db_table_insert_sql($table, $start, $size);
+				$result = db_table_insert_sql(pdo(),$table, $start, $size);
+				//var_dump($result);die();
 				if (!empty($result)) {
 					$dump .= $result['data'];
 					if (strlen($dump) > $volumn) {
@@ -108,12 +109,10 @@ if ($do == 'backup') {
 		itoast('数据已经备份完成', url('system/database/'), 'success');	
 	}
 }
-//还原
 if($do == 'restore') {
-	//获取备份目录下数据库备份数组
-	$reduction = system_database_backup();
-	//备份还原
-	if (!empty($_GPC['restore_dirname'])) {
+	$_W['page']['title'] = '还原 - 数据库 - 常用系统工具 - 系统管理';
+		$reduction = system_database_backup();
+		if (!empty($_GPC['restore_dirname'])) {
 		$restore_dirname = $_GPC['restore_dirname'];
 		$restore_dirname_list = array_keys($reduction);
 		if (!in_array($restore_dirname, $restore_dirname_list)) {
@@ -143,8 +142,7 @@ if($do == 'restore') {
 		);
 		message('正在恢复数据备份, 请不要关闭浏览器, 当前第 ' . $volume_sizes . ' 卷.', url('system/database/restore',$restore), 'success');
 	}
-	//删除备份	
-	if ($_GPC['delete_dirname']) {
+		if ($_GPC['delete_dirname']) {
 		$delete_dirname = $_GPC['delete_dirname'];
 		if(!empty($reduction[$delete_dirname]) && system_database_backup_delete($delete_dirname)) {
 			itoast('删除备份成功.', url('system/database/restore'), 'success');
@@ -152,7 +150,6 @@ if($do == 'restore') {
 	}
 }
 
-//数据库结构整理
 if ($do == 'trim') {
 	if ($_W['ispost']) {
 		$type = $_GPC['type'];
@@ -179,35 +176,32 @@ if ($do == 'trim') {
 	
 	$upgrade = cloud_schema();
 	$schemas = $upgrade['schemas'];
-	/*
-	 * $schemas 是存在差异的数据库表
-	 * 遍历$schemas, 读取本地数据库. 然后使用compare
-	*/
+	
 	
 	if (!empty($schemas)) {
-		foreach ($schemas as $key => $value) {
+		foreach ($schemas as $key=>$value) {
 			$tablename =  substr($value['tablename'], 4);
 			$struct = db_table_schema(pdo(), $tablename);
 			if (!empty($struct)) {
 				$temp = db_schema_compare($schemas[$key],$struct);
 				if (!empty($temp['fields']['less'])) {
 					$diff[$tablename]['name'] = $value['tablename'];
-					foreach ($temp['fields']['less'] as $key => $fields_value) {
-						$diff[$tablename]['fields'][] = $fields_value;
+					foreach ($temp['fields']['less'] as $key=>$value) {
+						$diff[$tablename]['fields'][] = $value;
 					}
 				}
 				if (!empty($temp['indexes']['less'])) {
 					$diff[$tablename]['name'] = $value['tablename'];
-					foreach ($temp['indexes']['less'] as $key => $indexes_value) {
-						$diff[$tablename]['indexes'][] = $indexes_value;
+					foreach ($temp['indexes']['less'] as $key=>$value) {
+						$diff[$tablename]['indexes'][] = $value;
 					}
 				}
 			}
 		}
 	}
 }
-//优化
 if ($do == 'optimize') {
+	$_W['page']['title'] = '优化 - 数据库 - 常用系统工具 - 系统管理';
 	$optimize_table = array();
 	$sql = "SHOW TABLE STATUS LIKE '{$_W['config']['db']['tablepre']}%'";
 	$tables = pdo_fetchall($sql);
@@ -238,10 +232,10 @@ if ($do == 'optimize') {
 		itoast('数据表优化成功.', 'refresh', 'success');
 	}
 }
-//运行SQL
 if ($do == 'run') {
+	$_W['page']['title'] = '运行SQL - 数据库 - 常用系统工具 - 系统管理';
 	if (!DEVELOPMENT) {
-		itoast('请先开启开发模式后再使用此功能', referer(), 'info');
+//		itoast('请先开启开发模式后再使用此功能', referer(), 'info');
 	}
 	if (checksubmit()) {
 		$sql = $_POST['sql'];
@@ -250,81 +244,5 @@ if ($do == 'run') {
 	}
 }
 
-if (in_array($do, array('scrap_table', 'delete_scrap_table', 'load_scrap_table_data'))) {
-	$installed_modules = table('modules')->where('issystem !=', MODULE_SYSTEM)->getall('name');
-}
-
-if ($do == 'scrap_table') {
-	$pindex = max(1, intval($_GPC['page']));
-	$psize = 20;
-	$modules_cloud_table = table('modules_cloud');
-	$modules_cloud_table->searchWithUninstall(MODULE_CLOUD_UNINSTALL);
-	$modules_cloud_table->searchWithPage($pindex, $psize);
-	$module_cloud = $modules_cloud_table->getall('name');
-
-	$total = $modules_cloud_table->getLastQueryTotal();
-	$pager = pagination($total, $pindex, $psize);
-
-	if (empty($module_cloud)) {
-		$module_upgrade = module_upgrade_info();
-		cache_build_uninstalled_module();
-	}
-	$uninstalled_modules = array_diff(array_keys($module_cloud), $installed_modules);
-	foreach ($module_cloud as $module_key => $module_value) {
-		if (!in_array($module_key, $uninstalled_modules)) {
-			unset($module_cloud[$module_key]);
-			continue;
-		}
-		$module_cloud[$module_key] = array('logo' => $module_value['logo'], 'title' => $module_value['title'], 'name' => $module_value['name']);
-	}
-}
-
-if ($do == 'delete_scrap_table') {
-	$module_name = safe_gpc_string($_GPC['module_name']);
-	$tables = safe_gpc_string($_GPC['tables']);
-	if (!empty($installed_modules[$module_name])) {
-		iajax(-1, '模块已安装并使用，不可删除！');
-	}
-	if (!is_array($tables)) {
-		iajax(-1, '要删除的表数据错误！');
-	}
-	$drop_table = array();
-	foreach ($tables as $table) {
-		if (pdo_tableexists(ltrim($table, 'ims_'))) {
-			$drop_table[] = '`' . $table . '`';
-		}
-	}
-	if (empty($drop_table)) {
-		iajax(0, '系统已不存在这些表，无需删除！');
-	}
-	$result = pdo_run("DROP TABLE " . implode(',', $drop_table) . ";");
-	if ($result) {
-		iajax(0, '删除成功!');
-	} else {
-		iajax(-1, '删除失败!');
-	}
-}
-
-if ($do == 'load_scrap_table_data') {
-	$module_name = safe_gpc_string($_GPC['module_name']);
-	if (!empty($installed_modules[$module_name])) {
-		iajax(0, '');
-	}
-	$buildinfo = cloud_m_build($module_name);
-	if (is_error($buildinfo) || empty($buildinfo['sql'])) {
-		iajax(0, '');
-	}
-	if (!empty($buildinfo['sql'])) {
-		preg_match_all('/\`ims_[a-zA-Z0-9\-\_]{1,50}\`/', $buildinfo['sql'], $tables);
-		$tables = array_map(function($item) {return trim($item, '`');}, $tables[0]);
-		foreach ($tables as $key => $value) {
-			$value = ltrim($value, 'ims_');
-			if (!pdo_tableexists($value)) {
-				unset($tables[$key]);
-			}
-		}
-	}
-	iajax(0, !empty($tables) ? $tables : '');
-}
 template('system/database');
 

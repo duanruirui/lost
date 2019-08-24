@@ -1,32 +1,49 @@
 {template 'common/header'}
+<div class="we7-page-title">
+	素材管理
+</div>
 <ul class="we7-page-tab">
-	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false) && $active_menu['is_display'] !== false && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-	<li {if $type == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
+	<li{if $type == 'news'} class="active"{/if}>
+	<a href="{php echo url('platform/material', array('type' => 'news'))}">{$_W['account']['type_name']}图文</a>
+	</li>
+	<li{if $type == 'image'} class="active"{/if}>
+	<a href="{php echo url('platform/material', array('type' => 'image', 'server' => MATERIAL_WEXIN))}">图片</a>
+	</li>
+	<li{if $type == 'voice'} class="active"{/if}>
+	<a href="{php echo url('platform/material', array('type' => 'voice', 'server' => MATERIAL_WEXIN))}">语音</a>
+	</li>
+	{if $_W['account']['type'] != ACCOUNT_TYPE_XZAPP_NORMAL}
+	<li{if $type == 'video'} class="active"{/if}>
+	<a href="{php echo url('platform/material', array('type' => 'video', 'server' => MATERIAL_WEXIN))}">视频</a>
+	</li>
 	{/if}
-	{/loop}
 </ul>
 <div id="main" ng-controller="materialDisplay" ng-cloak>
 	<div class="material">
 		{if $type == 'news'}
 		<div class="material-appmsg">
 			<div class="material-list-head clearfix">
-				<div class="search-box">
-					<form action="{php echo url('platform/material/list', array('type' => 'news', 'server' => $server))}" class="search-form" method="post" >
-						<div class="input-group">
-							<input type="text" id="" name="title" class="form-control" size="40" value="{$_GPC['title']}" placeholder="标题/作者/摘要">
-							<span class="input-group-btn">
-								<button class="btn btn-default"><i class="fa fa-search"></i></button>
-							</span>
+				<div class="info col-sm-6 we7-padding-none">
+					<div class="we7-form">
+						<div class="form-controls">
+							<form action="{php echo url('platform/material/list', array('type' => 'news', 'server' => $server))}" method="post" >
+								<div class="input-group">
+									<input type="text" id="" name="title" class="form-control" size="40" value="{$_GPC['title']}" placeholder="标题/作者/摘要">
+									<span class="input-group-btn">
+										<button class="btn btn-default"><i class="fa fa-search"></i></button>
+									</span>
+								</div>
+							</form>
 						</div>
-					</form>
+					</div>
+				</div>
+				<div class="pull-right">
 					{if $_W['account']['level'] > 2 || $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_NORMAL && $_W['account']['isconnect'] = 1}
 					<a href="javascript:;" ng-click="sync('{$type}')" class="btn btn-default">同步{$_W['account']['type_name']}</a>
 					{/if}
 					<a href="javascript:;" data-toggle="modal" data-target="#new_type" class="btn btn-primary we7-margin-left">新建图文消息</a>
 				</div>
-				
-				<div class="modal fade modal-newAppmsg" id="new_type" tabindex="-1" role="dialog" aria-hidden="true">
+				<div class="modal fade" id="new_type" tabindex="-1" role="dialog" aria-hidden="true">
 					<div class="we7-modal-dialog modal-dialog">
 						<div class="modal-content">
 							<div class="modal-header">
@@ -45,9 +62,6 @@
 											</div>
 										</div>
 									</a>
-									<div class="mark">
-										去新建
-									</div>
 								</div>
 								<div class="link" ng-click="createNew('link')">
 									<a href="javascript:;">
@@ -60,19 +74,13 @@
 											</div>
 										</div>
 									</a>
-									<div class="mark">
-										去新建
-									</div>
 								</div>
-							</div>
-							<div class="modal-footer">
-								<a class="btn btn-default" data-dismiss="modal">取消</a>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="btn-group-sub we7-margin-top" style="top:15px;">
+			<div class="btn-group we7-btn-group" style="top:15px;">
 				<a href="{php echo url('platform/material', array('type' => $type))}" class="btn {if $server != MATERIAL_WEXIN && $server != MATERIAL_LOCAL} active {/if}">全部</a>
 				<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">{$_W['account']['type_name']}</a>
 				<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_LOCAL))}" class="btn {if $server == MATERIAL_LOCAL} active {/if}">服务器</a>
@@ -152,11 +160,9 @@
 									<a href="javascript:;" class="" ng-click="checkGroup('news', {$material['id']})" data-toggle="tooltip" data-placement="bottom" title="群发"><i class="wi wi-send"></i></a>
 								</li>
 							{else}
-								{if $_W['account']['type_sign'] != 'xzapp'}
 								<li class="appmsg-opr-item">
 									<a href="javascript:;" ng-click="newsToWechat({$material['id']})" class="" data-toggle="tooltip" data-placement="bottom" title="转换为微信文章"><i class="wi wi-transform"></i></a>
 								</li>
-								{/if}
 							{/if}
 							<li class="appmsg-opr-item">
 								<a href="{php echo url('platform/material-post/news', array('newsid' => $material['id']))}" class="" data-toggle="tooltip" data-placement="bottom" title="编辑">&nbsp;<i class="wi wi-text"></i></a>
@@ -184,7 +190,7 @@
 					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('image', true, false)">上传服务器图片</a>
 					{/if}
 				</div>
-				<div class="btn-group-sub">
+				<div class="btn-group we7-btn-group">
 					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">{$_W['account']['type_name']}</a>
 					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_LOCAL))}" class="btn {if $server == MATERIAL_LOCAL} active {/if}">服务器</a>
 				</div>
@@ -205,10 +211,10 @@
 						<span class="appimg-title">{$image['filename']}</span>
 					</div>
 					<div class="img-item">
-						{if $server == 'local' || !empty($_W['setting']['remote']['type'])}
-							<img class="img-thumb" src="{php echo tomedia($image['attachment']);}">
+						{if $server == 'local'}
+						<img class="img-thumb" src="{php echo tomedia($image['attachment']);}">
 						{else}
-							<img class="img-thumb" src="{php echo tomedia($image['attachment'], true);}">
+						<img class="img-thumb" src="{php echo tomedia($image['attachment'], true);}">
 						{/if}
 					</div>
 					<div class="img-opr">
@@ -245,7 +251,7 @@
 					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('voice', true, false)">上传服务器语音</a>
 					{/if}
 				</div>
-				<div class="btn-group-sub">
+				<div class="btn-group we7-btn-group">
 					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">微信</a>
 					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_LOCAL))}" class="btn {if $server == MATERIAL_LOCAL} active {/if}">服务器</a>
 				</div>
@@ -308,7 +314,7 @@
 					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('video', true, false)">上传服务器视频</a>
 					{/if}
 				</div>
-				<div class="btn-group-sub">
+				<div class="btn-group we7-btn-group">
 					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">微信</a>
 					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_LOCAL))}" class="btn {if $server == MATERIAL_LOCAL} active {/if}">服务器</a>
 				</div>
@@ -382,7 +388,7 @@
 				<div class="modal-body material-content clearfix web-mobile-choice-type">
 					<div class="material-wechat-view">
 						<a href="javascript:;" ng-click="wabPreview()" data-url="" class="we7-margin-bottom">
-							<span class="wi wi-account"></span>
+							<span class="wi wi-wechat"></span>
 							<span>网页预览</span>
 						</a>
 						<a href="javascript:;" ng-click="mobilePreview()" data-type="" data-media-id="" class="we7-mobile-material-preview">
@@ -440,7 +446,7 @@
 		});
 		angular.bootstrap($('#main'), ['materialApp']);
 		$('.material-appmsg-list .material-appmsg-item').wookmark({
-			align: 'left',
+			align: 'center',
 			autoResize: false,
 			container: $('.material-appmsg-list'),
 			itemWidth: 289,

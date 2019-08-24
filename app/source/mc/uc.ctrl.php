@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/app/source/mc/uc.ctrl.php : v 148a6d07bc2b : 2014/07/24 02:02:34 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -19,18 +19,15 @@ if($foo == 'bind') {
 		$pars[':uniacid'] = $_W['uniacid'];
 		$pars[':uid'] = $_W['member']['uid'];
 		$mapping = pdo_fetch($sql, $pars);
-		//如果没有映射关系
-		if(empty($mapping)) {
+				if(empty($mapping)) {
 			$op = trim($_GPC['op']);
-			//如果有UC账号
-			if($op == 'yes') {
+						if($op == 'yes') {
 				if(checksubmit('submit')) {
 					$username = trim($_GPC['username']) ? trim($_GPC['username']) : message('请填写用户名！', '', 'error');
 					$password = trim($_GPC['password']) ? trim($_GPC['password']) : message('请填写密码！', '', 'error');
 					mc_init_uc();
 					$data = uc_user_login($username, $password);
-					//如果有错误,提示用户错误信息
-					if($data[0] < 0) {
+										if($data[0] < 0) {
 						if($data[0] == -1) message('用户不存在，或者被删除！', '', 'error');
 						elseif ($data[0] == -2) message('密码错误！', '', 'error');
 						elseif ($data[0] == -3) message('安全提问错误！', '', 'error');
@@ -38,8 +35,7 @@ if($foo == 'bind') {
 					
 					$exist = pdo_fetch('SELECT * FROM ' . tablename('mc_mapping_ucenter') . ' WHERE `uniacid`=:uniacid AND `centeruid`=:centeruid', array(':uniacid' => $_W['uniacid'], 'centeruid' => $data[0]));
 					if(empty($exist)) {
-						//数据库建立映射关系
-						pdo_insert('mc_mapping_ucenter', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'centeruid' => $data[0]));
+												pdo_insert('mc_mapping_ucenter', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'centeruid' => $data[0]));
 						message('绑定UC账号成功！', url('mc/mc/home'), 'success');
 					} else {
 						message('该UC账号已绑定过,请使用其他账号绑定！', '', 'error');
@@ -62,8 +58,7 @@ if($foo == 'bind') {
 						elseif ($uid == -5) message('邮箱不允许注册！', '', 'error');
 						elseif ($uid == -6) message('邮箱已经被注册！', '', 'error');
 					} else {
-						//注册成功后操作
-						if($_W['member']['email'] == '') {
+												if($_W['member']['email'] == '') {
 							mc_update($_W['member']['uid'],array('email' => $email));
 						}
 						pdo_insert('mc_mapping_ucenter', array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid'], 'centeruid' => $uid));

@@ -1,7 +1,7 @@
 <?php
 /**
- * 定时群发
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -13,6 +13,7 @@ load()->model('material');
 
 $dos = array('list', 'post', 'cron', 'send', 'del', 'preview');
 $do = in_array($do, $dos) ? $do : 'post';
+$_W['page']['title'] = '定时群发-微信素材';
 
 if ($do == 'list') {
 	$time = strtotime(date('Y-m-d'));
@@ -66,7 +67,7 @@ if ($do == 'del') {
 	if (!empty($mass) && $mass['cron_id'] > 0) {
 		$status = cron_delete(array($mass['cron_id']));
 		if (is_error($status)) {
-			itoast($status['message'], '', 'error');
+			iajax(0, $status, '');
 		}
 	}
 	pdo_delete('mc_mass_record', array('uniacid' => $_W['uniacid'], 'id' => intval($_GPC['id'])));
@@ -74,13 +75,15 @@ if ($do == 'del') {
 }
 
 if ($do == 'post') {
-	permission_check_account_user('platform_masstask_post');
 	$id = intval($_GPC['id']);
 	$mass_info = pdo_get('mc_mass_record', array('id' => $id));
 	$groups = mc_fans_groups();
-	$account_api = WeAccount::createByUniacid();
-	$supports = $account_api->getMaterialSupport();
-	$show_post_content = $supports['mass'];
+
+	if (in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_AUTH, ACCOUNT_TYPE_XZAPP_NORMAL))) {
+		$show_post_content = array('news'=> false, 'image'=> false,'voice'=> false,'basic'=> false);
+	} else {
+		$show_post_content = array('news'=> false, 'image'=> false,'voice'=> false,'video'=> false);
+	}
 
 	if (checksubmit('submit')) {
 		$type = in_array(intval($_GPC['type']), array(0, 1)) ? intval($_GPC['type']) : 0;
@@ -89,6 +92,7 @@ if ($do == 'post') {
 		if (empty($_GPC['reply'])) {
 			itoast('请选择要群发的素材', '', 'error');
 		}
+
 		$mass_record = array(
 			'uniacid' => $_W['uniacid'],
 			'acid' => $_W['acid'],
@@ -113,20 +117,13 @@ if ($do == 'post') {
 			if ($attachment['model'] == 'local') {
 				itoast('图文素材请选择微信素材', '', 'error');
 			}
-
-			if ($material_type == 'reply_basic') {
-				$material = htmlspecialchars_decode($material);
-				$material = trim($material, '\"');
-			}
-
 			$mass_record['media_id'] = $material;
 			$mass_record['attach_id'] = $attachment['id'];
 			$mass_record['msgtype'] = $msgtype;
 			break;
 		}
 
-		//定时发送
-		if ($type == 1) {
+				if ($type == 1) {
 			$cloud = cloud_prepare();
 			if (is_error($cloud)) {
 				itoast($cloud['message'], '', 'error');
@@ -172,28 +169,17 @@ if ($do == 'post') {
 			);
 			$status = cron_add($cron_data);
 			if (is_error($status)) {
-				$message = $status['message'];
-				if (empty($message)) {
-					$message = "{$cron_title}同步到云服务失败,请手动同步<br>";
-				}
+				$message = "{$cron_title}同步到云服务失败,请手动同步<br>";
 				itoast($message, url('platform/mass/send'), 'info');
 			}
 
-			pdo_update('mc_mass_record', array('cron_id' => $status), array('id' => $mass_record_id, 'uniacid' => $_W['uniacid']));
+			pdo_update('mc_mass_record', array('cron_id' => $status), array('id' => $mass_record_id));
 			itoast('定时群发设置成功', url('platform/mass/send'), 'success');
 		} else {
-			$account_api = WeAccount::createByUniacid();
-			$msgtype = $msgtype == 'basic' ? 'text' : $msgtype;
-			if ($msgtype == 'text') {
-				$mass_record['media_id'] = urlencode(emoji_unicode_decode($mass_record['media_id']));
-			}
+			$account_api = WeAccount::create();
 			$result = $account_api->fansSendAll($group['id'], $msgtype, $mass_record['media_id']);
 			if (is_error($result)) {
 				itoast($result['message'], url('platform/mass'), 'info');
-			}
-			if ($msgtype == 'news') {
-				$mass_record['msg_id'] = $result['msg_id'];
-				$mass_record['msg_data_id'] = $result['msg_data_id'];
 			}
 			$mass_record['status'] = 0;
 			pdo_insert('mc_mass_record', $mass_record);
@@ -234,7 +220,7 @@ if ($do == 'preview') {
 	}
 	$type = trim($_GPC['type']);
 	$media_id = trim($_GPC['media_id']);
-	$account_api = WeAccount::createByUniacid();
+	$account_api = WeAccount::create();
 	$data = $account_api->fansSendPreview($wxname, $media_id, $type);
 	if (is_error($data)) {
 		iajax(-1, $data['message'], '');
@@ -243,7 +229,7 @@ if ($do == 'preview') {
 }
 
 if ($do == 'send') {
-	permission_check_account_user('platform_masstask_send');
+	$_W['page']['title'] = '定时群发记录-定时群发';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
 	$condition = ' WHERE `uniacid` = :uniacid AND `acid` = :acid';
@@ -252,7 +238,7 @@ if ($do == 'send') {
 	$params[':acid'] = $_W['acid'];
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('mc_mass_record') . $condition, $params);
 	$lists = pdo_getall('mc_mass_record', array('uniacid' => $_W['uniacid'], 'acid' => $_W['acid']), array(), '', 'id DESC', 'LIMIT '.($pindex-1)* $psize.','.$psize);
-	$types = array('basic' => '文本消息', 'text' => '文本消息', 'image' => '图片消息', 'voice' => '语音消息', 'video' => '视频消息', 'news' => '图文消息', 'wxcard' => '微信卡券');
+	$types = array('text' => '文本消息', 'image' => '图片消息', 'voice' => '语音消息', 'video' => '视频消息', 'news' => '图文消息', 'wxcard' => '微信卡券');
 	$pager = pagination($total, $pindex, $psize);
 	template('platform/mass-send');
 }

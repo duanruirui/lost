@@ -1,7 +1,7 @@
 <?php
 /**
- * 微官网文章分类
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -24,15 +24,13 @@ if ($do == 'display') {
 } elseif ($do == 'post') {
 	$parentid = intval($_GPC['parentid']);
 	$id = intval($_GPC['id']);
-	//获取当前默认微站的模板
-	$setting = uni_setting($_W['uniacid'], array('default_site'));
+		$setting = uni_setting($_W['uniacid'], array('default_site'));
 	$site_styleid = pdo_fetchcolumn('SELECT styleid FROM ' . tablename('site_multi') . ' WHERE id = :id', array(':id' => $setting['default_site']));
 	if ($site_styleid) {
 		$site_template = pdo_fetch("SELECT a.*,b.name,b.sections FROM ".tablename('site_styles').' AS a LEFT JOIN ' . tablename('site_templates') . ' AS b ON a.templateid = b.id WHERE a.uniacid = :uniacid AND a.id = :id', array(':uniacid' => $_W['uniacid'], ':id' => $site_styleid));
 	}
 
-	//微站风格模板
-	$styles = pdo_fetchall("SELECT a.*, b.name AS tname, b.title FROM ".tablename('site_styles').' AS a LEFT JOIN ' . tablename('site_templates') . ' AS b ON a.templateid = b.id WHERE a.uniacid = :uniacid', array(':uniacid' => $_W['uniacid']), 'id');
+		$styles = pdo_fetchall("SELECT a.*, b.name AS tname, b.title FROM ".tablename('site_styles').' AS a LEFT JOIN ' . tablename('site_templates') . ' AS b ON a.templateid = b.id WHERE a.uniacid = :uniacid', array(':uniacid' => $_W['uniacid']), 'id');
 	if (!empty($id)) {
 		$category = pdo_fetch("SELECT * FROM ".tablename('site_category')." WHERE id = '$id' AND uniacid = {$_W['uniacid']}");
 		if (empty($category)) {
@@ -147,7 +145,7 @@ if ($do == 'display') {
 		}
 		if (!empty($id)) {
 			unset($data['parentid']);
-			pdo_update('site_category', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+			pdo_update('site_category', $data, array('id' => $id));
 		} else {
 			pdo_insert('site_category', $data);
 			$id = pdo_insertid();
@@ -158,37 +156,28 @@ if ($do == 'display') {
 	}
 	template('site/category-post');
 } elseif ($do == 'delete') {
-	$owner_info = account_owner($_W['uniacid']);
 	if (checksubmit('submit')) {
-		if (user_is_founder($_W['uid']) || $_W['uid'] == $owner_info['uid']) {
-			foreach ($_GPC['rid'] as $key => $id) {
-				$category_delete = article_category_delete($id);
-				if (empty($category_delete)) {
-					itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');
-				}
-			}
-			itoast('分类批量删除成功！', referer(), 'success');
-		} else {
-			itoast('操作失败！', referer(), 'error');
-		}
-	} else {
-		$id = intval($_GPC['id']);
-		if (user_is_founder($_W['uid']) || $_W['uid'] == $owner_info['uid']) {
+		foreach ($_GPC['rid'] as $key => $id) {
 			$category_delete = article_category_delete($id);
 			if (empty($category_delete)) {
 				itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');
 			}
-			itoast('分类删除成功！', referer(), 'success');
-		} else {
-			itoast('操作失败！', referer(), 'error');
 		}
+		itoast('分类批量删除成功！', referer(), 'success');
+	} else {
+		$id = intval($_GPC['id']);
+		$category_delete = article_category_delete($id);
+		if (empty($category_delete)) {
+			itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');
+		}
+		itoast('分类删除成功！', referer(), 'success');
 	}
 } else if ($do == 'change_status') {
 	$id = intval($_GPC['id']);
 	$category_exist = pdo_get('site_category', array('id' => $id, 'uniacid' => $_W['uniacid']));
 	if (!empty($category_exist)) {
 		$status = $category_exist['enabled'] == 1 ? 0 : 1;
-		$result = pdo_update('site_category', array('enabled' => $status), array('id' => $id, 'uniacid' => $_W['uniacid']));
+		$result = pdo_update('site_category', array('enabled' => $status), array('id' => $id));
 		if ($result) {
 			iajax(0, '更改成功！', url('site/category'));
 		} else {

@@ -1,18 +1,12 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 function paycenter_order_status() {
-	/*		SUCCESS—支付成功
-		REFUND—转入退款
-		NOTPAY—未支付
-		CLOSED—已关闭
-		REVOKED—已撤销（刷卡支付）
-		USERPAYING--用户支付中
-		PAYERROR--支付失败(其他原因，如银行返回失败)*/
+	
 	return array(
 		'0' => array(
 			'text' => '未支付',

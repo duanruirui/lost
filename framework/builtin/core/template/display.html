@@ -1,4 +1,4 @@
-<div class="panel we7-panel panel-reply">
+<div class="panel we7-panel">
 	<div class="panel-heading">
 		{if $_GPC['a'] == 'qr'}二维码触发的关键字
 		{elseif $_GPC['a'] == 'mass'}群发内容
@@ -22,58 +22,31 @@
 		<div class="we7-select-msg">
 			<ul class="tab-navs">
 				<li class="tab-nav tab-appmsg active {if $options['news']}hidden{/if}">
-					<a href="javascript:void(0);"{if $_GPC['a'] == 'mass'} onclick="select_mediaid('news', 'wx')"{else} onclick="select_mediaid('news')"{/if}>
-						<img src="./resource/images/reply/appmsg-icon.png" alt="">
-						<span class="msg-tab-title">图文</span>
-					</a>
+					<a href="javascript:void(0);"{if $_GPC['a'] == 'mass'} onclick="select_mediaid('news', 'wx')"{else} onclick="select_mediaid('news')"{/if}>&nbsp;<i class="wi wi-appmsg"></i><span class="msg-tab-title">图文</span></a>
 				</li>
 				<li class="tab-nav tab-text {if $options['basic']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('basic');">
-						<img src="./resource/images/reply/text-icon.png" alt="">
-						</i><span class="msg-tab-title">文字</span>
-					</a>
+					<a href="javascript:void(0);" onclick="select_mediaid('basic');">&nbsp;<i class="wi wi-text"></i><span class="msg-tab-title">文字</span></a>
 				</li>
 				<li class="tab-nav tab-img {if $options['image']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('image');">
-						<img src="./resource/images/reply/image-icon.png" alt="">
-						<span class="msg-tab-title">{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}熊掌号{else}微信{/if}图片</span>
-					</a>
+					<a href="javascript:void(0);" onclick="select_mediaid('image');">&nbsp;<i class="wi wi-img"></i><span class="msg-tab-title">{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}熊掌号{else}微信{/if}图片</span></a>
 				</li>
 				<li class="tab-nav tab-audio {if $options['music']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('music');">
-						<img src="./resource/images/reply/music-icon.png" alt="">
-						<span class="msg-tab-title">音乐</span>
-					</a>
+					<a href="javascript:void(0);" onclick="select_mediaid('music');">&nbsp;<i class="wi wi-notice"></i><span class="msg-tab-title">音乐</span></a>
 				</li>
 				<li class="tab-nav tab-audio {if $options['voice']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('voice');">
-						<img src="./resource/images/reply/radio-icon.png" alt="">
-						<span class="msg-tab-title">语音</span>
-					</a>
+					<a href="javascript:void(0);" onclick="select_mediaid('voice');">&nbsp;<i class="wi wi-radio"></i><span class="msg-tab-title">语音</span></a>
 				</li>
 				<li class="tab-nav tab-video {if $options['video']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('video');">
-						<img src="./resource/images/reply/vedio-icon.png" alt="">
-						<span class="msg-tab-title">视频</span>
-					</a>
+					<a href="javascript:void(0);" onclick="select_mediaid('video');">&nbsp;<i class="wi wi-video "></i><span class="msg-tab-title">视频</span></a>
 				</li>
 				<li class="tab-nav tab-cardmsg {if $options['wxcard']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('wxcard');">
-						<img src="./resource/images/reply/image-card.png" alt="">
-						<span class="msg-tab-title">卡劵</span>
-					</a>
+					<a href="javascript:void(0);" onclick="select_mediaid('wxcard');">&nbsp;<i class="wi wi-card"></i><span class="msg-tab-title">卡劵</span></a>
 				</li>
 				<li class="tab-nav tab-cardmsg {if $options['keyword']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('keyword');">
-						<img src="./resource/images/reply/keyword-icon.png" alt="">
-						<span class="msg-tab-title">{if $_GPC['m'] == 'welcome'}匹配{else}触发{/if}关键字</span>
-					</a>
+					<a href="javascript:void(0);" onclick="select_mediaid('keyword');">&nbsp;<i class="wi wi-keyword"></i><span class="msg-tab-title">触发关键字</span></a>
 				</li>
 				<li class="tab-nav tab-cardmsg {if $options['module']}hidden{/if}">
-					<a href="javascript:void(0);" onclick="select_mediaid('module');">
-						<img src="./resource/images/reply/module-icon.png" alt="">
-						<span class="msg-tab-title">模块</span>
-					</a>
+					<a href="javascript:void(0);" onclick="select_mediaid('module');">&nbsp;<i class="wi wi-keyword"></i><span class="msg-tab-title">模块</span></a>
 				</li>
 			</ul>
 		</div>

@@ -1,26 +1,18 @@
 <?php
 /**
- * 云服务相关
  * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
-
-if (in_array($action, array('sms', 'sms-sign'))) {
+if (in_array($action, array('upgrade', 'profile', 'diagnose', 'sms'))) {
+	define('FRAME', 'site');
+} else {
 	define('FRAME', 'system');
 }
-if ($action == 'process') {
-	define('FRAME', '');
-} else {
-	define('FRAME', 'site');
-}
 
-if (in_array($action, array('device', 'callback', 'appstore'))) {
+if(in_array($action, array('profile', 'device', 'callback', 'appstore', 'sms'))) {
 	$do = $action;
 	$action = 'redirect';
-}
-if ($action == 'sms') {
-	$action = 'profile';
-	$do = 'sms';
 }
 if($action == 'touch') {
 	exit('success');

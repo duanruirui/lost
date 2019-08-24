@@ -1,10 +1,14 @@
 {template 'common/header'}
+<div class="we7-page-title">
+	退款参数设置
+</div>
 <ul class="we7-page-tab">
-	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false, 'wxapp')}
-	<li {if $action == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}version_id={$_GPC['version_id']}">{$active_menu['title']}</a></li>
-	{/if}
-	{/loop}
+	<li {if $action == 'payment'} class="active"{/if}>
+	<a href="{php echo url('wxapp/payment', array('version_id' => $version_id))}">支付参数</a>
+	</li>
+	<li {if $action == 'refund'} class="active"{/if}>
+	<a href="{php echo url('profile/refund', array('version_id' => $version_id))}">退款配置</a>
+	</li>
 </ul>
 <div class="main">
 	<form id="form21" action="" method="post" class="we7-form form" enctype="multipart/form-data">

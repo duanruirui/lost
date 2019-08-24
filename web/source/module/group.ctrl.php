@@ -1,151 +1,132 @@
 <?php
 /**
- * 编辑应用套餐
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('user');
 load()->model('module');
 
-$dos = array('display', 'delete', 'post', 'save', 'edit');
+$dos = array('display', 'delete', 'post', 'save');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
-if (!in_array($_W['highest_role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
-	itoast('无权限操作！', referer(), 'error');
-}
 
-if ($do == 'display') {
-	$pageindex = max(1, intval($_GPC['page']));
-	$pagesize = 10;
-
-	$uni_group_table = table('uni_group');
-	$uni_group_table->searchWithUniacidAndUid();
-
-	$name = safe_gpc_string($_GPC['name']);
-	if (!empty($name)) {
-		$uni_group_table->searchWithName($name);
+	if (!in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))){
+		itoast('无权限操作！', referer(), 'error');
 	}
 
-	if (user_is_vice_founder($_W['uid'])) {
-		$uni_group_table->searchWithFounderUid($_W['uid']);
+
+
+
+	if ($do != 'display' && !in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+		itoast('您只有查看权限！', url('module/group'), 'error');
 	}
-	$uni_group_table->searchWithPage($pageindex, $pagesize);
-	$modules_group_list = $uni_group_table->getUniGroupList();
-	$total = $uni_group_table->getLastQueryTotal();
-	$pager = pagination($total, $pageindex, $pagesize);
-	$module_support_type = module_support_type();
 
-	if (!empty($modules_group_list)) {
-		$all_module_names = array();
-		foreach ($modules_group_list as $key => $value) {
-			$value['modules'] = iunserializer($value['modules']);
-			if (!is_array($value['modules'])) {
-				$value['modules'] = array();
-			}
-			$modules_group_list[$key]['modules'] = $value['modules'];
 
-			foreach ($value['modules'] as $type => $modulenames) {
-				if (empty($modulenames) || !is_array($modulenames)) {
-					$modules_group_list[$key][$type . '_num'] = 0;
-					continue;
-				} else {
-					$type = $type == 'modules' ? 'account' : $type;
-					$modules_group_list[$key][$type . '_num'] = count($modulenames);
-				}
-				$all_module_names = array_merge($all_module_names, $modulenames);
-			}
-		}
-		$all_modules = table('modules')->searchWithName(array_unique($all_module_names))->getall('name');
-
-		foreach ($modules_group_list as &$group) {
-			if (empty($group['modules'])) {
-				continue;
-			}
-			$template_ids = iunserializer($group['templates']);
-
-			$group['templates'] = array();
-			if (is_array($template_ids)) {
-				$templates = table('site_templates')->searchWithId($template_ids)->getAll();
-				if (is_array($templates)) {
-					foreach ($templates as $k => $temp) {
-						$temp['logo'] = $_W['siteroot'] . "app/themes/{$temp['name']}/preview.jpg";
-						$group['templates'][$k] = $temp;
-					}
-				}
-			}
-
-			$group['modules_all'] = array();
-			foreach ($module_support_type as $support => $info) {
-				if ($support == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
-					continue;
-				}
-				if ($support == MODULE_SUPPORT_ACCOUNT_NAME) {
-					$info['type'] = 'modules';
-				}
-				if (empty($group['modules'][$info['type']])) {
-					continue;
-				}
-				foreach ($group['modules'][$info['type']] as $modulename) {
-					if (empty($all_modules[$modulename])) {
-						continue;
-					}
-					if (empty($group['modules_all'][$modulename])) {
-						$all_modules[$modulename]['logo'] = tomedia($all_modules[$modulename]['logo']);
-						$group['modules_all'][$modulename] = $all_modules[$modulename];
-					}
-					if ($all_modules[$modulename][$support] == $info['support']) {
-						$support_type = $info['type'] == 'modules' ? 'account' : $info['type'];
-						$group['modules_all'][$modulename]['group_support'][] = $support_type;
-					}
-				}
-			}
-		}
-	}
-}
-
-if (in_array($do, array('save', 'delete', 'post'))) {
-	$id = intval($_GPC['id']);
-	if (empty($id) && $do == 'delete') {
-		itoast('请选择要操作的权限组', referer(), 'error');
-	}
-	if (!empty($id) && $_W['highest_role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER) {
-		$exists = table('users_founder_own_uni_groups')->getByFounderUidAndUniGroupId($_W['uid'], $id);
-		if (empty($exists)) {
-			itoast('无权限操作！', referer(), 'error');
-		}
-	}
-}
 
 if ($do == 'save') {
-	$account_all_type = uni_account_type();
-	$account_all_type_sign = array_keys(uni_account_type_sign());
-
-	$modules = safe_gpc_array($_GPC['modules']);
 	$package_info = array(
-		'id' => $id,
-		'name' => safe_gpc_string($_GPC['name']),
-		'modules' => array(),
-		'templates' => safe_gpc_array($_GPC['templates']),
+		'id' => intval($_GPC['id']),
+		'name' => $_GPC['name'],
+		'modules' => array(
+			'modules' => (array) $_GPC['modules'],
+			'wxapp' => (array) $_GPC['wxapp'],
+			'webapp' => empty($_GPC['webapp']) ? array() : (array) array_keys($_GPC['webapp']),
+			'xzapp' => empty($_GPC['xzapp']) ? array() : (array) array_keys($_GPC['xzapp']),
+			'phoneapp' => empty($_GPC['phoneapp']) ? array() : (array) array_keys($_GPC['phoneapp']),
+		),
+		'templates' => $_GPC['templates'],
 	);
-	foreach ($account_all_type_sign as $account_type) {
-		if ($account_type == 'account') {
-			$package_info['modules']['modules'] = empty($modules[$account_type]) ? array() : $modules[$account_type];
-		} else {
-			$package_info['modules'][$account_type] = empty($modules[$account_type]) ? array() : $modules[$account_type];
-		}
-	}
+
 	$package_info = module_save_group_package($package_info);
 
 	if (is_error($package_info)) {
 		iajax(1, $package_info['message'], '');
 	}
-	iajax(0, ($id ? '更新成功' : '添加成功'), url('module/group'));
+	iajax(0, '', url('module/group'));
+}
+
+if ($do == 'display') {
+	$_W['page']['title'] = '应用套餐列表';
+	$pageindex = max(1, intval($_GPC['page']));
+	$pagesize = 10;
+
+	$condition = 'WHERE uniacid = 0';
+	$params = array();
+	$name = safe_gpc_string($_GPC['name']);
+	if (!empty($name)) {
+		$condition .= " AND name LIKE :name";
+		$params[':name'] = "%{$name}%";
+	}
+	
+		if (user_is_vice_founder()) {
+			$condition .= " AND owner_uid = :owner_uid";
+			$params[':owner_uid'] = $_W['uid'];
+		}
+	
+	$modules_group_list = pdo_fetchall("SELECT * FROM " . tablename('uni_group') . $condition . " LIMIT " . ($pageindex - 1) * $pagesize . "," . $pagesize, $params);
+	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM " . tablename('uni_group') . $condition, $params);
+	$pager = pagination($total, $pageindex, $pagesize);
+	if (!empty($modules_group_list)) {
+		foreach ($modules_group_list as $key => $value) {
+			$modules = (array)iunserializer($value['modules']);
+			if (!empty($modules)) {
+				foreach ($modules as $type => $modulenames) {
+					if (empty($modulenames) || !is_array($modulenames)) {
+						continue;
+					}
+					foreach ($modulenames as $name) {
+						$module = module_fetch($name);
+						if (empty($module)) {
+							continue;
+						}
+						switch ($type) {
+							case 'modules':
+								if ($module[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_SUPPORT_ACCOUNT) {
+									$modules_group_list[$key]['account_num'] += 1;
+									$modules_group_list[$key]['account_modules'][] = $module;
+								}
+								break;
+							case 'wxapp':
+								if ($module[MODULE_SUPPORT_WXAPP_NAME] == MODULE_SUPPORT_WXAPP) {
+									$modules_group_list[$key]['wxapp_num'] += 1;
+									$modules_group_list[$key]['wxapp_modules'][] = $module;
+								}
+								break;
+							case 'webapp':
+								if ($module[MODULE_SUPPORT_WEBAPP_NAME] == MODULE_SUPPORT_WEBAPP) {
+									$modules_group_list[$key]['webapp_num'] += 1;
+									$modules_group_list[$key]['webapp_modules'][] = $module;
+								}
+								break;
+							case 'xzapp':
+								if ($module[MODULE_SUPPORT_XZAPP_NAME] == MODULE_SUPPORT_XZAPP) {
+									$modules_group_list[$key]['xzapp_num'] += 1;
+									$modules_group_list[$key]['xzapp_modules'][] = $module;
+								}
+								break;
+							case 'phoneapp':
+								if ($module[MODULE_SUPPORT_PHONEAPP_NAME] == MODULE_SUPPORT_PHONEAPP) {
+									$modules_group_list[$key]['phoneapp_num'] += 1;
+									$modules_group_list[$key]['phoneapp_modules'][] = $module;
+								}
+								break;
+						}
+					}
+				}
+			}
+			$templates = (array)iunserializer($value['templates']);
+			$modules_group_list[$key]['template_num'] = !empty($templates) ? count($templates) : 0;
+			$modules_group_list[$key]['templates'] = pdo_getall('site_templates', array('id' => $templates), array('id', 'name', 'title'), 'name');
+		}
+	}
+		$modules = user_modules($_W['uid']);
 }
 
 if ($do == 'delete') {
+	$id = intval($_GPC['id']);
 	if (!empty($id)) {
 		pdo_delete('uni_group', array('id' => $id));
-		pdo_delete('users_founder_own_uni_groups', array('uni_group_id' => $id));
 		cache_build_uni_group();
 		cache_build_account_modules();
 	}
@@ -153,53 +134,90 @@ if ($do == 'delete') {
 }
 
 if ($do == 'post') {
-	$group_id = $id;
+	$group_id = intval($_GPC['id']);
+	$_W['page']['title'] = $group_id ? '编辑应用套餐' : '添加应用套餐';
+
+	$group_have_module_app = array();
+	$group_have_module_wxapp = array();
+	$group_have_module_webapp = array();
+	$group_have_module_phoneapp = array();
+	$group_have_module_xzapp = array();
+	$group_have_template = array();
 	if (!empty($group_id)) {
-		$group = table('uni_group')->getById($group_id);
-	}
-	$module_support_type = module_support_type();
-	$module_list = array(
-		'modules' => array(),
-		'templates' => array(),
-	);
-
-	$user_modules = user_modules($_W['uid']);
-	foreach($user_modules as $name => $module) {
-		if (!empty($module['issystem'])) {
-			continue;
-		}
-		foreach ($module_support_type as $support => $info) {
-			if ($support == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
-				continue;
-			}
-			$info['type'] = $info['type'] == 'account' ? 'modules' : $info['type'];
-			if ($module[$support] == $info['support']) {
-				$module_list['modules'][] = array(
-					'id' => $module['mid'],
-					'name' => $module['name'],
-					'title' => $module['title'],
-					'logo' => $module['logo'],
-					'support' => $support,
-					'checked' => !empty($group['modules'][$info['type']]) && in_array($module['name'], $group['modules'][$info['type']]) ? 1 : 0,
-				);
-			}
-		}
+		$module_group = current(uni_groups(array($group_id)));
+		$group_have_module_app = empty($module_group['modules']) ? array() : array_filter($module_group['modules']);
+		$group_have_module_wxapp = empty($module_group['wxapp']) ? array() : array_filter($module_group['wxapp']);
+		$group_have_template = empty($module_group['templates']) ? array() : array_filter($module_group['templates']);
+		$group_have_module_webapp = empty($module_group['webapp']) ? array() : array_filter($module_group['webapp']);
+		$group_have_module_phoneapp = empty($module_group['phoneapp']) ? array() : array_filter($module_group['phoneapp']);
+		$group_have_module_xzapp = empty($module_group['xzapp']) ? array() : array_filter($module_group['xzapp']);
 	}
 
+	$module_list = user_modules($_W['uid']);
+	$module_list = array_filter($module_list, function($module) {
+		return empty($module['issystem']);
+	});
+
+	$group_not_have_module_app = array();
+	$group_not_have_module_wxapp = array();
+	$group_not_have_module_webapp = array();
+	$group_not_have_module_phoneapp = array();
+	$group_not_have_module_xzapp = array();
+	if (!empty($module_list)) {
+		foreach ($module_list as $name => $module_info) {
+			if ($module_info[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_SUPPORT_WXAPP && !in_array($name, array_keys($group_have_module_app))) {
+				if (!empty($module_info['main_module'])) {
+					if (!in_array($module_info['name'], array_keys($group_have_module_app))) {
+						$group_not_have_module_app[$name] = $module_info;
+					}
+				} elseif (is_array($module_info['plugin_list']) && !empty($module_info['plugin_list'])) {
+					$group_not_have_module_app[$name] = $module_info;
+					foreach ($module_info['plugin_list'] as $plugin) {
+						if (!in_array($plugin, array_keys($group_have_module_app))) {
+							$plugin = module_fetch($plugin);
+							if (!empty($plugin)) {
+								$group_not_have_module_app[$plugin['name']] = $plugin;
+							}
+						}
+					}
+				} else {
+					$group_not_have_module_app[$name] = $module_info;
+				}
+			}
+			if ($module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP && !in_array($name, array_keys($group_have_module_wxapp))) {
+				$group_not_have_module_wxapp[$name] = $module_info;
+			}
+
+			if ($module_info['webapp_support'] == MODULE_SUPPORT_WEBAPP && !in_array($name, array_keys($group_have_module_webapp))) {
+				$group_not_have_module_webapp[$name] = $module_info;
+			}
+
+			if ($module_info['phoneapp_support'] == MODULE_SUPPORT_PHONEAPP && !in_array($name, array_keys($group_have_module_phoneapp))) {
+				$group_not_have_module_phoneapp[$name] = $module_info;
+			}
+
+			if ($module_info['xzapp_support'] == MODULE_SUPPORT_XZAPP && !in_array($name, array_keys($group_have_module_xzapp))) {
+				$group_not_have_module_xzapp[$name] = $module_info;
+			}
+		}
+	}
+
 	
-	
-		$template_list = pdo_getall('site_templates');
+		if (user_is_vice_founder($_W['uid'])) {
+			$template_list = user_founder_templates($_W['user']['groupid']);
+		} else {
+			$template_list = pdo_getall('site_templates', array(), array(), 'name');
+		}
 	
 
-	foreach ($template_list as $temp) {
-		$module_list['templates'][] = array(
-			'id' => $temp['id'],
-			'name' => $temp['name'],
-			'title' => $temp['title'],
-			'logo' => $_W['siteroot'] . "app/themes/{$temp['name']}/preview.jpg",
-			'support' => '',
-			'checked' => !empty($group['templates']) && is_array($group['templates']) && in_array($temp['id'], $group['templates']) ? 1 : 0,
-		);
+	
+
+	$group_not_have_template = array();	if (!empty($template_list)) {
+		foreach ($template_list as $template) {
+			if (!in_array($template['name'], array_keys($group_have_template))) {
+				$group_not_have_template[$template['name']] =  $template;
+			}
+		}
 	}
 }
 template('module/group');

@@ -1,7 +1,7 @@
 <?php
 /**
- * 计划任务
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -191,8 +191,7 @@ function cron_add($data) {
 	} else {
 		$data['nextruntime'] = $data['lastruntime'];
 	}
-	//如果是循环任务，没有设置任何时间，则是每小时的0分时间执行一次
-	$data['day'] = intval($data['weekday']) == -1 ? intval($data['day']) : -1;
+		$data['day'] = intval($data['weekday']) == -1 ? intval($data['day']) : -1;
 	$data['weekday'] = intval($data['weekday']);
 	$data['hour'] = intval($data['hour']);
 	$data['module'] = trim($data['module']);
@@ -224,10 +223,7 @@ function cron_add($data) {
 	return pdo_insertid();
 }
 
-/*
- * $ids 类型:数组, 值:要删除的任务id
- *
- * */
+
 function cron_delete($ids) {
 	global $_W;
 	load()->model('cloud');

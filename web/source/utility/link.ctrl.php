@@ -1,7 +1,7 @@
 <?php
 /**
- * 链接选择器
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -167,8 +167,7 @@ if ($do == 'entry') {
 			'modules' => array()
 		);
 		$has_permission['system'] = permission_account_user('system');
-		//获取用户的模块权限
-		$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
+				$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], 'modules');
 		if(!is_error($module_permission) && !empty($module_permission)) {
 			$has_permission['modules'] = array_keys($module_permission);
 			foreach($module_permission as $row) {
@@ -218,11 +217,10 @@ if ($do == 'entry') {
 
 	$sysmenus = array(
 		array('title'=>'微站首页','url'=> murl('home')),
-		array('title'=>'个人中心','url'=> rtrim(murl('mc'), '&')),
+		array('title'=>'个人中心','url'=> murl('mc')),
 	);
 
-	//多微站链接处理
-	if(empty($has_permission) || (!empty($has_permission) && in_array('site_multi_display', $has_permission['system']))) {
+		if(empty($has_permission) || (!empty($has_permission) && in_array('site_multi_display', $has_permission['system']))) {
 		$multi_list = pdo_getall('site_multi', array('uniacid' => $_W['uniacid'], 'status !=' => 0), array('id', 'title'));
 		if(!empty($multi_list)) {
 			foreach($multi_list as $multi) {

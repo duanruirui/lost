@@ -1,17 +1,23 @@
 <?php
 /**
- * 帐号列表
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->func('file');
 load()->model('user');
 load()->model('message');
-load()->model('miniapp');
+load()->model('wxapp');
+$dos = array('display', 'delete');
+$do = in_array($_GPC['do'], $dos)? $do : 'display';
 
-$dos = array('display', 'delete', 'account_detailinfo', 'account_create_info');
-$do = in_array($_GPC['do'], $dos) ? $do : 'display';
+$_W['page']['title'] = $account_typename . '列表 - ' . $account_typename;
+$account_info = permission_user_account_num();
+
+	$role_type = in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
+
+
 
 if ($do == 'display') {
 	$message_id = intval($_GPC['message_id']);
@@ -19,118 +25,109 @@ if ($do == 'display') {
 
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 20;
-
+	
 	$account_table = table('account');
 
-	$account_type = $_GPC['account_type'];
-	if (!empty($account_type) && in_array($account_type, array_keys($account_all_type_sign))) {
-		$account_type = $account_all_type_sign[$account_type]['contain_type'];
-		$account_table->searchWithType($account_type);
-	}
+	$type_condition = array(
+		ACCOUNT_TYPE_APP_NORMAL => array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH),
+		ACCOUNT_TYPE_WEBAPP_NORMAL => array(ACCOUNT_TYPE_WEBAPP_NORMAL),
+		ACCOUNT_TYPE_OFFCIAL_NORMAL => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH),
+		ACCOUNT_TYPE_PHONEAPP_NORMAL => array(ACCOUNT_TYPE_PHONEAPP_NORMAL),
+		ACCOUNT_TYPE_XZAPP_NORMAL => array(ACCOUNT_TYPE_XZAPP_NORMAL),
+	);
+	$account_table->searchWithType($type_condition[ACCOUNT_TYPE]);
 
-	$order = safe_gpc_string($_GPC['order']);
-	$account_table->accountUniacidOrder($order);
-
-	$keyword = safe_gpc_string($_GPC['keyword']);
+	$keyword = trim($_GPC['keyword']);
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
 	}
-	$account_table->searchWithPage($pindex, $psize);
 
-	if (in_array(safe_gpc_string($_GPC['type']), array('expire', 'unexpire'))) {
-		$expire_type = safe_gpc_string($_GPC['type']);
+	if(isset($_GPC['letter']) && strlen($_GPC['letter']) == 1) {
+		$account_table->searchWithLetter($_GPC['letter']);
 	}
-	$list = $account_table->searchAccountList($expire_type);
-	foreach ($account_all_type_sign as $type_sign => $type_value) {
-		$type = $type_sign == 'account' ? 'app' : $type_sign;
-		$type_accounts = uni_user_accounts($_W['uid'], $type);
-		if (!empty($type_accounts)) {
-			$account_all_type_sign[$type_sign]['account_num'] = count($type_accounts);
+
+	$order = trim($_GPC['order']);
+	$account_table->accountUniacidOrder($order);
+
+	$type = trim($_GPC['type']);
+	if ($type == 'noconnect') {
+		$account_table->searchWithNoconnect();
+	}
+
+	$account_table->searchWithPage($pindex, $psize);
+	if ($type == 'expire') {
+		$list = $account_table->searchAccountList(true);
+	} else {
+		$list = $account_table->searchAccountList();
+	}
+
+	foreach($list as &$account) {
+		$account = uni_fetch($account['uniacid']);
+		$account['end'] = $account['endtime'] == 0 ? '永久' : date('Y-m-d', $account['starttime']) . '~'. date('Y-m-d', $account['endtime']);
+		$account['role'] = permission_account_user_role($_W['uid'], $account['uniacid']);
+		$account['versions'] = wxapp_get_some_lastversions($account['uniacid']);
+		if (!empty($account['versions'])) {
+			foreach ($account['versions'] as $version) {
+				if (!empty($version['current'])) {
+					$account['current_version'] = $version;
+				}
+			}
 		}
 	}
-
 	$list = array_values($list);
 	$total = $account_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
-	template('account/manage-display');
+	template('account/manage-display' . ACCOUNT_TYPE_TEMPLATE);
 }
-
-if ($do == 'account_create_info') {
-	$account_create_info = permission_user_account_num();
-	foreach ($account_all_type_sign as $sign => &$sign_info) {
-		$sign_limit = $sign . '_limit';
-		$founder_sign_limit = 'founder_' . $sign . '_limit';
-		if (!empty($account_create_info[$sign_limit]) && (!empty($account_create_info[$founder_sign_limit]) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || $_W['isfounder'] && !user_is_vice_founder()) {
-			$sign_info['can_create'] = true;
-		} else {
-			$sign_info['can_create'] = false;
-		}
-	}
-	iajax(0, $account_all_type_sign);
-}
-
-if ($do == 'account_detailinfo') {
-	$uniacids = safe_gpc_array($_GPC['uniacids']);
-	if (empty($uniacids)) {
-		return array();
-	}
-	$account_detailinfo = array();
-	foreach ($uniacids as $uniacid_value) {
-		$uniacid = intval($uniacid_value['uniacid']);
-		if ($uniacid <= 0) {
-			continue;
-		}
-		$account = uni_fetch($uniacid);
-		$account['owner_name'] = $account->owner['username'];
-		$account['support_version'] = $account->supportVersion;
-		$account['sms_num'] = !empty($account['setting']['notify']) ? $account['setting']['notify']['sms']['balance'] : 0;
-		$account['end'] = $account['endtime'] == USER_ENDTIME_GROUP_EMPTY_TYPE || $account['endtime'] == USER_ENDTIME_GROUP_UNLIMIT_TYPE ? '永久' : date('Y-m-d', $account['endtime']);
-		$account['manage_premission'] = in_array($account['current_user_role'], array(ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_MANAGER));
-		if ($account['support_version']) {
-			$account['versions'] = miniapp_get_some_lastversions($uniacid);
-			if (!empty($account['versions'])) {
-				foreach ($account['versions'] as $version) {
-					if (!empty($version['current'])) {
-						$account['current_version'] = $version;
-					}
-				}
-			}
-		}
-		$account_detailinfo[] = $account;
-	}
-	iajax(0, $account_detailinfo);
-}
-
 if ($do == 'delete') {
-	$uniacids = empty($_GPC['uniacids']) && !empty($_GPC['uniacid']) ? array($_GPC['uniacid']) : $_GPC['uniacids'];
-	if (!empty($uniacids)) {
-		foreach ($uniacids as $uniacid) {
-			$uniacid = intval($uniacid);
-			$state = permission_account_user_role($_W['uid'], $uniacid);
-			if (!in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
-				continue;
-			}
-
-			if (!empty($uniacid)) {
-				$account = pdo_get('uni_account', array('uniacid' => $uniacid));
-				if (empty($account)) {
-					continue;
-				}
-
-				pdo_update('account', array('isdeleted' => 1), array('uniacid' => $uniacid));
-				pdo_delete('uni_modules', array('uniacid' => $uniacid));
-				pdo_delete('users_lastuse', array('uniacid' => $uniacid));
-				pdo_delete('core_menu_shortcut', array('uniacid' => $uniacid));
-				if($uniacid == $_W['uniacid']) {
-					cache_delete(cache_system_key('last_account', array('switch' => $_GPC['__switch'], 'uid' => $_W['uid'])));
-					isetcookie('__uniacid', '');
-				}
-				cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
-			}
+	$uniacid = intval($_GPC['uniacid']);
+	$acid = intval($_GPC['acid']);
+	$uid = $_W['uid'];
+	$type = intval($_GPC['type']);
+		$state = permission_account_user_role($uid, $uniacid);
+	
+		if (!in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+			itoast('无权限操作！', url('account/manage'), 'error');
 		}
+	
+
+	
+
+	if (!empty($acid) && empty($uniacid)) {
+		$account = account_fetch($acid);
+		if (empty($account)) {
+			itoast('子公众号不存在或是已经被删除', '', '');
+		}
+		$uniaccount = uni_fetch($account['uniacid']);
+		if ($uniaccount['default_acid'] == $acid) {
+			itoast('默认子公众号不能删除', '', '');
+		}
+		pdo_update('account', array('isdeleted' => 1), array('acid' => $acid));
+		itoast('删除子公众号成功！您可以在回收站中回复公众号', referer(), 'success');
 	}
-	if (!$_W['isajax'] || !$_W['ispost']) {
-		itoast('停用成功！，您可以在回收站中恢复', url('account/manage'));
+
+	if (!empty($uniacid)) {
+		$account = pdo_get('uni_account', array('uniacid' => $uniacid));
+		if (empty($account)) {
+			itoast('抱歉，帐号不存在或是已经被删除', url('account/manage', array('account_type' => ACCOUNT_TYPE)), 'error');
+		}
+		$state = permission_account_user_role($uid, $uniacid);
+
+		
+			if (!in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+				itoast('没有该'. ACCOUNT_TYPE_NAME . '操作权限！', url('account/manage', array('account_type' => ACCOUNT_TYPE)), 'error');
+			}
+		
+
+		
+
+		pdo_update('account', array('isdeleted' => 1), array('uniacid' => $uniacid));
+		if($_GPC['uniacid'] == $_W['uniacid']) {
+			cache_delete(cache_system_key('last_account', array('switch' => $_GPC['__switch'])));
+			isetcookie('__uniacid', '');
+		}
+		cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
 	}
-	iajax(0, '停用成功！，您可以在回收站中恢复', url('account/manage'));
+	itoast('停用成功！，您可以在回收站中恢复', url('account/manage', array('account_type' => ACCOUNT_TYPE)), 'success');
 }
+

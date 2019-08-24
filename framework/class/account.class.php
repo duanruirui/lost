@@ -1,36 +1,21 @@
 <?php
 /**
- * 公众号核心类
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * @method WeAccount fetchAccountInfo()
- * 公众号业务操作基类
- */
-abstract class WeAccount {
-	//当前公众号
-	public $account;
-	public $uniacid = 0;
-	//当前菜单类型
-	public $menuFrame;
-	//帐号类型，数值
-	public $type;
-	//帐号类型中文名称
-	public $typeName;
-	//帐号对应的英文类型 
-	public $typeSign;
-	//相应类型对应的模板后缀
-	public $typeTempalte;
-	//当前公众号类型 
 
-	/**
-	 * 创建平台特定的公众号操作对象
-	 * @param int $acid 公众号编号
-	 * @return WeiXinAccount
-	 */
+abstract class WeAccount {
+		public $account;
+	public $uniacid = 0;
+		public $menuFrame;
+		public $type;
+		public $typeName;
+		public $typeSign;
+		public $typeTempalte;
+	
+	
 	public static function create($acidOrAccount = array()) {
 		global $_W;
 		$uniaccount = array();
@@ -95,8 +80,7 @@ abstract class WeAccount {
 			load()->classs('weixin.platform');
 			$account_obj = new WeiXinPlatform();
 		}
-		// 授权小程序
-		if ($type == ACCOUNT_TYPE_APP_AUTH) {
+				if ($type == ACCOUNT_TYPE_APP_AUTH) {
 			load()->classs('weixin.platform');
 			load()->classs('wxapp.platform');
 			$account_obj = new WxAppPlatform();
@@ -117,6 +101,10 @@ abstract class WeAccount {
 			load()->classs('wxapp.work');
 			$account_obj = new WxappWork();
 		}
+		if ($type == ACCOUNT_TYPE_XZAPP_NORMAL) {
+			load()->classs('xzapp.account');
+			$account_obj = new XzappAccount();
+		}
 
 		$account_obj->uniacid = $uniaccount['uniacid'];
 		$account_obj->uniaccount = $uniaccount;
@@ -127,59 +115,33 @@ abstract class WeAccount {
 		$account_obj->account['endtime'] = $account_obj->uniaccount['endtime'];
 
 		if ($type == ACCOUNT_TYPE_OFFCIAL_NORMAL || $type == ACCOUNT_TYPE_OFFCIAL_AUTH || $type == ACCOUNT_TYPE_XZAPP_NORMAL) {
-			$account_obj->same_account_exist = pdo_getall($account_obj->tablename, array('key' => $account_obj->account['key'], 'uniacid <>' => $account_obj->account['uniacid']), array(), 'uniacid');
+			$same_account_exist = pdo_get($account_obj->tablename, array('key' => $account_obj->account['key'], 'uniacid <>' => $account_obj->account['uniacid']), array(), 'uniacid');
+			$account_obj->same_account_exist = !empty($same_account_exist) ? true : false;
 		}
 
 		return $account_obj;
 	}
 
-	/**
-	 * 平台特定的公众号操作对象构造方法
-	 * @param array $account 统一公号基础对象
-	 */
+	
 	abstract public function __construct();
 
-	/**
-	 * 查询当前公号支持的统一消息类型, 当前支持的类型包括:
-	 * &nbsp;&nbsp;&nbsp;通用类型: text, image, voice, video, location, link,
-	 * &nbsp;&nbsp;&nbsp;扩展类型: subscribe, unsubscribe, qr, trace, click, view, enter
-	 * 类型说明:
-	 * &nbsp;&nbsp;&nbsp;通用类型: 文本消息, 图片消息, 音频消息, 视频消息, 位置消息, 链接消息,
-	 * &nbsp;&nbsp;&nbsp;扩展类型: 开始关注, 取消关注, 扫描二维码, 追踪位置, 点击菜单(链接), 点击菜单(模拟关键字), 进入聊天窗口
-	 *
-	 * @return array 当前公号支持的消息类型集合
-	 */
+	
 	public function queryAvailableMessages() {
 		return array();
 	}
 
-	/**
-	 * 没选中某个公众号，小程序，pc时，返回的url
-	 */
+	
 	abstract function accountDisplayUrl();
 
-	/**
-	 * 查询当前公号支持的统一响应结构
-	 *
-	 * 微擎当前支持的类型包括:<br/>
-	 * &nbsp;&nbsp;&nbsp; text, image, voice, video, music, news, link, card
-	 *
-	 * @return array 当前公号支持的响应结构集合
-	 */
+	
 	public function queryAvailablePackets() {
 		return array();
 	}
 
-	/**
-	 * 检测当前Uniacid是否匹配当前工作区
-	 */
+	
 	abstract function checkIntoManage();
 
-	/**
-	 * 分析消息内容,并返回统一消息结构, 参数为公众平台消息结构
-	 * @param array $message 统一消息结构
-	 * @return array 统一消息结构
-	 */
+	
 	public function parse($message) {
 		global $_W;
 		if (!empty($message)){
@@ -255,11 +217,7 @@ abstract class WeAccount {
 		return $packet;
 	}
 
-	/**
-	 * 响应消息内容, 参数为统一响应结构
-	 * @param array $packet 统一响应结构, 见文档 todo
-	 * @return string 平台特定的消息响应内容
-	 */
+	
 	public function response($packet) {
 		if (is_error($packet)) {
 			return '';
@@ -405,22 +363,10 @@ abstract class WeAccount {
 	}
 }
 
-/**
- * 模块组件工厂
- */
+
 class WeUtility {
 
-	/**
-	 * @param $type
-	 * @createModule 创建模块
-	 * @createModuleWxapp 创建模块小程序类
-	 * @createModulePhoneapp 创建模块APP类
-	 * @createModuleWebapp 创建pc类
-	 * @createModuleSystemWelcome 创建系统首页类
-	 * @createModuleProcessor 创建模块消息处理器
-	 * @param $params
-	 * @return null
-	 */
+	
 	public static function __callStatic($type, $params) {
 		global $_W;
 		static $file;
@@ -496,11 +442,7 @@ class WeUtility {
 		}
 	}
 
-	/**
-	 * 创建模块订阅器
-	 * @param $name
-	 * @return null | WeModuleReceiver
-	 */
+	
 	public static function createModuleReceiver($name) {
 		global $_W;
 		static $file;
@@ -534,25 +476,19 @@ class WeUtility {
 		}
 	}
 
-	/**
-	 * 创建模块站点类
-	 * @param unknown $name
-	 * @return NULL|WeModuleSite
-	 */
+	
 	public static function createModuleSite($name) {
 
 		global $_W;
 		static $file;
-		//如果是手机端，优先选用mobile.php文件
-		if (defined('IN_MOBILE')) {
+				if (defined('IN_MOBILE')) {
 			$file = IA_ROOT . "/addons/{$name}/mobile.php";
 			$classname = "{$name}ModuleMobile";
 			if (is_file($file)) {
 				require $file;
 			}
 		}
-		//如果mobile.php类不存在，选用site.php
-		if (!defined('IN_MOBILE') || !class_exists($classname)) {
+				if (!defined('IN_MOBILE') || !class_exists($classname)) {
 			$classname = "{$name}ModuleSite";
 			if (!class_exists($classname)) {
 				$file = IA_ROOT . "/addons/{$name}/site.php";
@@ -604,11 +540,7 @@ class WeUtility {
 		}
 	}
 
-	/**
-	 * 创建模块插件类
-	 * @param unknown $name
-	 * @return NULL|WeModuleSite
-	 */
+	
 	public static function createModuleHook($name) {
 		global $_W;
 		$classname = "{$name}ModuleHook";
@@ -642,11 +574,7 @@ class WeUtility {
 		}
 	}
 
-	/**
-	 * 创建模块计划任务类
-	 * @param unknown $name
-	 * @return NULL|WeModuleSite
-	 */
+	
 	public static function createModuleCron($name) {
 		global $_W;
 		static $file;
@@ -680,11 +608,7 @@ class WeUtility {
 		}
 	}
 
-	/**
-	 * 记录日志
-	 * @param string $level
-	 * @param string $message
-	 */
+	
 	public static function logging($level = 'info', $message = '') {
 		global $_W;
 		if ($_W['setting']['copyright']['log_status'] != 1) {
@@ -722,43 +646,20 @@ class WeUtility {
 		fclose($fp);
 	}
 }
-/**
- * 模块组件基类
- *
- * $modulename 模块名称
- * $module 模块信息
- * $weid 公众号编号
- * $uniacid 公众号编号
- * $__define 文件地址
- */
+
 abstract class WeBase {
-	/**
-	 * @var array 当前模块参数及配置信息
-	 */
+	
 	public $module;
-	/**
-	 * @var string 当前模块名称 {identifie}
-	 */
+	
 	public $modulename;
-	/**
-	 * @var int 当前统一公众号编号
-	 */
+	
 	public $weid;
-	/**
-	 * @var int 当前统一公众号编号
-	 */
+	
 	public $uniacid;
-	/**
-	 * @var string 定义了当前模块组件的文件绝对路径.
-	 */
+	
 	public $__define;
 
-	/**
-	 * 保存当前统一公号下的模块配置参数
-	 *
-	 * @param $settings array 配置参数
-	 * @return bool 是否成功保存
-	 */
+	
 	public function saveSettings($settings) {
 		global $_W;
 		$pars = array('module' => $this->modulename, 'uniacid' => $_W['uniacid']);
@@ -773,13 +674,7 @@ abstract class WeBase {
 		return $result;
 	}
 
-	/**
-	 * 构造手机页面URL
-	 * @param $do string 要进入的操作名称对应当前模块的 doMobileXXX 中的 Xxx
-	 * @param array $query 附加的查询参数
-	 * @param boolean $noredirect mobile 端url是否要附加 &wxref=mp.weixin.qq.com#wechat_redirect
-	 * @return string 返回的 URL
-	 */
+	
 	protected function createMobileUrl($do, $query = array(), $noredirect = true) {
 		global $_W;
 		$query['do'] = $do;
@@ -787,40 +682,14 @@ abstract class WeBase {
 		return murl('entry', $query, $noredirect);
 	}
 
-	/**
-	 * 构造Web页面URL
-	 * @param $do string 要进入的操作名称对应当前模块的 doWebXXX 中的 XXX
-	 * @param array $query 附加的查询参数
-	 * @return string 返回的 URL
-	 */
+	
 	protected function createWebUrl($do, $query = array()) {
 		$query['do'] = $do;
 		$query['m'] = strtolower($this->modulename);
 		return wurl('site/entry', $query);
 	}
 
-	/**
-	 * <b>返回模板编译后的文件路径，需要 include 调用</b>
-	 *
-	 * 使用说明:
-	 * 依次在以下位置查找模板定义文件
-	 * App:
-	 * 微站风格中 app/themes/{当前模板}/{模块标识}/{模板名称}.html
-	 * 微站风格中 app/themes/default/{模块标识}/{模板名称}.html
-	 * 模块定义中 addons/{模块标识}/template/mobile/{模板名称}.html
-	 * 微站风格中 app/themes/{当前模板}/{模板名称}.html
-	 * 微站风格中 app/theme/default/{模板名称}.html
-	 *
-	 * Web:
-	 * 后台风格中 web/themes/{当前模板}/modules/{模板标识}/{模板名称}.html
-	 * 后台风格中 web/themes/default/modules/{模板标识}/{模板名称}.html
-	 * 模块定义中 addons/{模块标识}/template/{模板名称}.html
-	 * 后台风格中 web/themes/{当前模板}/{模板标识}/{模板名称}.html
-	 * 后台风格中 web/theme/default/{模板标识}/{模板名称}.html
-	 *
-	 * @param string $filename 模板文件路径
-	 * @return string 编译后的模板文件路径
-	 */
+	
 	protected function template($filename) {
 		global $_W;
 		$name = strtolower($this->modulename);
@@ -878,12 +747,7 @@ abstract class WeBase {
 		return $compile;
 	}
 
-	/**
-	 * 保存一个流数据到本地
-	 * @param string $file_string 文件流
-	 * @param string $ext 要保存的文件扩展名
-	 * @return 保存的文件路径
-	 */
+	
 	protected function fileSave($file_string, $type = 'jpg', $name = 'auto') {
 		global $_W;
 		load()->func('file');
@@ -960,75 +824,37 @@ abstract class WeBase {
 	}
 }
 
-/**
- * 模块规则及自定义配置.
- */
+
 abstract class WeModule extends WeBase {
-	/**
-	 * 可能需要实现的操作,附加其他字段内容至规则表单.
-	 * 编辑当前模块规则时,调用此方法将返回 HTML 内容附加至规则表单之后
-	 *
-	 * @param int $rid 规则编号. $rid 大于 0 为更新规则, $rid 等于 0 为新增规则.
-	 * @return string 要附加的字段内容(HTML内容)
-	 */
+	
 	public function fieldsFormDisplay($rid = 0) {
 		return '';
 	}
-	/**
-	 * 可能需要实现的操作, 验证附加到规则表单的字段内容.
-	 * 编辑当前模块规则时, 在保存规则之前调用此方法验证附加字段的有效性.
-	 *
-	 * @param int $rid 规则编号. $rid 大于 0 为更新规则, $rid 等于 0 为新增规则.
-	 * @return string 返回验证的结果, 如果为空字符串则表示验证成功, 否则返回验证失败的提示信息
-	 */
+	
 	public function fieldsFormValidate($rid = 0) {
 		return '';
 	}
-	/**
-	 * 可能需要实现的操作, 编辑当前模块规则时,在规则保存成功后后调用此方法
-	 * @param int $rid 规则编号. $rid 大于 0 为更新规则, $rid 等于 0 为新增规则.
-	 * @return void
-	 */
+	
 	public function fieldsFormSubmit($rid) {
-		//
-	}
-	/**
-	 * 可能需要实现的操作, 在删除模块规则成功后调用此方法，做一些删除清理工作。
-	 * @param int $rid 规则编号
-	 * @return boolean 删除成功返回true, 否则返回false
-	 */
+			}
+	
 	public function ruleDeleted($rid) {
 		return true;
 	}
-	/**
-	 * 可能需要实现的操作, 如果模块需要配置参数, 请在此方法内部处理展示和保存配置项
-	 * @param array $settings 已保存的配置项数据
-	 * @return void
-	 */
+	
 	public function settingsDisplay($settings) {
-		//
-	}
+			}
 }
 
-/**
- * 模块消息处理器
- */
+
 abstract class WeModuleProcessor extends WeBase {
-	/**
-	 * @var int 规则优先级(0~255)
-	 */
+	
 	public $priority;
-	/**
-	 * @var array 预定义的消息数据结构,本次请求消息,来自粉丝用户, 此属性由系统初始化, 消息格式请参阅 "开发术语 - 消息类型"
-	 */
+	
 	public $message;
-	/**
-	 * @var boolean 本次对话是否为上下文响应对话, 如果当前对话是由上下文锁定而路由到的. 此值为 true, 否则为 false
-	 */
+	
 	public $inContext;
-	/**
-	 * @var int 本次请求匹配到的规则编号
-	 */
+	
 	public $rule;
 
 	public function __construct(){
@@ -1041,11 +867,7 @@ abstract class WeModuleProcessor extends WeBase {
 		}
 	}
 
-	/**
-	 * 预定义的操作, 开始上下文会话, 可附加参数设置超时时间.
-	 * @param int $expire 当前上下文的超时时间, 单位秒.
-	 * @return boolean 成功启动上下文返回true, 如果当前已经在上下文环境中也会返回false
-	 */
+	
 	protected function beginContext($expire = 1800) {
 		if($this->inContext) {
 			return true;
@@ -1060,11 +882,7 @@ abstract class WeModuleProcessor extends WeBase {
 
 		return true;
 	}
-	/**
-	 * 预定义的操作, 重置上下文过期时间
-	 * @param int $expire 新的会话过期时间
-	 * @return bool 成功刷新上下文返回true, 如果当前不在上下文环境中也会返回false
-	 */
+	
 	protected function refreshContext($expire = 1800) {
 		if(!$this->inContext) {
 			return false;
@@ -1075,10 +893,7 @@ abstract class WeModuleProcessor extends WeBase {
 
 		return true;
 	}
-	/**
-	 * 预定义的操作, 结束上下文会话. <b>注意: 这个操作会销毁$_SESSION中的数据</b>
-	 * @return void
-	 */
+	
 	protected function endContext() {
 		unset($_SESSION['__contextmodule']);
 		unset($_SESSION['__contextrule']);
@@ -1088,24 +903,15 @@ abstract class WeModuleProcessor extends WeBase {
 		$this->inContext = false;
 		session_destroy();
 	}
-	/**
-	 * 需要实现的操作, 应答此条请求. 如果响应内容为空. 将会调用优先级更低的模块, 直到默认回复为止
-	 * @return array|string 返回值为消息数据结构, 或者消息xml定义
-	 */
+	
 	abstract function respond();
 
-	/**
-	 * 预定义的操作，直接回复success
-	 */
+	
 	protected function respSuccess() {
 		return 'success';
 	}
 
-	/**
-	 * 预定义的操作, 构造返回文本消息结构
-	 * @param string $content 回复的消息内容
-	 * @return array 返回统一响应消息结构
-	 */
+	
 	protected function respText($content) {
 		if (empty($content)) {
 			return error(-1, 'Invaild value');
@@ -1132,11 +938,7 @@ abstract class WeModuleProcessor extends WeBase {
 		}
 		return $response;
 	}
-	/**
-	 * 预定义的操作, 构造返回图像消息结构
-	 * @param string $mid 回复的图像资源ID
-	 * @return array 返回的消息数组结构
-	 */
+	
 	protected function respImage($mid) {
 		if (empty($mid)) {
 			return error(-1, 'Invaild value');
@@ -1148,11 +950,7 @@ abstract class WeModuleProcessor extends WeBase {
 		$response['Image']['MediaId'] = $mid;
 		return $response;
 	}
-	/**
-	 * 预定义的操作, 构造返回声音消息结构
-	 * @param string $mid 回复的音频资源ID
-	 * @return array 返回的消息数组结构
-	 */
+	
 	protected function respVoice($mid) {
 		if (empty($mid)) {
 			return error(-1, 'Invaild value');
@@ -1164,11 +962,7 @@ abstract class WeModuleProcessor extends WeBase {
 		$response['Voice']['MediaId'] = $mid;
 		return $response;
 	}
-	/**
-	 * 预定义的操作, 构造返回视频消息结构
-	 * @param array $video 回复的视频定义(包含两个元素 video - string: 视频资源ID, thumb - string: 视频缩略图资源ID)
-	 * @return array 返回的消息数组结构
-	 */
+	
 	protected function respVideo(array $video) {
 		if (empty($video)) {
 			return error(-1, 'Invaild value');
@@ -1182,11 +976,7 @@ abstract class WeModuleProcessor extends WeBase {
 		$response['Video']['Description'] = $video['Description'];
 		return $response;
 	}
-	/**
-	 * 预定义的操作, 构造返回音乐消息结构
-	 * @param string $music 回复的音乐定义(包含元素 title - string: 音乐标题, description - string: 音乐描述, musicurl - string: 音乐地址, hqhqmusicurl - string: 高品质音乐地址, thumb - string: 音乐封面资源ID)
-	 * @return array 返回的消息数组结构
-	 */
+	
 	protected function respMusic(array $music) {
 		if (empty($music)) {
 			return error(-1, 'Invaild value');
@@ -1212,19 +1002,7 @@ abstract class WeModuleProcessor extends WeBase {
 		}
 		return $response;
 	}
-	/**
-	 * 预定义的操作, 构造返回图文消息结构, 一条图文消息不能超过 10 条内容
-	 * @param array $news 回复的图文定义,定义为元素集合
-	 * <pre>
-	 * 	array(
-				'title' => '', 		// string: 新闻标题
-				'picurl' => '',		// string: 新闻描述
-				'url' => '',		// string: 图片链接
-				'description' => ''	/string: 原文链接
-			);
-		</pre>
-	 * @return array 返回的消息数组结构
-	 */
+	
 	protected function respNews(array $news) {
 		if (empty($news) || count($news) > 10) {
 			return error(-1, 'Invaild value');
@@ -1252,10 +1030,7 @@ abstract class WeModuleProcessor extends WeBase {
 		return $response;
 	}
 
-	/**
-	 * 预定义的操作, 构造返回转接多客服结构
-	 * @return array 返回的消息数组结构
-	 */
+	
 	protected function respCustom(array $message = array()) {
 		$response = array();
 		$response['FromUserName'] = $this->message['to'];
@@ -1267,12 +1042,7 @@ abstract class WeModuleProcessor extends WeBase {
 		return $response;
 	}
 
-	/**
-	 * 对要返回到微信端的微擎微站链接中注入身份验证信息
-	 *
-	 * @param string $url 要返回的微擎链接
-	 * @return string 返回注入了身份验证信息的链接
-	 */
+	
 	protected function buildSiteUrl($url) {
 		global $_W;
 		$mapping = array(
@@ -1319,10 +1089,7 @@ abstract class WeModuleProcessor extends WeBase {
 		return $_W['siteroot'] . 'app/' . str_replace('./', '', url('auth/forward', $vars));
 	}
 
-	/**
-	 * 在 processor 中扩展 $_W 供开发者使用.
-	 * 使用方式: $this->extend_W();
-	 */
+	
 	protected function extend_W(){
 		global $_W;
 
@@ -1349,48 +1116,23 @@ abstract class WeModuleProcessor extends WeBase {
 	}
 }
 
-/**
- * 模块订阅器
- */
+
 abstract class WeModuleReceiver extends WeBase {
-	/**
-	 * @var array 预定义的数据, 本次请求的参数情况.
-	 * <pre>
-	 * array(
-	 * 		module - string: 模块名称,
-	 * 		rule - int: 规则编号,
-	 * 		context - bool: 是否在上下文中
-	 * )
-	 * </pre>
-	 */
+	
 	public $params;
-	/**
-	 * @var array 预定义的数据, 本次请求的响应情况, 响应格式请参阅 "开发术语 - 响应类型"
-	 */
+	
 	public $response;
-	/**
-	 * @var array 预定义的数据, 本次请求所匹配的关键字
-	 */
+	
 	public $keyword;
-	/**
-	 * @var array 粉丝发送的数据消息
-	 */
+	
 	public $message;
-	/**
-	 * 需要实现的操作. 处理此条请求订阅, 此方法内部的输出无效.
-	 * <b>请不要调用 exit 或 die 来结束程序执行</b>.
-	 * @return void
-	 */
+	
 	abstract function receive();
 }
 
-/**
- * 模块微站
- */
+
 abstract class WeModuleSite extends WeBase {
-	/**
-	 * @var bool 预定义的数据, 是否在移动终端
-	 */
+	
 	public $inMobile;
 
 	public function __call($name, $arguments) {
@@ -1432,17 +1174,7 @@ abstract class WeModuleSite extends WeBase {
 		}
 	}
 
-	/**
-	 * 调用系统的支付功能, 只能在 Mobile 端调用
-	 * @param array $params
-	 * $params['tid'] 支付订单编号, 应保证在同一模块内部唯一
-	 * $params['title'] 商家名称
-	 * $params['fee'] 总费用, 只能大于 0
-	 * $params['user'] 付款用户, 付款的用户名(选填项)
-	 * @param array $mine 开发者自定义的信息（二维数组）
-	 * 格式：array(array('name' => '自定义信息', 'value' => '自定义值'))；
-	 * @return void
-	 */
+	
 	protected function pay($params = array(), $mine = array()) {
 		global $_W;
 		load()->model('activity');
@@ -1452,7 +1184,6 @@ abstract class WeModuleSite extends WeBase {
 			message('支付功能只能在手机上使用', '', '');
 		}
 		$params['module'] = $this->module['name'];
-//		如果价格为0 直接执行模块支付回调方法
 		if($params['fee'] <= 0) {
 			$pars = array();
 			$pars['from'] = 'return';
@@ -1529,13 +1260,7 @@ abstract class WeModuleSite extends WeBase {
 		include $this->template('common/paycenter');
 	}
 
-	/**
-	 * 调用系统的退款功能
-	 * @param array $params
-	 * $tid 支付订单编号, 应保证在同一模块内部唯一
-	 * $fee 退款金额（选填，默认全额退款）
-	 * $reason 退款原因(选填项)
-	 */
+	
 	protected function refund($tid, $fee = 0, $reason = '') {
 		load()->model('refund');
 		$refund_id = refund_create_order($tid, $this->module['name'], $fee, $reason);
@@ -1545,19 +1270,7 @@ abstract class WeModuleSite extends WeBase {
 		return refund($refund_id);
 	}
 
-	/**
-	 * 这是一个回调方法, 当系统在支付完成时调用这个方法通知模块支付结果
-	 * @param array $ret
-	 * $ret['uniacid'] 当前公众号编号
-	 * $ret['result'] 支付结果 success - 成功, 其它值失败
-	 * $ret['type'] 支付方式 alipay - 支付宝, wechat - 微信支付, credit - 余额支付
-	 * $ret['from'] 通知来源 notify - 后台通知(没有页面访问, 不能进行页面跳转), return - 页面通知(有用户访问, 可以进行跳转和引导)
-	 * $ret['tid'] 支付订单编号
-	 * $ret['user'] 支付此订单的用户
-	 * $ret['fee'] 订单支付金额
-	 * $ret['tag'] 订单附加信息, 根据支付类型不同, 所包含数据不同
-	 * @return void
-	 */
+	
 	public function payResult($ret) {
 		global $_W;
 		if($ret['from'] == 'return') {
@@ -1569,19 +1282,7 @@ abstract class WeModuleSite extends WeBase {
 		}
 	}
 
-	/**
-	 * 查询当前模块的特定订单支付结果
-	 * @param int $tid 支付订单编号
-	 * @return array $ret 支付结果
-	 * $ret['uniacid'] 当前公众号编号
-	 * $ret['result'] 支付结果 success - 成功, 其它值失败
-	 * $ret['type'] 支付方式 alipay - 支付宝, wechat - 微信支付, credit - 余额支付
-	 * $ret['from'] 通知来源 notify - 后台通知(没有页面访问, 不能进行页面跳转), return - 页面通知(有用户访问, 可以进行跳转和引导)
-	 * $ret['tid'] 支付订单编号
-	 * $ret['user'] 支付此订单的用户
-	 * $ret['fee'] 订单支付金额
-	 * $ret['tag'] 订单附加信息, 根据支付类型不同, 所包含数据不同
-	 */
+	
 	protected function payResultQuery($tid) {
 		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `module`=:module AND `tid`=:tid';
 		$params = array();
@@ -1601,14 +1302,7 @@ abstract class WeModuleSite extends WeBase {
 		return $ret;
 	}
 
-	/**
-	 * 统一分享操作
-	 * @param array $params
-	 * $params['action'] 分享的操作类型或是原因
-	 * $params['module'] 模块名称
-	 * $params['uid'] 当前用户
-	 * $params['sign'] 积分操作标志,每个模块里面唯一
-	 */
+	
 	protected function share($params = array()) {
 		global $_W;
 		$url = murl('utility/share', array('module' => $params['module'], 'action' => $params['action'], 'sign' => $params['sign'], 'uid' => $params['uid']));
@@ -1623,15 +1317,7 @@ abstract class WeModuleSite extends WeBase {
 EOF;
 	}
 
-	/**
-	 * 统一点击操作
-	 * @param array $params
-	 * $params['action'] 分享的操作类型或是原因
-	 * $params['module'] 模块名称
-	 * $params['tuid'] 当前用户
-	 * $params['fuid'] 当前用户
-	 * $params['sign'] 积分操作标志,每个模块里面唯一
-	 */
+	
 	protected function click($params = array()) {
 		global $_W;
 		$url = murl('utility/click', array('module' => $params['module'], 'action' => $params['action'], 'sign' => $params['sign'], 'tuid' => $params['tuid'], 'fuid' => $params['fuid']));
@@ -1645,9 +1331,7 @@ EOF;
 
 }
 
-/**
- * 模块计划任务
- */
+
 abstract class WeModuleCron extends WeBase {
 	public function __call($name, $arguments) {
 		if($this->modulename == 'task') {
@@ -1665,8 +1349,7 @@ abstract class WeModuleCron extends WeBase {
 		return error(-1009, "访问的方法 {$name} 不存在.");
 	}
 
-	//记录触发记录
-	public function addCronLog($tid, $errno, $note) {
+		public function addCronLog($tid, $errno, $note) {
 		global $_W;
 		if(!$tid) {
 			iajax(-1, 'tid参数错误', '');
@@ -1684,9 +1367,7 @@ abstract class WeModuleCron extends WeBase {
 	}
 }
 
-/**
- * 模块小程序
- */
+
 abstract class WeModuleWxapp extends WeBase {
 	public $appid;
 	public $version;
@@ -1695,8 +1376,7 @@ abstract class WeModuleWxapp extends WeBase {
 	public function __call($name, $arguments) {
 		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/wxapp';
 		$function_name = strtolower(substr($name, 6));
-		//版本号不存在相应的目录则直接使用最新版
-		$func_file = "{$function_name}.inc.php";
+				$func_file = "{$function_name}.inc.php";
 		$file = "$dir/{$this->version}/{$function_name}.inc.php";
 		if (!file_exists($file)) {
 			$version_path_tree = glob("$dir/*");
@@ -1704,15 +1384,13 @@ abstract class WeModuleWxapp extends WeBase {
 				return -version_compare($version1, $version2);
 			});
 			if (!empty($version_path_tree)) {
-				// 先过滤目录
-				$dirs = array_filter($version_path_tree, function($path) use ($func_file){
+								$dirs = array_filter($version_path_tree, function($path) use ($func_file){
 					$file_path = "$path/$func_file";
 					return is_dir($path) && file_exists($file_path);
 				});
 				$dirs = array_values($dirs);
 
-				// 再过滤文件
-				$files = array_filter($version_path_tree, function($path) use ($func_file){
+								$files = array_filter($version_path_tree, function($path) use ($func_file){
 					return is_file($path) && pathinfo($path, PATHINFO_BASENAME) == $func_file;
 				});
 				$files = array_values($files);
@@ -1893,9 +1571,7 @@ abstract class WeModuleWxapp extends WeBase {
 	}
 }
 
-/**
- * 模块插件
- */
+
 abstract class WeModuleHook extends WeBase {
 
 }
@@ -1928,15 +1604,13 @@ abstract class WeModulePhoneapp extends webase {
 				return -version_compare($version1, $version2);
 			});
 			if (!empty($version_path_tree)) {
-				// 先过滤目录
-				$dirs = array_filter($version_path_tree, function($path) use ($func_file){
+								$dirs = array_filter($version_path_tree, function($path) use ($func_file){
 					$file_path = "$path/$func_file";
 					return is_dir($path) && file_exists($file_path);
 				});
 				$dirs = array_values($dirs);
 
-				// 再过滤文件
-				$files = array_filter($version_path_tree, function($path) use ($func_file){
+								$files = array_filter($version_path_tree, function($path) use ($func_file){
 					return is_file($path) && pathinfo($path, PATHINFO_BASENAME) == $func_file;
 				});
 				$files = array_values($files);
@@ -1964,15 +1638,11 @@ abstract class WeModulePhoneapp extends webase {
 	}
 }
 
-/**
- *  模块系统首页
- */
+
 abstract class WeModuleSystemWelcome extends WeBase {
 }
 
-/**
- *  模块手机端
- */
+
 abstract class WeModuleMobile extends WeBase {
 	public function __call($name, $arguments) {
 		$dir = IA_ROOT . '/addons/' . $this->modulename . '/inc/systemWelcome';

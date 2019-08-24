@@ -1,13 +1,15 @@
 <?php
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('job');
 $dos = array('clear', 'execute', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
-
+if (!defined('IFRAME')) {
+	define('IFRAME', 'site');
+}
 if ($do == 'display') {
 	$list = job_list($_W['uid'], $_W['isfounder']);
 	$jobid = intval($_GPC['jobid']);
@@ -26,8 +28,7 @@ if ($do == 'display') {
 if ($do == 'execute') {
 	$id = intval($_GPC['id']);
 	$job = job_single($id);
-	// 创史人 可以执行所有人的任务, 非创史人只能执行自己创建的任务
-	if ($_W['isfounder'] || $job['uid'] == $_W['uid']) {
+		if ($_W['isfounder'] || $job['uid'] == $_W['uid']) {
 		$result = job_execute($id);
 		if (is_error($result)) {
 			iajax(1, $result['message']);

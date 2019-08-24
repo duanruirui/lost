@@ -1,12 +1,12 @@
 <?php
 /**
- * 用于调试时模拟用户发送信息到微号公众号 PGCAO改良 www.kl3w.com
- * [WeEngine System] Copyright (c) 2013 w7.cc
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 $_W['page']['title'] = '模拟测试';
 $development = 1;
 $accounts = uni_owned(0, false);
-define('FRAME', '');
+
 template('common/header');
 
 ?>
@@ -89,9 +89,9 @@ template('common/header');
 										$signString = sha1($signString);
 								?>
 								<?php if($development == 1) { ?>
-									<option <?php if ($_W['uniacid'] == $account['uniacid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['acid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['name']?></option>
+									<option <?php if ($_W['acid'] == $account['acid']) { ?>selected<?php } ?> value="<?php echo '../api.php?id='.$account['acid'] ?>&timestamp=<?php echo $timestamp ?>&nonce=<?php echo $nonce ?>&signature=<?php echo $signString ?>"><?php echo $account['name']?></option>
 								<?php } else { ?>
-									<option <?php if ($_W['uniacid'] == $account['uniacid']) { ?>selected<?php } ?> value="<?php echo $account['uniacid'];?>"><?php echo $account['name'] ?></option>
+									<option <?php if ($_W['acid'] == $account['acid']) { ?>selected<?php } ?> value="<?php echo $account['acid'];?>"><?php echo $account['name'] ?></option>
 								<?php } ?>
 								<?php
 									}

@@ -1,95 +1,106 @@
 {template 'common/header'}
+<div class="we7-page-title">会员管理</div>
 {template 'mc/common'}
-{if $do == 'list'}
+{if $do == 'display'}
 <form action="" method="post">
-<div id="js-fields-list" ng-controller="fieldsListCtrl">
-	<table class="table we7-table table-hover vertical-middle">
-	<thead class="navbar-inner">
-		<tr>
-			<th>排序</th>
-			<th>字段</th>
-			<th>标题</th>
-			<th>是否启用</th>
-			<th>操作</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr ng-repeat="field in account_member_fields">
-			<td ng-bind="field.displayorder"></td>
-			<td ng-bind="field.field"></td>
-			<td ng-bind="field.title"></td>
-			<td>
-				<label>
-					<input name="" class="form-control" type="checkbox"  style="display: none;">
-					<div ng-class="field.available == 1 ? 'switch switchOn' : 'switch'"  ng-click="changeAvailable(field.id,field.available,$index)"></div>
-				</label>
-			</td>
-			<td>
-				<div class="link-group">
-					<a href="javascript:;" title="编辑" ng-click="jumpTo(field.id)">编辑</a>
-				</div>	
-			</td>
-		</tr>
-	</tbody>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		字段管理
+	</div>
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+		<thead class="navbar-inner">
+			<tr>
+				<th>排序</th>
+				<th>字段</th>
+				<th>标题</th>
+				<th>是否启用</th>
+				<th>操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			{loop $account_member_fields $field}
+			<tr>
+				<td>
+					<input type="text" class="form-control" style="width: 50%;" name="displayorder[{$field['fieldid']}]" value="{$field['displayorder']}" />
+					<input type="hidden" name="id[{$field['fieldid']}]" value="{$field['id']}" />
+					<input type="hidden" name="fieldid[{$field['fieldid']}]" value="{$field['fieldid']}" />
+					<input type="hidden" name="title[{$field['fieldid']}]" value="{$field['title']}" />
+				</td>
+				<td>{$field['field']}</td>
+				<td>{$field['title']}</td>
+				<td>
+					<input type="checkbox" name="available[{$field['fieldid']}]" value="1" {if $field['available']} checked {/if} />
+				</td>
+				<td>
+					{if !empty($field['id'])}
+					<a href="{php echo url('mc/fields/post', array('id' => $field['id']))}" title="编辑" class="btn btn-primary btn-sm">编辑</a>
+					{/if}
+				</td>
+			</tr>
+			{/loop}
+			<tr>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>
+					<input type="checkbox" id="selectAll" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});">
+					<a class="btn btn-success btn-sm" style="margin-left: -25px;" onclick="$('#selectAll').click();">全选</a>
+				</td>
+				<td></td>
+			</tr>
+		</tbody>
 	</table>
+	</div>
+	</div>
+	<div>
+		<button type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交">提交</button>
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
 </div>
 </form>
 
 {elseif $do == 'post'}
-<ol class="breadcrumb we7-breadcrumb">
-	<a href="{php echo url('mc/fields/list')}"><i class="wi wi-back-circle"></i> </a>
-	<li>
-		<a href="{php echo url('mc/fields/list')}">会员管理</a>
-	</li>
-	<li>
-		会员字段管理
-	</li>
-</ol>
-
-<form class="we7-form form" action="" method="post">
-	<input type="hidden" name="id" value="{$field['id']}">
-	<div class="form-group">
-		<label class="col-sm-2 control-label">排序</label>
-		<div class="col-sm-10 col-xs-12">
-			<input type="text" class="form-control" name="displayorder" value="{$field['displayorder']}">
-		</div>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		编辑字段
 	</div>
-	<div class="form-group">
-		<label class="col-sm-2 control-label">名称</label>
-		<div class="col-sm-10 col-xs-12">
-			<input type="text" class="form-control" name="title" value="{$field['title']}">
+	<div class="panel-body">
+	<form class="form-horizontal form" action="" method="post">
+		<input type="hidden" name="id" value="{$field['id']}">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">排序</label>
+			<div class="col-sm-10 col-xs-12">
+				<input type="text" class="form-control" name="displayorder" value="{$field['displayorder']}">
+			</div>
 		</div>
-	</div>
-	<div class="form-group">
-		<label class="col-sm-2 control-label">启用</label>
-		<div class="col-sm-10 col-xs-12">
-			<input type="radio" name="available" id="radio_1" value="1" {if empty($field) || $field['available'] == 1} checked{/if} /> 
-			<label for="radio_1" class="radio-inline">
-					是
-			</label>
-			<input type="radio" name="available" id="radio_0" value="0" {if !empty($field) && $field['available'] == 0} checked{/if} /> 
-			<label for="radio_0" class="radio-inline">
-				否
-			</label>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">名称</label>
+			<div class="col-sm-10 col-xs-12">
+				<input type="text" class="form-control" name="title" value="{$field['title']}">
+			</div>
 		</div>
-	</div>
-	<div class="form-group">
-		<label class="col-sm-2 control-label"></label>
-		<div class="col-sm-10 col-xs-12">
-			<input type="submit" class="btn btn-primary" name="submit" value="提交" />
-			<input type="hidden" name="token" value="{$_W['token']}" />
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">启用</label>
+			<div class="col-sm-10 col-xs-12">
+				<label for="radio_1" class="radio-inline">
+					<input type="radio" name="available" id="radio_1" value="1" {if empty($field) || $field['available'] == 1} checked{/if} /> 是
+				</label>
+				<label for="radio_0" class="radio-inline">
+					<input type="radio" name="available" id="radio_0" value="0" {if !empty($field) && $field['available'] == 0} checked{/if} /> 否
+				</label>
+			</div>
 		</div>
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+			<div class="col-sm-10 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
 	</div>
-</form>
+</div>
 {/if}
-
-<script>
-	angular.module('profileApp').value('config', {
-		changeAvailableUrl:"{php echo url('mc/fields/change_available')}",
-		fieldPostUrl:"{php echo url('mc/fields/post')}",
-		account_member_fields : {php echo json_encode($account_member_fields)}
-	});
-	angular.bootstrap($('#js-fields-list'), ['profileApp']);
-</script>
 
 {template 'common/footer'}

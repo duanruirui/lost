@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/payment/wechat/notify.php : v a4b6a17a6d8a : 2015/09/14 08:41:00 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 require '../../framework/bootstrap.inc.php';
@@ -69,8 +69,7 @@ if(!empty($pay_setting['signkey'])) {
 	if(!empty($refund)) {
 		$pay_log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'uniontid' => $refund['out_trade_no']));
 		$refund_log = pdo_get('core_refundlog', array('uniacid' => $_W['uniacid'], 'refund_uniontid' => $refund['out_refund_no'], 'uniontid' => $refund['out_trade_no']));
-		//此处判断微信请求消息金额必须与系统发起的金额一致
-		if(!empty($refund_log) && $refund_log['status'] == '0' && (($refund['total_fee'] / 100) == $pay_log['card_fee'])) {
+				if(!empty($refund_log) && $refund_log['status'] == '0' && (($refund['total_fee'] / 100) == $pay_log['card_fee'])) {
 			pdo_update('core_refundlog', array('status' => 1), array('id' => $refund_log['id']));
 			$site = WeUtility::createModuleSite($pay_log['module']);
 			if(!is_error($site)) {

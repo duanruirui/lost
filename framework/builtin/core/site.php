@@ -1,8 +1,7 @@
 <?php
 /**
- * 系统中一些必须以模块形式表现的功能
- * @author 微擎团队
- * @url http://bbs.w7.cc/
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -17,8 +16,7 @@ class CoreModuleSite extends WeModuleSite {
 		if (empty($params['tid']) || empty($params['fee']) || empty($params['module'])) {
 			message(error(1, '支付参数不完整'));
 		}
-		//如果价格为0 直接执行模块支付回调方法
-		if($params['fee'] <= 0) {
+				if($params['fee'] <= 0) {
 			$notify_params = array(
 				'form' => 'return',
 				'result' => 'success',
@@ -65,12 +63,7 @@ class CoreModuleSite extends WeModuleSite {
 		
 		include $this->template('pay');
 	}
-
-	/**
-	 * 各个支付都配置有支付开关：pay_switch和充值开关：recharge_switch,
-	 * 支付中使用pay_switch(如本方法中),充值中使用recharge_switch(recharge/site.php中,目前充值只有这一个),
-	 * 最后在common/paycenter中统一使用switch
-	 */
+	
 	public function doMobilePay() {
 		global $_W, $_GPC;
 		
@@ -83,22 +76,22 @@ class CoreModuleSite extends WeModuleSite {
 		
 		$setting = uni_setting($_W['uniacid'], 'payment');
 		$dos = array();
-		if(!empty($setting['payment']['credit']['pay_switch'])) {
+		if(!empty($setting['payment']['credit']['switch'])) {
 			$dos[] = 'credit';
 		}
-		if(!empty($setting['payment']['alipay']['pay_switch'])) {
+		if(!empty($setting['payment']['alipay']['switch'])) {
 			$dos[] = 'alipay';
 		}
-		if(!empty($setting['payment']['wechat']['pay_switch'])) {
+		if(!empty($setting['payment']['wechat']['switch'])) {
 			$dos[] = 'wechat';
 		}
-		if(!empty($setting['payment']['delivery']['pay_switch'])) {
+		if(!empty($setting['payment']['delivery']['switch'])) {
 			$dos[] = 'delivery';
 		}
-		if(!empty($setting['payment']['unionpay']['pay_switch'])) {
+		if(!empty($setting['payment']['unionpay']['switch'])) {
 			$dos[] = 'unionpay';
 		}
-		if(!empty($setting['payment']['baifubao']['pay_switch'])) {
+		if(!empty($setting['payment']['baifubao']['switch'])) {
 			$dos[] = 'baifubao';
 		}
 		$type = in_array($params['method'], $dos) ? $params['method'] : '';
@@ -184,8 +177,7 @@ class CoreModuleSite extends WeModuleSite {
 				$wechat_payment_params = wechat_proxy_build($params, $wechat_payment);
 			} else {
 				$params['tid'] = $paylog['plid'];
-				//借用服务商支付时，没有获取到当前公众号的Openid时，只能跳转至收银台继续付款
-				$params['title'] = urlencode($params['title']);
+								$params['title'] = urlencode($params['title']);
 				$sl = base64_encode(json_encode($params));
 				$auth = sha1($sl . $paylog['uniacid'] . $_W['config']['setting']['authkey']);
 				
@@ -240,8 +232,7 @@ class CoreModuleSite extends WeModuleSite {
 			header("Location: ".$row['url']);
 			exit;
 		}
-		//兼容0.8写法，在此回复新版1.0本地素材
-		if (!empty($row['media_id']) && intval($row['media_id']) != 0) {
+				if (!empty($row['media_id']) && intval($row['media_id']) != 0) {
 			$row = pdo_get('wechat_news', array('attach_id' => $row['media_id'], 'displayorder' => $row['displayorder']));
 			$row['createtime'] = $createtime;
 			if (!empty($row['content_source_url'])) {
@@ -251,7 +242,7 @@ class CoreModuleSite extends WeModuleSite {
 		}
 		$row = istripslashes($row);
 		$title = $row['title'];
-		/*获取引导素材*/
+		
 		if($_W['os'] == 'android' && $_W['container'] == 'wechat' && $_W['account']['account']) {
 			$subscribeurl = "weixin://profile/{$_W['account']['account']}";
 		} else {

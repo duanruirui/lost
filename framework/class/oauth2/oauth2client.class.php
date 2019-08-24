@@ -1,13 +1,13 @@
 <?php
 
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 abstract class OAuth2Client {
 	protected $ak;
 	protected $sk;
 	protected $login_type;
-	protected $user_type = USER_TYPE_COMMON;
 	protected $stateParam = array(
 		'state' => '',
 		'from' => '',
@@ -34,46 +34,11 @@ abstract class OAuth2Client {
 		$this->login_type = $login_type;
 	}
 
-	public function setUserType($user_type) {
-		$this->user_type = $user_type;
-		return $this;
-	}
-
 	public static function supportLoginType(){
 		return array('system', 'qq', 'wechat', 'mobile');
 	}
 
 	public static function supportThirdLoginType() {
-		return array('qq', 'wechat');
-	}
-
-	public static function supportBindTypeInfo($type = '') {
-		$data = array(
-			'qq' => array(
-				'type' => 'qq',
-				'title' => 'QQ',
-			),
-			'wechat' => array(
-				'type' => 'wechat',
-				'title' => '微信',
-			),
-			'mobile' => array(
-				'type' => 'mobile',
-				'title' => '手机号',
-			)
-		);
-		if (!empty($type)) {
-			return $data[$type];
-		} else {
-			return $data;
-		}
-	}
-
-	/**
-	 * 第三方登陆后需要进行再次注册绑定的类型
-	 * @return array
-	 */
-	public static function supportThirdLoginBindType() {
 		return array('qq', 'wechat');
 	}
 
@@ -112,13 +77,12 @@ abstract class OAuth2Client {
 	abstract function showLoginUrl($calback_url = '');
 
 	abstract function user();
-
+	
 	abstract function login();
 
 	abstract function bind();
 	abstract function unbind();
-	abstract function isbind();
-
+	
 	abstract function register();
 
 	public function user_register($register) {
@@ -131,12 +95,7 @@ abstract class OAuth2Client {
 		$member = $register['member'];
 		$profile = $register['profile'];
 
-		$member['type'] = $this->user_type;
-		if ($member['type'] == USER_TYPE_CLERK) {
-			$member['status'] = !empty($_W['setting']['register']['clerk']['verify']) ? 1 : 2;
-		} else {
-			$member['status'] = !empty($_W['setting']['register']['verify']) ? 1 : 2;
-		}
+		$member['status'] = !empty($_W['setting']['register']['verify']) ? 1 : 2;
 		$member['remark'] = '';
 		$member['groupid'] = intval($_W['setting']['register']['groupid']);
 		if (empty($member['groupid'])) {
@@ -150,9 +109,12 @@ abstract class OAuth2Client {
 			$member['endtime'] = strtotime($timelimit . ' days');
 		}
 		$member['starttime'] = TIMESTAMP;
+		if (!empty($owner_uid)) {
+			$member['owner_uid'] = pdo_getcolumn('users', array('uid' => $owner_uid, 'founder_groupid' => ACCOUNT_MANAGE_GROUP_VICE_FOUNDER), 'uid');
+		}
 
-		$user_id = user_register($member, $this->stateParam['from']);
-		if (in_array($member['register_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT))) {
+		$user_id = user_register($member);
+		if (in_array($member['register_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT, USER_REGISTER_TYPE_MOBILE))) {
 			pdo_update('users', array('username' => $member['username'] . $user_id . rand(100,999)), array('uid' => $user_id));
 		}
 		if($user_id > 0) {

@@ -50,11 +50,7 @@ class XzappAccount extends WeAccount {
 		return $record['token'];
 	}
 
-	/**
-	 * 生成签名
-	 * @param string $encrypt_msg
-	 * @return string
-	 */
+	
 	public function buildSignature($encrypt_msg) {
 		$token = $this->account['token'];
 		$array = array($encrypt_msg, $token, $_GET['timestamp'], $_GET['nonce']);
@@ -64,21 +60,13 @@ class XzappAccount extends WeAccount {
 		return $str;
 	}
 
-	/**
-	 * 验证签名是否合法
-	 * @param string $encrypt_msg
-	 * @return boolean
-	 */
+	
 	public function checkSignature($encrypt_msg) {
 		$str = $this->buildSignature($encrypt_msg);
 		return $str == $_GET['msg_signature'];
 	}
 
-	/**
-	 * 消息加密
-	 * @param $text
-	 * @return array
-	 */
+	
 	public function encryptMsg($text) {
 		$appid = $this->account['key'];
 		$encodingaeskey = $this->account['encodingaeskey'];
@@ -86,15 +74,12 @@ class XzappAccount extends WeAccount {
 
 		static $blockSize = 32;
 
-		// pack
-		$text = substr(md5(time()), 0, 16) . pack('N', strlen($text)) . $text . $appid;
+				$text = substr(md5(time()), 0, 16) . pack('N', strlen($text)) . $text . $appid;
 
-		// 填充位数
-		$padLen = $blockSize - (strlen($text) % $blockSize);
+				$padLen = $blockSize - (strlen($text) % $blockSize);
 		$text .= str_repeat(chr($padLen), $padLen == 0 ? $blockSize : $padLen);
 
-		// 加密
-		$td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, null, MCRYPT_MODE_CBC, null);
+				$td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, null, MCRYPT_MODE_CBC, null);
 		mcrypt_generic_init($td, $key, substr($key, 0, 16));
 		$encoded = mcrypt_generic($td, $text);
 		mcrypt_generic_deinit($td);
@@ -102,48 +87,37 @@ class XzappAccount extends WeAccount {
 
 		$encrypt_msg = base64_encode($encoded);
 
-		//生成的签名
-		$signature = $this->buildSignature($encrypt_msg);
+				$signature = $this->buildSignature($encrypt_msg);
 		return array($signature, $encrypt_msg);
 	}
 
-	/**
-	 * 对消息进行解密
-	 *
-	 * @param array $postData
-	 * @return error 或 string
-	 */
+	
 	public function decryptMsg($postData) {
 		$appid = $this->account['key'];
 		$encodingaeskey = $this->account['encodingaeskey'];
 		$key = base64_decode($encodingaeskey . '=');
 
-		// 提取密文
-		$packet = $this->xmlExtract($postData);
+				$packet = $this->xmlExtract($postData);
 		if (is_error($packet)) {
 			return error(-1, $packet['message']);
 		}
 		$encrypt = base64_decode($packet['encrypt']);
-		//检验签名
-		$istrue = $this->checkSignature($packet['encrypt']);
+				$istrue = $this->checkSignature($packet['encrypt']);
 		if(!$istrue) {
 			return error(-1, "熊掌号签名错误！");
 		}
 
-		// 解密
-		$td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, null, MCRYPT_MODE_CBC, null);
+				$td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, null, MCRYPT_MODE_CBC, null);
 		mcrypt_generic_init($td, $key, substr($key, 0, 16));
 		$decoded = mdecrypt_generic($td, $encrypt);
 		mcrypt_generic_deinit($td);
 		mcrypt_module_close($td);
 
-		// 去掉填充位数
-		$pad = ord(substr($decoded, -1));
+				$pad = ord(substr($decoded, -1));
 		$pad = ($pad < 1 || $pad > 32) ? 0 : $pad;
 		$decoded = substr($decoded, 0, strlen($decoded) - $pad);
 
-		// unpack
-		$text = substr($decoded, 16, strlen($decoded));
+				$text = substr($decoded, 16, strlen($decoded));
 		$unpack = unpack('Nlen/', substr($text, 0, 4));
 		$content = substr($text, 4, $unpack['len']);
 		$clientId = substr($text, $unpack['len'] + 4);
@@ -154,12 +128,7 @@ class XzappAccount extends WeAccount {
 		return $content;
 	}
 
-	/**
-	 * 从xml中提取密文
-	 *
-	 * @param string $message
-	 * @return array error/array
-	 */
+	
 	public function xmlExtract($message) {
 		$packet = array();
 		if (!empty($message)){
@@ -176,15 +145,9 @@ class XzappAccount extends WeAccount {
 		}
 	}
 
-	/**
-	 * 生成加密后xml
-	 *
-	 * @param array $data
-	 * @return string xml
-	 */
+	
 	function xmlDetract($data) {
-		//生成xml
-		$xml['Encrypt'] = $data[1];
+				$xml['Encrypt'] = $data[1];
 		$xml['MsgSignature'] = $data[0];
 		$xml['TimeStamp'] = $_GET['timestamp'];
 		$xml['Nonce'] = $_GET['nonce'];
@@ -263,12 +226,7 @@ class XzappAccount extends WeAccount {
 		return $return;
 	}
 
-	/**
-	 * 获取用户基本信息(单个)
-	 * @param $uniid
-	 * @param bool $isOpen
-	 * @return array
-	 */
+	
 	public function fansQueryInfo($uniid, $isOpen = true) {
 		if ($isOpen) {
 			$openid = $uniid;
@@ -292,11 +250,7 @@ class XzappAccount extends WeAccount {
 		return $result['user_info_list'][0];
 	}
 
-	/**
-	 * 获取用户基本信息(批量)
-	 * @param $data
-	 * @return array
-	 */
+	
 	public function fansBatchQueryInfo($data) {
 		if (empty($data)) {
 			return error(-1, '粉丝 openid 错误');
@@ -317,12 +271,7 @@ class XzappAccount extends WeAccount {
 		return $result['user_info_list'];
 	}
 
-	/**
-	 * 创建粉丝标签
-	 * @param 	array 		$tagname
-	 * @return 	array 		$result
-	 *
-	 */
+	
 	public function fansTagAdd($tagname) {
 		if(empty($tagname)) {
 			return error(-1, '请填写标签名称');
@@ -338,12 +287,7 @@ class XzappAccount extends WeAccount {
 		return $result;
 	}
 
-	/**
-	 * 单个粉丝打标签
-	 * @param $openid
-	 * @param $tagids
-	 * @return array|bool|mixed
-	 */
+	
 	public function fansTagTagging($openid, $tagids) {
 		$openid = (string) $openid;
 		$tagids = (array) $tagids;
@@ -362,8 +306,7 @@ class XzappAccount extends WeAccount {
 			return $token;
 		}
 
-		//删除粉丝之前的标签
-		$fetch_result = $this->fansTagFetchOwnTags($openid);
+				$fetch_result = $this->fansTagFetchOwnTags($openid);
 		if (is_error($fetch_result)) {
 			return $fetch_result;
 		}
@@ -386,11 +329,7 @@ class XzappAccount extends WeAccount {
 		return true;
 	}
 
-	/**
-	 * 获取用户身上的标签列表
-	 * @param $openid
-	 * @return array|mixed
-	 */
+	
 	public function fansTagFetchOwnTags($openid) {
 		$openid = (string)$openid;
 		if (empty($openid)) {
@@ -407,12 +346,7 @@ class XzappAccount extends WeAccount {
 		return $result;
 	}
 
-	/**
-	 * 批量为用户取消标签
-	 * @param $openid_list
-	 * @param $tagid
-	 * @return array|bool|mixed
-	 */
+	
 	public function fansTagBatchUntagging($openid_list, $tagid) {
 		$openid_list = (array)$openid_list;
 		$tagid = (int)$tagid;
@@ -440,12 +374,7 @@ class XzappAccount extends WeAccount {
 		return true;
 	}
 
-	/**
-	 * 批量为用户打标签
-	 * @param $openid_list
-	 * @param $tagid
-	 * @return array|bool|mixed
-	 */
+	
 	public function fansTagBatchTagging($openid_list, $tagid) {
 		$openid_list = (array)$openid_list;
 		$tagid = (int)$tagid;
@@ -471,11 +400,7 @@ class XzappAccount extends WeAccount {
 		return true;
 	}
 
-	# 自定义菜单
-	/**
-	 * API配置自定义菜单查询
-	 * @return array|mixed
-	 */
+		
 	public function menuCurrentQuery() {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
@@ -486,11 +411,7 @@ class XzappAccount extends WeAccount {
 		return $res;
 	}
 
-	/**
-	 * 自定义菜单创建
-	 * @param $post
-	 * @return array|mixed
-	 */
+	
 	public function menuCreate($menu) {
 		global $_W;
 		$token = $this->getAccessToken();
@@ -507,11 +428,7 @@ class XzappAccount extends WeAccount {
 		}
 	}
 
-	/**
-	 * 构造可直接请求自定义菜单创建接口的数据
-	 * @param $post
-	 * @return array
-	 */
+	
 	public function menuBuild($post, $is_conditional = false) {
 		$menu = array();
 		foreach ($post['button'] as $button) {
@@ -566,14 +483,7 @@ class XzappAccount extends WeAccount {
 		return $menu;
 	}
 
-	# 素材
-	/**
-	 * 获取熊掌号素材列表（熊掌号只支持图片和图文）
-	 * @param string $type	素材的类型:image/news
-	 * @param int $offset	素材偏移的位置，从０开始
-	 * @param int $count	素材的数量，取值在１－２０之间，默认２０
-	 * @return array|mixed
-	 */
+		
 	public function batchGetMaterial($type = 'news', $offset = 0, $count = 20) {
 		global $_W;
 		$token = $this->getAccessToken();
@@ -594,11 +504,7 @@ class XzappAccount extends WeAccount {
 		return $response;
 	}
 
-	/**
-	 * 删除永久素材
-	 * @param $media_id
-	 * @return array|mixed
-	 */
+	
 	public function delMaterial($media_id) {
 		$media_id = trim($media_id);
 		if (empty($media_id)) {
@@ -614,11 +520,7 @@ class XzappAccount extends WeAccount {
 		return $response;
 	}
 
-	/**
-	 * 新增永久图文素材
-	 * @param $data
-	 * @return array
-	 */
+	
 	public function addMatrialNews($data) {
 		$token = $this->getAccessToken();
 		if(is_error($token)){
@@ -631,11 +533,7 @@ class XzappAccount extends WeAccount {
 		return $response['media_id'];
 	}
 
-	/**
-	 * 修改永久图文素材
-	 * @param $data
-	 * @return array|mixed
-	 */
+	
 	public function editMaterialNews($data) {
 		$token = $this->getAccessToken();
 		if(is_error($token)){
@@ -647,11 +545,7 @@ class XzappAccount extends WeAccount {
 		return $response;
 	}
 
-	/**
-	 * 获取永久素材
-	 * @param $media_id
-	 * @return array|mixed
-	 */
+	
 	public function getMaterial($media_id) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
@@ -664,11 +558,7 @@ class XzappAccount extends WeAccount {
 		return $response;
 	}
 
-	/**
-	 * 上传图文消息内的图片获取URL
-	 * @param $thumb
-	 * @return array
-	 */
+	
 	public function uploadNewsThumb($thumb) {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
@@ -689,8 +579,7 @@ class XzappAccount extends WeAccount {
 	}
 
 	public function uploadMediaFixed($path, $type = 'images') {
-		# 未测试
-		if (empty($path)) {
+				if (empty($path)) {
 			return error(-1, '参数错误');
 		}
 		if (in_array(substr(ltrim($path, '/'), 0, 6), array('images', 'videos', 'audios', 'thumb', 'voices'))) {
@@ -712,7 +601,7 @@ class XzappAccount extends WeAccount {
 		return $response;
 	}
 
-	/*发送客服消息*/
+	
 	public function sendCustomNotice($data) {
 		if(empty($data)) {
 			return error(-1, '参数错误');
@@ -730,13 +619,7 @@ class XzappAccount extends WeAccount {
 		return true;
 	}
 
-	/**
-	 * 发送模板消息
-	 *  @param string $touser 粉丝openid
-	 *  @param string $tpl_id_short 模板id
-	 *  @param array $postdata 根据模板规则完善消息
-	 *  @param string $url 详情页链接
-	 */
+	
 	public function sendTplNotice($touser, $template_id, $postdata, $url = '') {
 		if(empty($touser)) {
 			return error(-1, '参数错误,粉丝openid不能为空');
@@ -766,13 +649,7 @@ class XzappAccount extends WeAccount {
 		return true;
 	}
 
-	/**
-	 * 消息群发
-	 * @param $group
-	 * @param $msgtype
-	 * @param $media_id
-	 * @return array|mixed
-	 */
+	
 	public function fansSendAll($group, $msgtype, $media_id) {
 		$types = array('basic' => 'text', 'image' => 'image', 'news' => 'mpnews', 'voice' => 'voice');
 		if (empty($types[$msgtype])) {
@@ -808,11 +685,7 @@ class XzappAccount extends WeAccount {
 		return $response;
 	}
 
-	/**
-	 * 获取标签下粉丝列表
-	 * @param $tagid
-	 * @return array
-	 */
+	
 	public function getFansByTag($tagid){
 		$token = $this->getAccessToken();
 		if(is_error($token)){
@@ -824,10 +697,7 @@ class XzappAccount extends WeAccount {
 		return $response['data']['openid'];
 	}
 
-	/**
-	 * jsapi_ticket
-	 * @return array|mixed
-	 */
+	
 	public function getJsApiTicket() {
 		$cachekey = cache_system_key('jsticket', array('acid' => $this->account['acid']));
 		$cache = cache_load($cachekey);
@@ -855,10 +725,7 @@ class XzappAccount extends WeAccount {
 		return $record['ticket'];
 	}
 
-	/**
-	 * 获取 jssdk config
-	 * @return array
-	 */
+	
 	public function getJssdkConfig($url = '') {
 		global $_W;
 		$jsapiTicket = $this->getJsApiTicket();
@@ -887,10 +754,7 @@ class XzappAccount extends WeAccount {
 		return $config;
 	}
 
-	/**
-	 * 获取熊掌号前端显示的素材支持内容
-	 * @return array
-	 */
+	
 	public function getMaterialSupport() {
 		return array(
 			'mass' => array('news'=> false, 'image'=> false,'voice'=> false,'basic'=> false),

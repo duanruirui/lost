@@ -1,25 +1,10 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 $input = file_get_contents('php://input');
-/**
-$input = "
-<xml><OpenId><![CDATA[oWkAwtz6I3Cxm5KD924Qkmtl6cxE]]></OpenId>
-<AppId><![CDATA[wx94046dcd47c82169]]></AppId>
-<TimeStamp>1397358158</TimeStamp>
-<MsgType><![CDATA[request]]></MsgType>
-<FeedBackId>13200121263314497669</FeedBackId>
-<TransId><![CDATA[1218504801201404133203605474]]></TransId>
-<Reason><![CDATA[测试]]></Reason>
-<Solution><![CDATA[测试]]></Solution>
-<ExtInfo><![CDATA[ 18635132526]]></ExtInfo>
-<AppSignature><![CDATA[981c7cc2ea00f97d444c692be9163a912b6a6ebd]]></AppSignature>
-<SignMethod><![CDATA[sha1]]></SignMethod>
-</xml>
-";
-*/
+
 if (preg_match('/(\<\!DOCTYPE|\<\!ENTITY)/i', $input)) {
 	exit('fail');
 }

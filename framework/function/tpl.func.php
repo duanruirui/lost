@@ -1,8 +1,7 @@
 <?php
 /**
- * 模板助手
- *
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -47,14 +46,7 @@ function tpl_form_field_clock($name, $value = '') {
 	return $s;
 }
 
-/**
- * 【表单控件】: 范围日期选择器
- * @param string $name 表单input名称
- * @param array $value 表单input值
- * 		array('start' => 开始日期,'end' => 结束日期)
- * @param boolean $time 是否显示时间
- * @return string
- */
+
 function tpl_form_field_daterange($name, $value = array(), $time = false) {
 	$s = '';
 
@@ -134,12 +126,7 @@ function tpl_form_field_daterange($name, $value = array(), $time = false) {
 	return $s;
 }
 
-/**
- * 【表单控件】: 出生日期控件
- * @param array $name 表单input名称
- * @param array $values 表单input值
- * @return string
- */
+
 function tpl_form_field_calendar($name, $values = array()) {
 	$html = '';
 	if (!defined('TPL_INIT_CALENDAR')) {
@@ -164,9 +151,6 @@ function tpl_form_field_calendar($name, $values = array()) {
 						} else {
 							day[0].options[0].selected = "selected";
 						}
-					}
-					if($("select").niceSelect) {
-						$("select").niceSelect("update");
 					}
 				});
 			}
@@ -216,14 +200,7 @@ function tpl_form_field_calendar($name, $values = array()) {
 	return $html;
 }
 
-/**
- * 【表单控件】: 省市县(区)地区选择器
- * @param array $name 表单input名称
- * 		  默认为$names['province'] = 'province',
- * 		  $names['city'] = 'city, $names['district'] = 'district'
- * @param array $values 表单input值
- * @return string
- */
+
 function tpl_form_field_district($name, $values = array()) {
 	$html = '';
 	if (!defined('TPL_INIT_DISTRICT')) {
@@ -275,15 +252,7 @@ function tpl_form_field_district($name, $values = array()) {
 	return $html;
 }
 
-/**
- * 二级分类选择器
- * @param string $name 表单名称
- * @param array $parents 父分类,
- * @param array $children 子分类,
- * @param int $parentid 选择的父 id
- * @param int $childid 选择的子id
- * @return string Html代码
- */
+
 function tpl_form_field_category_2level($name, $parents, $children, $parentid, $childid){
 	$html = '
 		<script type="text/javascript">
@@ -305,9 +274,6 @@ function tpl_form_field_category_2level($name, $parents, $children, $parentid, $
 						html += \'<option value="\'+window[\'_\'+name][index][i][\'id\']+\'">\'+window[\'_\'+name][index][i][\'name\']+\'</option>\';
 					}
 					$selectChild.html(html);
-					if($("select").niceSelect) {
-						$("select").niceSelect("update");
-					}
 				});
 			}
 		</script>
@@ -348,15 +314,7 @@ function tpl_form_field_category_2level($name, $parents, $children, $parentid, $
 	return $html;
 }
 
-/**
- *【表单控件】: 行业分类选择器
- * @param string $name  表单名称
- * @param string $pvalue 父类选中元素
- * @param string $cvalue 子类选中元素
- * @param string $parentid select 父类id
- * @param string $childid  select 子类id
- * @return string
- */
+
 function tpl_form_field_industry($name, $pvalue = '', $cvalue = '', $parentid = 'industry_1', $childid = 'industry_2'){
 	$html = '
 	<div class="row row-fix">
@@ -375,13 +333,7 @@ function tpl_form_field_industry($name, $pvalue = '', $cvalue = '', $parentid = 
 	return $html;
 }
 
-/**
- * 【表单控件】: 地理位置选择器
- * @param string $field 表单中input名称
- * @param array $value 表单中input值
- * 		$value['lat']，$value['lng']
- * @return string
- */
+
 function tpl_form_field_coordinate($field, $value = array()) {
 	$s = '';
 	if(!defined('TPL_INIT_COORDINATE')) {
@@ -417,23 +369,7 @@ function tpl_form_field_coordinate($field, $value = array()) {
 	return $s;
 }
 
-/**
- * 【表单控件】: 系统预设表单
- * @param string $field 表单input名称
- * 	表单类型:
- * <pre>
- * 	'avatar':上传头像
- * 	'gender':获取性别
- * 	'birth' :获取生日
- * 	'reside':获取地区
- * 	'education':获取学历
- * 	'constellation':获取星座
- * 	'zodiac':获取生肖
- * 	'bloodtype':获取血型
- * </pre>
- * @param mixed $value 表单input值
- * @return string
- */
+
 function tpl_fans_form($field, $value = '') {
 	switch ($field) {
 	case 'avatar':

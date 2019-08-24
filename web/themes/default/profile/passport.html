@@ -1,22 +1,21 @@
 {template 'common/header'}
 {template 'profile/common'}
+{if $do == 'oauth'}
 
 <div id="js-profile-passport" ng-controller="oauthCtrl" ng-cloak>
-	<table class="table we7-table table-form">
+	<table class="table we7-table table-hover table-form">
 		<col width="180px " />
 		<col />
 		<col width="100px" />
 		<tr>
-			<th>公众平台oAuth设置</th>
-			<th></th>
-			<th></th>
+			<th class="text-left" colspan="3">公众平台oAuth设置</th>
 		</tr>
 		<tr>
 			<td class="text-left">
 				选择公众号
 			</td>
 			<td class="text-left color-gray" ng-bind="oauthtitle"></td>
-			<td >
+			<td class="text-left">
 				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#oauth">修改</a></div>
 			</td>
 		</tr>
@@ -25,7 +24,7 @@
 				oAuth独立域名
 			</td>
 			<td class="text-left color-gray" ng-bind="originalHost"></td>
-			<td >
+			<td class="text-left">
 				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#host">修改</a></div>
 			</td>
 		</tr>
@@ -75,22 +74,19 @@
 			</div>
 		</div>
 	</div>
-
-	<table class="table we7-table table-form">
+	<table class="table we7-table table-hover table-form">
 		<col width="180px " />
 		<col />
 		<col width="100px" />
 		<tr>
-			<th>借用 JS 分享设置</th>
-			<th></th>
-			<th></th>
+			<th class="text-left" colspan="3">借用 JS 分享设置</th>
 		</tr>
 		<tr>
 			<td class="text-left">
 				选择公众号
 			</td>
 			<td class="text-left color-gray" ng-bind="jsOauthtitle"></td>
-			<td >
+			<td class="text-left ">
 				<div class="link-group"><a href="javascript:;" data-toggle="modal" data-target="#jsauth_acid">修改</a></div>
 			</td>
 		</tr>
@@ -110,7 +106,7 @@
 							<option value="{php echo $key}">{php echo $jsaccount}</option>
 							{/loop}
 						</select>
-						<span class="help-block">在系统中使用微信分享接口前，开发者需要先到公众平台网站的【公众号设置】 / 【功能设置】中配置 【JS 接口安全域名】。<a href="http://www.w7.cc/manual/dev:v0.6:qa:jsauth" target="_black">查看详情</a></span>
+						<span class="help-block">在系统中使用微信分享接口前，开发者需要先到公众平台网站的【公众号设置】 / 【功能设置】中配置 【JS 接口安全域名】。<a href="http://www.we7.cc/manual/dev:v0.6:qa:jsauth" target="_black">查看详情</a></span>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -121,11 +117,10 @@
 		</div>
 	</div>
 </div>
-
 <script>
 	angular.module('profileApp').value('config', {
-		'oauthAccount' : "{php echo empty($oauth['account']) ? '' : $oauth['account']}",
-		'oauthHost' : "{php echo empty($oauth['host']) ? '' : $oauth['host']}",
+		'oauthAccount' : "{$oauth['account']}",
+		'oauthHost' : "{$oauth['host']}",
 		'jsOauth' : "{$jsoauth}",
 		'oauthAccounts' : {php echo json_encode($oauth_accounts)},
 		'jsOauthAccounts' : {php echo json_encode($jsoauth_accounts)},
@@ -134,4 +129,5 @@
 	});
 	angular.bootstrap($('#js-profile-passport'), ['profileApp']);
 </script>
+{/if}
 {template 'common/footer'}

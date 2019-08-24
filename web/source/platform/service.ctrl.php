@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn: pro/web/source/platform/service.ctrl.php : v 7e4ce85c5d2f : 2015/07/15 03:25:22 : yanghf $
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 $_W['page']['title'] = '常用接入服务 - 常用接入服务 - 高级功能';

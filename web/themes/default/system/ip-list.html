@@ -1,8 +1,8 @@
 {template 'common/header'}
 <!--ip白名单-->
 <div class="iplist" ng-controller="ipWhiteListCtrl" ng-cloak>
-	<div class="search-box we7-margin-bottom">
-		<form action="{php url('system/ipwhitelist')}" method="post" class="search-form">
+	<div class="clearfix we7-margin-bottom">
+		<form action="{php url('system/ipwhitelist')}" method="post" class="form-inline pull-left">
 			<div class="input-group" style="width: 400px;">
 				<input type="text" placeholder="输入要搜索的ip地址" class="form-control" name="keyword" value="{$keyword}"/>
 			<span class="input-group-btn">
@@ -12,7 +12,9 @@
 			</span>
 			</div>
 		</form>
-		<a href="#" class="btn btn-primary we7-padding-horizontal" data-toggle="modal" data-target="#myModalIp">添加白名单</a>
+		<div class="pull-right">
+			<a href="#" class="btn btn-primary we7-padding-horizontal" data-toggle="modal" data-target="#myModalIp">添加白名单</a>
+		</div>
 	</div>
 	<table class="table we7-table table-hover vertical-middle" ng-cloak>
 		<col />
@@ -38,11 +40,6 @@
 				<div class="link-group">
 					<a href="{{links.delete_link_ip}}ip={{list.ip}}" class="del">删除</a>
 				</div>
-			</td>
-		</tr>
-		<tr ng-if="lists | we7IsEmpty">
-			<td colspan="100">
-				<div class="we7-empty-block">暂无IP白名单</div>
 			</td>
 		</tr>
 	</table>

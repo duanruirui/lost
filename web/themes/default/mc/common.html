@@ -1,7 +1,25 @@
 <ul class="we7-page-tab">
-	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false) && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
-	<li {if $do == $active_menu['active'] && strpos($active_menu['url'], $action) !== false}class="active"{/if}><a href="{$active_menu['url']}&version_id={$_GPC['version_id']}">{$active_menu['title']}</a></li>
+	<li {if ($do == 'display' || $do == 'post') && $action == 'member'} class="active"{/if}>
+	<a href="{php echo url('mc/member')}">会员管理</a>
+	</li>
+	<li {if $_GPC['a'] == 'group'} class="active"{/if}>
+	<a href="{php echo url('mc/group')}">会员组</a>
+	</li>
+	{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}
+	<li{if $do == 'uc'} class="active"{/if}>
+	<a href="{php echo url('site/editor/uc')}">会员中心</a>
+	</li>
+	<li {if $do == 'quickmenu'} class="active"{/if}>
+	<a href="{php echo url('site/editor/quickmenu')}">快捷菜单</a>
+	</li>
+	<li {if $do == 'register_setting'} class="active"{/if}>
+	<a href="{php echo url('mc/member/register_setting')}">注册设置</a>
+	</li>
 	{/if}
-	{/loop}
+	<li {if $do == 'credit_setting'} class="active"{/if}>
+	<a href="{php echo url('mc/member/credit_setting')}">积分设置</a>
+	</li>
+	<li {if $action == 'fields'} class="active"{/if}>
+	<a href="{php echo url('mc/fields')}">会员字段管理</a>
+	</li>
 </ul>

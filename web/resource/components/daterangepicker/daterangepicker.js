@@ -431,7 +431,7 @@
 				start = null,
 				end = null;
 
-			if (dateString.length === 2) {
+			if(dateString.length === 2) {
 				start = moment(dateString[0], this.format);
 				end = moment(dateString[1], this.format);
 			}
@@ -512,7 +512,7 @@
 			this.move();
 
 			// Create a click proxy that is private to this instance of datepicker, for unbinding
-			this._outsideClickProxy = $.proxy(function (e) {this.outsideClick(e);}, this);
+			this._outsideClickProxy = $.proxy(function (e) { this.outsideClick(e); }, this);
 			// Bind global datepicker mousedown for hiding and
 			$(document)
 			  .on('mousedown.daterangepicker', this._outsideClickProxy)
@@ -533,7 +533,7 @@
 				target.closest(this.element).length ||
 				target.closest(this.container).length ||
 				target.closest('.calendar-date').length
-			) return;
+				) return;
 			this.hide();
 		},
 
@@ -892,12 +892,12 @@
 
 			for (var m = 0; m < 12; m++) {
 				if ((!inMinYear || m >= minDate.month()) && (!inMaxYear || m <= maxDate.month())) {
-					monthHtml += '<option value=\'' + m + '\'' +
-						(m === currentMonth ? ' selected=\'selected\'' : '') +
-						'>' + this.locale.monthNames[m] + '</option>';
+					monthHtml += "<option value='" + m + "'" +
+						(m === currentMonth ? " selected='selected'" : "") +
+						">" + this.locale.monthNames[m] + "</option>";
 				}
 			}
-			monthHtml += '</select>';
+			monthHtml += "</select>";
 
 			var currentYear = selected.year();
 			var maxYear = (maxDate && maxDate.year()) || (currentYear + 5);
@@ -932,7 +932,7 @@
 				html += '<th></th>';
 			}
 
-			var dateHtml = this.locale.monthNames[calendar[1][1].month()] + calendar[1][1].format(' YYYY');
+			var dateHtml = this.locale.monthNames[calendar[1][1].month()] + calendar[1][1].format(" YYYY");
 
 			if (this.showDropdowns) {
 				dateHtml = this.renderDropdowns(calendar[1][1], minDate, maxDate);
@@ -983,8 +983,8 @@
 						}
 					} else if (calendar[row][col] >= this.startDate && calendar[row][col] <= this.endDate) {
 						cname += ' in-range ';
-						if (calendar[row][col].isSame(this.startDate)) {cname += ' start-date ';}
-						if (calendar[row][col].isSame(this.endDate)) {cname += ' end-date ';}
+						if (calendar[row][col].isSame(this.startDate)) { cname += ' start-date '; }
+						if (calendar[row][col].isSame(this.endDate)) { cname += ' end-date '; }
 					}
 
 					var title = 'r' + row + 'c' + col;
@@ -1073,26 +1073,26 @@
 			if (el.data('daterangepicker'))
 				el.data('daterangepicker').remove();
 
-			if (typeof(options) == 'object') {
-				if (typeof(options.ranges) != 'object') {
+			if(typeof(options) == 'object') {
+				if(typeof(options.ranges) != 'object') {
 					options.ranges = {};
 					var now = new Date();
 					var year = now.getFullYear();
 					var month = now.getMonth();
 					var day = now.getDate();
-					// options.ranges['今天'] = [new Date(year, month, day, 0, 0, 0), moment()];
+					options.ranges['今天'] = [new Date(year, month, day, 0, 0, 0), moment()];
 					options.ranges['一周内'] = [moment().subtract('days', 6), moment()];
 					options.ranges['二周内'] = [moment().subtract('days', 13), moment()];
 					options.ranges['一月内'] = [moment().subtract('days', 29), moment()];
 				}
-				if (typeof(options.locale) != 'object') {
+				if(typeof(options.locale) != 'object') {
 					options.locale = {
-						applyLabel: '确定',
-						cancelLabel: '取消',
-						fromLabel: '从',
-						toLabel: '至',
-						weekLabel: '周',
-						customRangeLabel: '日期范围',
+						applyLabel: "确定",
+						cancelLabel: "取消",
+						fromLabel: "从",
+						toLabel: "至",
+						weekLabel: "周",
+						customRangeLabel: "日期范围",
 						daysOfWeek: moment()._lang._weekdaysMin.slice(),
 						monthNames: moment()._lang._monthsShort.slice(),
 						firstDay: 0

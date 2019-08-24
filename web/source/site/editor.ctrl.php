@@ -1,7 +1,7 @@
 <?php
 /**
- * 会员中心
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 load()->model('site');
@@ -10,12 +10,11 @@ load()->library('qrcode');
 
 $do = !empty($do) ? $do : 'uc';
 $do = in_array($do, array('quickmenu', 'uc', 'qrcode')) ? $do : 'uc';
-
-if (in_array($do, array('quickmenu', 'uc'))) {
-	permission_check_account_user('mc_member_' . $do);
-}
+permission_check_account_user('mc_member');
 
 if ($do == 'uc') {
+	$_W['page']['title'] = '会员中心 - 微站功能';
+
 	if (!empty($_GPC['wapeditor'])) {
 		$params = $_GPC['wapeditor']['params'];
 		if (empty($params)) {
@@ -27,7 +26,6 @@ if ($do == 'uc') {
 		}
 		$page = $params[0];
 		$html = safe_gpc_html(htmlspecialchars_decode($_GPC['wapeditor']['html'], ENT_QUOTES));
-		$html = preg_replace('/background\-image\:(\s)*url\(\"(.*)\"\)/U', 'background-image: url($2)', $html);
 		$data = array(
 			'uniacid' => $_W['uniacid'],
 			'multiid' => '0',
@@ -44,7 +42,7 @@ if ($do == 'uc') {
 			pdo_insert('site_page', $data);
 			$id = pdo_insertid();
 		} else {
-			pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+			pdo_update('site_page', $data, array('id' => $id));
 		}
 		if (!empty($page['params']['keyword'])) {
 			$cover = array(
@@ -58,8 +56,7 @@ if ($do == 'uc') {
 			);
 			site_cover($cover);
 		}
-		//处理链接
-		$nav = json_decode(ihtml_entity_decode($_GPC['wapeditor']['nav']), true);
+				$nav = json_decode(ihtml_entity_decode($_GPC['wapeditor']['nav']), true);
 		$ids = array(0);
 		if (!empty($nav)) {
 			foreach ($nav as $row) {
@@ -74,7 +71,7 @@ if ($do == 'uc') {
 					'displayorder' => 0,
 				);
 				if (!empty($row['id'])) {
-					pdo_update('site_nav', $data, array('id' => $row['id'], 'uniacid' => $_W['uniacid']));
+					pdo_update('site_nav', $data, array('id' => $row['id']));
 				} else {
 					$data['status'] = 1;
 					pdo_insert('site_nav', $data);
@@ -89,7 +86,7 @@ if ($do == 'uc') {
 	$navs = pdo_fetchall("SELECT id, icon, css, name, module, status, url FROM ".tablename('site_nav')." WHERE uniacid = :uniacid AND position = '2' ORDER BY displayorder DESC, id ASC", array(':uniacid' => $_W['uniacid']));
 	if (!empty($navs)) {
 		foreach ($navs as &$nav) {
-			/*处理icon图片链接*/
+			
 			if (!empty($nav['module'])) {
 				$nav['module_info'] = module_fetch($nav['module']);
 			}
@@ -108,6 +105,7 @@ if ($do == 'uc') {
 	$page = pdo_fetch("SELECT * FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '3'", array(':uniacid' => $_W['uniacid']));
 	template('site/editor');
 } elseif ($do == 'quickmenu') {
+	$_W['page']['title'] = '快捷菜单 - 站点管理 - 微站功能';
 	$multiid = intval($_GPC['multiid']);
 	$type = intval($_GPC['type']) ? intval($_GPC['type']) : 2;
 	if ($_GPC['wapeditor']) {
@@ -138,7 +136,7 @@ if ($do == 'uc') {
 			$id = pdo_fetchcolumn("SELECT id FROM ".tablename('site_page')." WHERE multiid = :multiid AND type = :type", array(':multiid' => $multiid, ':type' => $type));
 		}
 		if (!empty($id)) {
-			pdo_update('site_page', $data, array('id' => $id, 'uniacid' => $_W['uniacid']));
+			pdo_update('site_page', $data, array('id' => $id));
 		} else {
 			if ($type == 4) {
 				$data['status'] = 1;

@@ -2,7 +2,7 @@
 
 /**
  * [WeEngine System] Copyright (c) 2014 WE7.CC
- * WeEngine is NOT a free software, it under the license terms, visited http://www.w7.cc/ for more details.
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -102,7 +102,6 @@ function wechat_build($params, $wechat) {
 		$string1 = '';
 		foreach($package as $key => $v) {
 			if (empty($v)) {
-				unset($package[$key]);
 				continue;
 			}
 			$string1 .= "{$key}={$v}&";
@@ -134,8 +133,7 @@ function wechat_build($params, $wechat) {
 		$wOpt['paySign'] = sha1($string);
 		return $wOpt;
 	} else {
-		//当用户传过来UID时，需要转换一下Openid
-		if (!empty($params['user']) && is_numeric($params['user'])) {
+				if (!empty($params['user']) && is_numeric($params['user'])) {
 			$params['user'] = mc_uid2openid($params['user']);
 		}
 		$package = array();
@@ -168,7 +166,6 @@ function wechat_build($params, $wechat) {
 		$string1 = '';
 		foreach($package as $key => $v) {
 			if (empty($v)) {
-				unset($package[$key]);
 				continue;
 			}
 			$string1 .= "{$key}={$v}&";
@@ -313,8 +310,15 @@ function payment_setting() {
 		);
 	}
 	
-	//废弃微信借用支付
-	if (empty($_W['isfounder'])) {
+		if (empty($pay_setting['wechat_facilitator'])) {
+			$pay_setting['wechat_facilitator'] = array(
+				'switch' => false,
+				'mchid' => '',
+				'signkey' => '',
+			);
+		}
+	
+		if (empty($_W['isfounder'])) {
 		$user_account_list = pdo_getall('uni_account_users', array('uid' => $_W['uid']), array(), 'uniacid');
 		$param['uniacid'] = array_keys($user_account_list);
 	}

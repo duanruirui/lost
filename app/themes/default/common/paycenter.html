@@ -69,7 +69,7 @@
 	<ul class="mui-table-view mui-table-view-chevron pay-style">
 		{if !empty($pay['credit']['switch'])}
 		<li class="mui-table-view-cell credit">
-			<a class="mui-navigate-right mui-media js-pay credit-js-pay" href="javascript:;">
+			<a class="mui-navigate-right mui-media credit-js-pay" href="javascript:;">
 				<form action="{php echo url('mc/cash/credit');}" method="post" id="credit_pay">
 					<input type="hidden" name="params" value="{php echo base64_encode(json_encode($params));}" />
 					<input type="hidden" name="code" value="" />
@@ -127,7 +127,7 @@
 				<img src="resource/images/wx-icon.png" alt="" class="mui-media-object mui-pull-left"/>
 				<span class="mui-media-body mui-block">
 					<span id="wetitle">微信支付</span>
-					<span class="mui-block mui-text-muted mui-mt5">微信支付,安全快捷(只能在微信内使用)</span>
+					<span class="mui-block mui-text-muted mui-mt5">微信支付,安全快捷(必须使用微信内置浏览器)</span>
 				</span>
 			</a>
 		</li>
@@ -197,13 +197,13 @@
 		{/if}
 		{if !empty($pay['line']['switch'])}
 		<li class="mui-table-view-cell mui-disabled">
-			<div class="mui-navigate-right mui-media" style="white-space: normal;">
+			<a class="mui-navigate-right mui-media">
 				<img src="resource/images/icon-vip.png" alt="" class="mui-media-object mui-pull-left"/>
 				<span class="mui-media-body mui-block">
 					线下汇款
 					<span class="mui-block mui-text-muted mui-mt5">{php echo htmlspecialchars_decode($pay['line']['message'])}</span>
 				</span>
-			</div>
+			</a>
 		</li>
 		{/if}
 	</ul>
@@ -412,7 +412,7 @@
 				$('.credit').hide();
 			} else {
 				$('[name="mix_pay"]').val(false);
-				fee = (price * 100)/100;
+				fee = (price * 100 - currency * 100)/100;
 				$('.credit').show();
 			}
 			$('.js-need-pay').data('price', fee);

@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 $openid = $_W['openid'];
@@ -35,8 +35,7 @@ if($do == 'register') {
 			if ($repassword != $password) {
 				message('密码输入不一致', referer(), 'error');
 			}
-			//根据后台设置的参数进行判断
-			if($item == 'email') {
+						if($item == 'email') {
 				if(preg_match(REGULAR_EMAIL, $username)) {
 					$type = 'email';
 					$sql .= ' AND `email`=:email';
@@ -95,14 +94,13 @@ if($do == 'register') {
 		if(!empty($user)) {
 			message('该用户名已被注册', referer(), 'error');
 		}
-		//如果有openid,获取从公众平台同步的用户信息(插入和更新信息公用)
-		if(!empty($_W['openid'])) {
+				if(!empty($_W['openid'])) {
 			$fan = mc_fansinfo($_W['openid']);
 			if (!empty($fan)) {
 				$map_fans = $fan['tag'];
 			}
 			if (empty($map_fans) && isset($_SESSION['userinfo'])) {
-				$map_fans = iunserializer(base64_decode($_SESSION['userinfo']));
+				$map_fans = unserialize(base64_decode($_SESSION['userinfo']));
 			}
 		}
 

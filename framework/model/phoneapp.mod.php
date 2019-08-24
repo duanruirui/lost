@@ -18,24 +18,16 @@ function phoneapp_support_modules() {
 }
 
 
-/**
- * 获取某一APP最新四个版本信息，并标记出来最后使用的版本.
- *
- * @param int $uniacid
- * @param int $page
- * @param int $pagesize
- * return array
- */
+
 function phoneapp_get_some_lastversions($uniacid) {
-	load()->model('miniapp');
 	$version_lasts = array();
 	$uniacid = intval($uniacid);
 
 	if (empty($uniacid)) {
 		return $version_lasts;
 	}
-	$version_lasts = table('wxapp_versions')->latestVersion($uniacid);
-	$last_switch_version = miniapp_last_switch_version($uniacid);
+	$version_lasts = table('phoneappversions')->phoneappLatestVersion($uniacid);
+	$last_switch_version = phoneapp_last_switch_version();
 	if (!empty($last_switch_version[$uniacid]) && !empty($version_lasts[$last_switch_version[$uniacid]['version_id']])) {
 		$version_lasts[$last_switch_version[$uniacid]['version_id']]['current'] = true;
 	} else {
@@ -47,25 +39,67 @@ function phoneapp_get_some_lastversions($uniacid) {
 	return $version_lasts;
 }
 
-/**
- * 通过版本号获取当前APP版本信息
- */
-function phoneapp_version_by_version($version) {
-	global $_W;
-	if (empty($version)) {
-		return array();
+
+
+function phoneapp_last_switch_version() {
+	global $_GPC;
+	static $phoneapp_cookie_uniacids;
+	if (empty($phoneapp_cookie_uniacids) && !empty($_GPC['__phoneappversionids'])) {
+		$phoneapp_cookie_uniacids = json_decode(htmlspecialchars_decode($_GPC['__phoneappversionids']), true);
 	}
-	$version_info = table('wxapp_versions')->getByUniacidAndVersion($_W['uniacid'], $version);
-	if (empty($version_info['id'])) {
-		return array();
-	} else {
-		return phoneapp_version($version_info['id']);
-	}
+
+	return $phoneapp_cookie_uniacids;
 }
-/**
- * 获取APP单个版本.
- * @param int $version_id
- */
+
+
+
+function phoneapp_fetch($uniacid, $version_id = '') {
+	global $_GPC;
+	load()->model('extension');
+	$phoneapp_info = array();
+	$uniacid = intval($uniacid);
+	if (empty($uniacid)) {
+		return $phoneapp_info;
+	}
+	if (!empty($version_id)) {
+		$version_id = intval($version_id);
+	}
+
+	$phonaeapp_table = table('phoneapp');
+	$phoneapp_info = $phonaeapp_table->searchWithUniacid($uniacid)->phoneappAccountInfo();
+
+	if (empty($phoneapp_info)) {
+		return $phoneapp_info;
+	}
+
+	if (empty($version_id)) {
+		$phoneapp_cookie_uniacids = array();
+		if (!empty($_GPC['__phoneappversionids'])) {
+			$phoneappversionids = json_decode(htmlspecialchars_decode($_GPC['__phoneappversionids']), true);
+			foreach ($phoneappversionids as $version_val) {
+				$phoneapp_cookie_uniacids[] = $version_val['uniacid'];
+			}
+		}
+		if (in_array($uniacid, $phoneapp_cookie_uniacids)) {
+			$phoneapp_version_info = phoneapp_version($phoneappversionids[$uniacid]['version_id']);
+		}
+
+		if (empty($phoneapp_version_info)) {
+			$phoneapp_version_info = table('phoneappversions')->phoneappLastVersion($uniacid);
+		}
+	} else {
+		$phoneapp_version_info = table('phoneappversions')->getById($version_id);
+	}
+	if (!empty($phoneapp_version_info) && !empty($phoneapp_version_info['modules'])) {
+		$phoneapp_version_info['modules'] = iunserializer($phoneapp_version_info['modules']);
+	}
+	$phoneapp_info['version'] = $phoneapp_version_info;
+	$phoneapp_info['version_num'] = explode('.', $phoneapp_version_info['version']);
+
+	return  $phoneapp_info;
+}
+
+
 function phoneapp_version($version_id) {
 	$version_info = array();
 	$version_id = intval($version_id);
@@ -73,30 +107,46 @@ function phoneapp_version($version_id) {
 	if (empty($version_id)) {
 		return $version_info;
 	}
-	$version_info = table('wxapp_versions')->getById($version_id);
 
-	if (is_array($version_info['modules'])) {
-		$uni_modules = uni_modules_by_uniacid($version_info['uniacid']);
-		$uni_modules = array_keys($uni_modules);
-
-		foreach ($version_info['modules'] as $i => $module) {
-			if (!in_array($module['name'], $uni_modules)) {
-				unset($version_info['modules'][$i]);
-				continue;
-			}
-			$module_info = module_fetch($module['name']);
-			$module_info['version'] = $module['version'];
-			$module['uniacid'] = table('uni_link_uniacid')->getMainUniacid($version_info['uniacid'], $module['name'], $version_id);
-			if (!empty($module['uniacid'])) {
-				$module_info['uniacid'] = $module['uniacid'];
-				$link_account = uni_fetch($module['uniacid']);
-				$module_info['account'] = $link_account->account;
-				$module_info['account']['logo'] = $link_account->logo;
-			}
-			$version_info['modules'][$i] = $module_info;
-		}
-	}
+	$version_info = table('phoneappversions')->getById($version_id);
+	$version_info['modules'] = iunserializer($version_info['modules']);
 	return $version_info;
+}
+
+
+function phoneapp_update_last_use_version($uniacid, $version_id) {
+	global $_GPC;
+	$uniacid = intval($uniacid);
+	$version_id = intval($version_id);
+	if (empty($uniacid) || empty($version_id)) {
+		return false;
+	}
+	if (!empty($_GPC['__phoneappversionids'])) {
+		$phoneapp_uniacids = array();
+		$cookie_val = json_decode(htmlspecialchars_decode($_GPC['__phoneappversionids']), true);
+		if (!empty($cookie_val)) {
+			foreach ($cookie_val as &$version) {
+				$phoneapp_uniacids[] = $version['uniacid'];
+				if ($version['uniacid'] == $uniacid) {
+					$version['version_id'] = $version_id;
+					$phoneapp_uniacids = array();
+					break;
+				}
+			}
+			unset($version);
+		}
+		if (!empty($phoneapp_uniacids) && !in_array($uniacid, $phoneapp_uniacids)) {
+			$cookie_val[$uniacid] = array('uniacid' => $uniacid, 'version_id' => $version_id);
+		}
+	} else {
+		$cookie_val = array(
+			$uniacid => array('uniacid' => $uniacid, 'version_id' => $version_id),
+		);
+	}
+	isetcookie('__uniacid', $uniacid, 7 * 86400);
+	isetcookie('__phoneappversionids', json_encode($cookie_val), 7 * 86400);
+
+	return true;
 }
 
 function phoneapp_getpackage($data, $if_single = false) {
@@ -110,11 +160,7 @@ function phoneapp_getpackage($data, $if_single = false) {
 }
 
 
-/**
- * 获取APP所有版本
- * @param $uniacid
- * @return Ambigous|array
- */
+
 function phoneapp_version_all($uniacid) {
 	load()->model('module');
 	$phoneapp_versions = array();
@@ -124,7 +170,7 @@ function phoneapp_version_all($uniacid) {
 		return $phoneapp_versions;
 	}
 
-	$phoneapp_versions = table('wxapp_versions')->getAllByUniacid($uniacid);
+	$phoneapp_versions = table('phoneappversions')->phoneappAllVersion($uniacid);
 	if (!empty($phoneapp_versions)) {
 		foreach ($phoneapp_versions as &$version) {
 			$version = phoneapp_version($version['id']);

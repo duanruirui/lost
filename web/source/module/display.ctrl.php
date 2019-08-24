@@ -1,157 +1,184 @@
 <?php
 /**
- * 应用列表
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
 load()->model('module');
-load()->model('switch');
-load()->model('miniapp');
+load()->model('wxapp');
+load()->model('account');
 
-$dos = array('display', 'switch', 'have_permission_uniacids', 'accounts_dropdown_menu', 'rank', 'set_default_account', 'switch_last_module', 'init_uni_modules');
+$dos = array('display', 'switch', 'getall_last_switch', 'have_permission_uniacids', 'accounts_dropdown_menu', 'rank');
 $do = in_array($do, $dos) ? $do : 'display';
 
-if ($do == 'switch_last_module') {
-	$last_module = switch_get_module_display();
-	if (!empty($last_module)) {
-		$account_info = uni_fetch($last_module['uniacid']);
-		if (!is_error($account_info) && !($account_info['endtime'] > 0 && TIMESTAMP > $account_info['endtime'] && !user_is_founder($_W['uid'], true))) {
-			itoast('', url('account/display/switch', array('module_name' => $last_module['modulename'], 'uniacid' => $last_module['uniacid'], 'switch_uniacid' => 1, 'tohome' => intval($_GPC['tohome']))));
-		}
-	}
-	$do = 'display';
-}
-
 if ($do == 'display') {
-	$pageindex = max(1, intval($_GPC['page']));
-	$pagesize = 20;
+	$user_module = array();
+	if (!$_W['isfounder'] || user_is_vice_founder()) {
+		$account_table = table('account');
+		$userspermission_table = table('userspermission');
+		$user_owned_account = $account_table->userOwnedAccount($_W['uid']);
 
-	$uni_modules_table = table('uni_modules');
-	$module_title = safe_gpc_string($_GPC['module_title']);
-	$module_letter = safe_gpc_string($_GPC['letter']);
+		if (!empty($user_owned_account) && is_array($user_owned_account)) {
+			foreach ($user_owned_account as $uniacid => $account) {
+				$account_module = uni_modules_list($uniacid, true, $account['type']);
+				$account_user_module = $userspermission_table->userPermission($_W['uid'], $uniacid);
+								if ($account['type'] == ACCOUNT_TYPE_APP_NORMAL || $account['type'] == ACCOUNT_TYPE_APP_AUTH) {
+					$wxapp_versions = pdo_getall('wxapp_versions', array('uniacid' => $uniacid), '');
+					if (is_array($wxapp_versions) && !empty($wxapp_versions)) {
+						$versions = array();
+						foreach($wxapp_versions as $version) {
+							$version_module = (array)iunserializer($version['modules']);
+							$version_module = array_keys($version_module);
+							$versions[] = $version_module[0];
+						}
+						$diffs = array_diff(array_keys($account_module), $versions);
+						foreach($diffs as $diff) {
+							unset($account_module[$diff]);
+						}
+					} else {
+						$account_module = array();
+					}
+				}
 
-	$uni_modules_table->searchGroupbyModuleName();
-	$own_account_modules = array();
-
-	$own_account_modules = $uni_modules_table->getModulesByUid($_W['uid']);
-
-	$user_lastuse_table = table('users_lastuse');
-	$user_lastuse_table->searchWithoutType('account_display');
-	$user_lastuse_table->searchWithoutType('module_display');
-	$default_module_list = $user_lastuse_table->getDefaultModulesAccount($_W['uid']);
-
-	$modules_rank_table = table('modules_rank');
-	$modules_rank_list = $modules_rank_table->getAllByUid($_W['uid']);
-
-	$module_support_types = module_support_type();
-	foreach($own_account_modules['modules'] as $account_module_name => &$account_module_info) {
-		if ($account_module_info['role'] == ACCOUNT_MANAGE_NAME_CLERK || $account_module_info['role'] == ACCOUNT_MANAGE_NAME_OPERATOR || $account_module_info['role'] == ACCOUNT_MANAGE_NAME_MANAGER) {
-			$user_permission_table = table('users_permission');
-			$operator_modules_permissions = $user_permission_table->getAllUserModulePermission($_W['uid'], $account_module_info['uniacid']);
-			# 如果权限是店员, 检测过滤掉其他没有权限的模块
-			$user_module_permission_info = $user_permission_table->getUserPermissionByType($_W['uid'], $account_module_info['uniacid'], $account_module_info['module_name']);
-			if (!$user_module_permission_info && !empty($operator_modules_permissions)) {
-				unset($own_account_modules['modules'][$account_module_name]);
+				if (!empty($account_user_module) && is_array($account_user_module)) {
+					$account_module = array_intersect_key($account_module, $account_user_module);
+				}
+				$user_module = array_merge($user_module, $account_module);
 			}
 		}
+	} else {
+		$user_module = user_modules($_W['uid']);
+		$user_owned_account = table('account')->userOwnedAccount($_W['uid']);
+		foreach($user_owned_account as $account_key => $account) {
+			$account_modules = uni_modules_list($account['uniacid']);
+			$user_owned_account[$account_key]['modules'] = array_keys($account_modules);
 
-		$uni_module_info = module_fetch($account_module_info['module_name']);
-		if (empty($uni_module_info)) {
-			unset($own_account_modules['modules'][$account_module_name]);
-			continue;
 		}
+		foreach($user_module as $key => $module) {
+			$show_module = false;
 
-		if (in_array($account_module_info['module_name'], array_keys($modules_rank_list))) {
-			$account_module_info['rank'] = $modules_rank_list[$account_module_info['module_name']]['rank'];
+			foreach($user_owned_account as $account) {
+				if (in_array($module['name'], $account['modules'])) {
+					$show_module = true;
+					break;
+				}
+			}
+			if ($show_module == false) {
+				unset($user_module[$key]);
+			}
 		}
-
-		if (in_array($account_module_info['module_name'], array_keys($own_account_modules['modules']))) {
-			$account_module_info['default_uniacid'] = $default_module_list[$account_module_info['module_name']]['default_uniacid'];
-		}
-
-		if ($_W['highest_role'] == ACCOUNT_MANAGE_NAME_CLERK) {
-			$account_module_info['uniacid'] = $account_module_info['permission_uniacid'];
-			$account_module_info['default_uniacid'] = $account_module_info['permission_uniacid'];
-		}
-
-		$uni_account_info = uni_fetch($account_module_info['uniacid']);
-		$account_module_info['account_name'] = $uni_account_info['name'];
-		$account_module_info['acid'] = $uni_account_info['acid'];
-		$account_module_info['account_type'] = $uni_account_info['account_type'];
-		$account_module_info['account_logo'] = $uni_account_info['logo'];
-
-		$account_module_info['logo'] = tomedia($uni_module_info['logo']);
-		$account_module_info['title'] = $uni_module_info['title'];
-		$account_module_info['title_initial'] = $uni_module_info['title_initial'];
-
-		foreach ($module_support_types as $support_type => $support_info) {
-			$account_module_info[$support_type] = $uni_module_info[$support_type];
-		}
-
-		if (!empty($account_module_info['default_uniacid'])) {
-			$account_module_info['default_account_name'] = $default_module_list[$account_module_info['module_name']]['default_account_name'];
-			$account_module_info['default_account_info'] = uni_fetch($account_module_info['default_uniacid']);
-			$account_module_info['default_account_type'] = $account_module_info['default_account_info']['type'];
-			$account_module_info['default_account_logo'] = $account_module_info['default_account_info']['logo'];
-		}
-
 	}
-	unset($account_module_info);
+	$module_rank = table('modules_rank')->getByModuleNameList(array_keys($user_module));
 
-	// 排序
-	$sort_arr = array();
-	foreach ($own_account_modules['modules'] as $sort_key => $sort_val) {
-		$sort_arr[$sort_key] = $sort_val['rank'];
+	$rank = array();
+	foreach ($user_module as $module_name => $module_info) {
+		if (!empty($module_info['issystem']) || ($module_info[MODULE_SUPPORT_SYSTEMWELCOME_NAME] == MODULE_SUPPORT_SYSTEMWELCOME && $module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT && $module_info[MODULE_SUPPORT_WXAPP_NAME] != MODULE_SUPPORT_WXAPP && $module_info[MODULE_SUPPORT_WEBAPP_NAME] != MODULE_SUPPORT_WEBAPP && $module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP && $module_info[MODULE_SUPPORT_XZAPP_NAME] != MODULE_SUPPORT_XZAPP)) {
+			unset($user_module[$module_name]);
+		} else {
+			$rank[] = !empty($module_rank[$module_name]['rank']) ? $module_rank[$module_name]['rank'] : 0;
+		}
 	}
-	array_multisort($sort_arr,SORT_DESC,$own_account_modules['modules']);
-
-	//用于判断初始是否加载数据
-	$own_account_modules['system_have_modules'] = table('modules')->where('issystem !=', 1)->get();
+	array_multisort($rank, SORT_DESC, $user_module);
 	template('module/display');
 }
 
 if ($do == 'rank') {
 	$module_name = trim($_GPC['module_name']);
-	$uniacid = intval($_GPC['uniacid']);
 
-	$exist = module_fetch($module_name, $uniacid);
+	$exist = module_fetch($module_name);
 	if (empty($exist)) {
 		iajax(1, '模块不存在', '');
 	}
-	module_rank_top($module_name, $uniacid);
+	module_rank_top($module_name);
 	itoast('更新成功！', referer(), 'success');
 }
 
 if ($do == 'switch') {
 	$module_name = trim($_GPC['module_name']);
 	$module_info = module_fetch($module_name);
-	$module_name = empty($module_info['main_module']) ? $module_name : $module_info['main_module'];
 	$uniacid = intval($_GPC['uniacid']);
-	$redirect = safe_gpc_url($_GPC['redirect']);
-	$account_info = uni_fetch($uniacid);
-	if (empty($module_info)) {
+	$version_id = intval($_GPC['version_id']);
+	if (empty($module_name) || empty($module_info)) {
 		itoast('模块不存在或已经删除！', referer(), 'error');
 	}
-	if ($account_info->supportVersion) {
-		$miniapp_version_info = miniapp_fetch($uniacid);
-		$version_id = $miniapp_version_info['version']['id'];
+	if (empty($uniacid) && empty($version_id)) {
+		$last_module_info = module_last_switch($module_name);
+		if (empty($last_module_info)) {
+			$accounts_list = module_link_uniacid_fetch($_W['uid'], $module_name);
+			$current_account = current($accounts_list);
+			$uniacid = $current_account['uniacid'];
+			$version_id = $current_account['version_id'];
+		} else {
+			$uniacid = $last_module_info['uniacid'];
+			$version_id = $last_module_info['version_id'];
+		}
 	}
-
 	if (empty($uniacid) && empty($version_id)) {
 		itoast('该模块暂无可用的公众号或小程序，请先给公众号或小程序分配该应用的使用权限', url('module/display'), 'info');
 	}
 
+	module_save_switch($module_name, $uniacid, $version_id);
 	if (!empty($version_id)) {
-		$version_info = miniapp_version($version_id);
-		miniapp_update_last_use_version($version_info['uniacid'], $version_id);
-		$url = url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'version_id' => $version_id, 'switch_uniacid' => true, 'redirect' => urlencode($redirect)));
-	} else {
-		$url = url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'switch_uniacid' => true, 'redirect' => urlencode($redirect)));
+		$version_info = wxapp_version($version_id);
 	}
+	if (empty($uniacid) && !empty($version_id)) {
+		uni_account_save_switch($version_info['uniacid'], WXAPP_TYPE_SIGN);
+		wxapp_update_last_use_version($version_info['uniacid'], $version_id);
+		itoast('', url('account/display/switch', array('uniacid' => $uniacid, 'module' => $module_name, 'version_id' => $version_id, 'type' => ACCOUNT_TYPE_APP_NORMAL)), 'success');
+	}
+	if (!empty($uniacid)) {
+		if (empty($version_id)) {
+			itoast('', url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'type' => ACCOUNT_TYPE_OFFCIAL_NORMAL)), 'success');
+		}
+		if ($version_info['uniacid'] != $uniacid) {
+			itoast('', url('account/display/switch', array('uniacid' => $uniacid, 'module_name' => $module_name, 'version_id' => $version_id, 'type' => ACCOUNT_TYPE_OFFCIAL_NORMAL)), 'success');
+		} else {
+			uni_account_save_switch($version_info['uniacid'], WXAPP_TYPE_SIGN);
+			wxapp_update_last_use_version($version_info['uniacid'], $version_id);
+			itoast('', url('account/display/switch', array('uniacid' => $uniacid, 'module' => $module_name, 'version_id' => $version_id, 'type' => ACCOUNT_TYPE_APP_NORMAL)), 'success');
+		}
+	}
+}
 
-	switch_save_module_display($uniacid, $module_name);
-	itoast('', $url, 'success');
+if ($do == 'getall_last_switch') {
+	set_time_limit(0);
+	$user_module = user_modules($_W['uid']);
+	$result = array();
+	foreach ($user_module as $module_value) {
+		$last_module_info = module_last_switch($module_value['name']);
+		if (empty($last_module_info)) {
+			$accounts_list = module_link_uniacid_fetch($_W['uid'], $module_value['name']);
+			$current_account = current($accounts_list);
+			$result[$module_value['name']] = array(
+				'app_name' => $current_account['app_name'],
+				'wxapp_name' => $current_account['wxapp_name'],
+			);
+			continue;
+		}
+		$account_info = uni_fetch($last_module_info['uniacid']);
+		if ($account_info['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+			$result[$module_value['name']] = array(
+				'app_name' => '',
+				'wxapp_name' => $account_info['name']
+			);
+			continue;
+		}
+		if (!empty($last_module_info['version_id'])) {
+			$version_info = wxapp_version($last_module_info['version_id']);
+			$account_wxapp_info = wxapp_fetch($version_info['uniacid']);
+			$result[$module_value['name']] = array(
+				'app_name' => $account_info['name'],
+				'wxapp_name' => $account_wxapp_info['name']
+			);
+		} else {
+			$result[$module_value['name']] = array(
+				'app_name' => $account_info['name'],
+				'wxapp_name' => ''
+			);
+		}
+	}
+	iajax(0, $result);
 }
 
 if ($do == 'have_permission_uniacids') {
@@ -169,7 +196,25 @@ if ($do == 'accounts_dropdown_menu') {
 	if (empty($accounts_list)) {
 		exit();
 	}
-
+	$selected_account = array();
+	foreach ($accounts_list as $account) {
+		if (empty($account['uniacid']) || $account['uniacid'] != $_W['uniacid']) {
+			continue;
+		}
+		if (in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
+			if (!empty($account['version_id'])) {
+				$version_info = wxapp_version($account['version_id']);
+				$account['version_info'] = $version_info;
+			}
+			$selected_account = $account;
+			break;
+		} elseif ($_W['account']['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+			$version_info = wxapp_version($account['version_id']);
+			$account['version_info'] = $version_info;
+			$selected_account = $account;
+			break;
+		}
+	}
 	foreach ($accounts_list as $key => $account) {
 		$url = url('module/display/switch', array('uniacid' => $account['uniacid'], 'module_name' => $module_name));
 		if (!empty($account['version_id'])) {
@@ -179,34 +224,4 @@ if ($do == 'accounts_dropdown_menu') {
 	}
 	echo template('module/dropdown-menu');
 	exit;
-}
-
-if ($do == 'set_default_account') {
-	$uniacid = intval($_GPC['uniacid']);
-	$module_name = safe_gpc_string($_GPC['module_name']);
-	if (empty($uniacid) || empty($module_name)) {
-		iajax(-1, '设置失败!');
-	}
-	$result = switch_save_module($uniacid, $module_name);
-	if ($result) {
-		iajax(0, '设置成功!');
-	} else {
-		iajax(-1, '设置失败!');
-	}
-}
-
-if ($do == 'init_uni_modules') {
-	$pageindex = max(1, intval($_GPC['pageindex']));
-	$pagesize = 20;
-	$total = table('account')->count();
-	$total = ceil($total/$pagesize);
-	$init_accounts = table('account')->searchWithPage($pageindex, $pagesize)->getUniAccountList();
-	if (empty($init_accounts)) {
-		iajax(1, 'finished');
-	}
-	foreach ($init_accounts as $account) {
-		cache_build_account_modules($account['uniacid']);
-	}
-	$pageindex = $pageindex + 1;
-	iajax(0, array('pageindex' => $pageindex, 'total' => $total));
 }

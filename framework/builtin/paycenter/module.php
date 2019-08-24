@@ -1,8 +1,7 @@
 <?php
 /**
- * 收银台
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -35,12 +34,7 @@ class PaycenterModule extends WeModule {
 	}
 	
 	public function fieldsFormSubmit($rid = 0) {
-		global $_W, $_GPC;
-		$rid = intval($rid);
-		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
-		if (empty($rule_exists)) {
-			return false;
-		}
+		global $_GPC;
 		pdo_delete($this->tablename, array('rid' => $rid));
 		
 		foreach($this->replies as $reply) {
@@ -48,8 +42,7 @@ class PaycenterModule extends WeModule {
 				'rid' => $rid,
 				'title' => $reply['title'],
 				'card_id' => $reply['card_id'],
-				'cid' => $reply['cid'], //对应卡券表的id
-				'brand_name' => $reply['brand_name'],
+				'cid' => $reply['cid'], 				'brand_name' => $reply['brand_name'],
 				'logo_url' => $reply['logo_url'],
 				'success' => trim($_GPC['success']),
 				'error' => trim($_GPC['error'])
@@ -60,12 +53,6 @@ class PaycenterModule extends WeModule {
 	}
 	
 	public function ruleDeleted($rid = 0) {
-		global $_W;
-		$rid = intval($rid);
-		$rule_exists = pdo_get('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']));
-		if (empty($rule_exists)) {
-			return false;
-		}
 		pdo_delete($this->tablename, array('rid' => $rid));
 		return true;
 	}

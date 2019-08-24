@@ -1,12 +1,12 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 define('IN_MOBILE', true);
 require '../../framework/bootstrap.inc.php';
 
-load()->classs('pay/pay');
+load()->classs('pay');
 $pay = Pay::create();
 $input= file_get_contents('php://input');
 $input = $pay->parseResult($input);

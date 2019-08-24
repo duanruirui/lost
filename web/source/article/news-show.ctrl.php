@@ -1,7 +1,7 @@
 <?php
 /**
- * 
- * [WeEngine System] Copyright (c) 2013 WE7.CC
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 $dos = array( 'detail', 'list');
@@ -14,12 +14,14 @@ if($do == 'detail') {
 	if(is_error($news)) {
 		itoast('新闻不存在或已删除', referer(), 'error');
 	}
+	$_W['page']['title'] = $news['title'] . '-新闻列表';
 }
 
 if($do == 'list') {
 	$categroys = article_categorys('news');
 	$categroys[0] = array('title' => '所有新闻');
 	$cateid = intval($_GPC['cateid']);
+	$_W['page']['title'] = $categroys[$cateid]['title'] . '-新闻列表';
 
 	$filter = array('cateid' => $cateid);
 	$pindex = max(1, intval($_GPC['page']));

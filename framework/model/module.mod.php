@@ -1,25 +1,11 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
-/**
- * 系统预置的模块
- */
-function module_system() {
-	return array(
-		'basic', 'news', 'music', 'service', 'userapi', 'recharge', 'images', 'video', 'voice', 'wxcard',
-		'custom', 'chats', 'paycenter', 'keyword', 'special', 'welcome', 'default', 'apply', 'reply', 'core', 'store',
-	);
-}
 
-/**
- * 模块类型
- *
- * @return array
- */
 function module_types() {
 	static $types = array(
 		'business' => array(
@@ -67,131 +53,68 @@ function module_types() {
 }
 
 function module_support_type() {
-	//根据模块类型分类
-	$module_support_type = array(
+		$module_support_type = array(
 		'wxapp_support' => array(
 			'type' => WXAPP_TYPE_SIGN,
-			'type_name' => '微信小程序',
 			'support' => MODULE_SUPPORT_WXAPP,
-			'not_support' => MODULE_NONSUPPORT_WXAPP,
-			'store_type' => STORE_TYPE_WXAPP_MODULE,
 		),
 		'account_support' => array(
 			'type' => ACCOUNT_TYPE_SIGN,
-			'type_name' => '公众号',
 			'support' => MODULE_SUPPORT_ACCOUNT,
-			'not_support' => MODULE_NONSUPPORT_ACCOUNT,
-			'store_type' => STORE_TYPE_MODULE,
 		),
 		'welcome_support' => array(
 			'type' => WELCOMESYSTEM_TYPE_SIGN,
-			'type_name' => '系统首页',
 			'support' => MODULE_SUPPORT_SYSTEMWELCOME,
-			'not_support' => MODULE_NONSUPPORT_SYSTEMWELCOME,
 		),
 		'webapp_support' => array(
 			'type' => WEBAPP_TYPE_SIGN,
-			'type_name' => 'PC',
 			'support' => MODULE_SUPPORT_WEBAPP,
-			'not_support' => MODULE_NOSUPPORT_WEBAPP,
-			'store_type' => STORE_TYPE_WEBAPP_MODULE,
 		),
 		'phoneapp_support' => array(
 			'type' => PHONEAPP_TYPE_SIGN,
-			'type_name' => 'APP',
 			'support' => MODULE_SUPPORT_PHONEAPP,
-			'not_support' => MODULE_NOSUPPORT_PHONEAPP,
-			'store_type' => STORE_TYPE_PHONEAPP_MODULE,
 		),
 		'xzapp_support' => array(
 			'type' => XZAPP_TYPE_SIGN,
-			'type_name' => '熊掌号',
 			'support' => MODULE_SUPPORT_XZAPP,
-			'not_support' => MODULE_NOSUPPORT_XZAPP,
-			'store_type' => STORE_TYPE_XZAPP_MODULE,
-		),
-		'aliapp_support' => array(
-			'type' => ALIAPP_TYPE_SIGN,
-			'type_name' => '支付宝小程序',
-			'support' => MODULE_SUPPORT_ALIAPP,
-			'not_support' => MODULE_NOSUPPORT_ALIAPP,
-			'store_type' => STORE_TYPE_ALIAPP_MODULE,
-		),
-		'baiduapp_support' => array(
-			'type' => BAIDUAPP_TYPE_SIGN,
-			'type_name' => '百度小程序',
-			'support' => MODULE_SUPPORT_BAIDUAPP,
-			'not_support' => MODULE_NOSUPPORT_BAIDUAPP,
-			'store_type' => STORE_TYPE_BAIDUAPP_MODULE,
-		),
-		'toutiaoapp_support' => array(
-			'type' => TOUTIAOAPP_TYPE_SIGN,
-			'type_name' => '头条小程序',
-			'support' => MODULE_SUPPORT_TOUTIAOAPP,
-			'not_support' => MODULE_NOSUPPORT_TOUTIAOAPP,
-			'store_type' => STORE_TYPE_TOUTIAOAPP_MODULE,
 		)
 	);
 	return $module_support_type;
 }
 
-/**
- * 获取指定模块的所有入口地址
- *
- * @param string $name 模块名称
- * @param string|array $types 入口类型
- * @param number $rid 规则编号
- * @param string $args 附加参数
- * @return array
- */
+
 function module_entries($name, $types = array(), $rid = 0, $args = null) {
 	load()->func('communication');
 
 	global $_W;
 	
+		$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine', 'system_welcome');
 	
-		$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function', 'mine');
 	
 	if(empty($types)) {
 		$types = $ts;
 	} else {
 		$types = array_intersect($types, $ts);
 	}
-	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'displayorder DESC, multilevel DESC, eid ASC');
+	$bindings = pdo_getall('modules_bindings', array('module' => $name, 'entry' => $types), array(), '', 'displayorder DESC, eid ASC');
 	$entries = array();
-	$cache_key = cache_system_key('module_entry_call', array('module_name' => $name));
-	$entry_call = cache_load($cache_key);
-	if (empty($entry_call)) {
-		$entry_call = array();
-	}
 	foreach($bindings as $bind) {
 		if(!empty($bind['call'])) {
-			if (empty($entry_call[$bind['entry']])) {
-				$call_url = url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid']));
-				$response = ihttp_request($call_url);
-				if (is_error($response) || $response['code'] != 200) {
-					$response = ihttp_request($_W['siteroot'] . 'web/' . $call_url); //127.0.0.1 get 不到数据时,尝试使用域名get
-					if (is_error($response) || $response['code'] != 200) {
+			$response = ihttp_request(url('utility/bindcall', array('modulename' => $bind['module'], 'callname' => $bind['call'], 'args' => $args, 'uniacid' => $_W['uniacid'])), array(), $extra);
+			if (is_error($response)) {
+				continue;
+			}
+			$response = json_decode($response['content'], true);
+			$ret = $response['message']['message'];
+			if(is_array($ret)) {
+				foreach($ret as $i => $et) {
+					if (empty($et['url'])) {
 						continue;
 					}
+					$et['url'] = $et['url'] . '&__title=' . urlencode($et['title']);
+					$entries[$bind['entry']][] = array('eid' => 'user_' . $i, 'title' => $et['title'], 'do' => $et['do'], 'url' => $et['url'], 'from' => 'call', 'icon' => $et['icon'], 'displayorder' => $et['displayorder']);
 				}
-				$response = json_decode($response['content'], true);
-				$ret = $response['message']['message'];
-				if(is_array($ret)) {
-					foreach($ret as $i => $et) {
-						if (empty($et['url'])) {
-							continue;
-						}
-						$urlinfo = url_params($et['url']);
-						$et['do'] = empty($et['do']) ? $urlinfo['do'] : $et['do'];
-						$et['url'] = $et['url'] . '&__title=' . urlencode($et['title']);
-						$entry_call[$bind['entry']][] = array('eid' => 'user_' . $i, 'title' => $et['title'], 'do' => $et['do'], 'url' => $et['url'], 'from' => 'call', 'icon' => $et['icon'], 'displayorder' => $et['displayorder']);
-					}
-				}
-				cache_write($cache_key, $entry_call, 300);
 			}
-			$entries[$bind['entry']] = $entry_call[$bind['entry']];
-
 		} else {
 			if (in_array($bind['entry'], array('cover', 'home', 'profile', 'shortcut'))) {
 				$url = murl('entry', array('eid' => $bind['eid']));
@@ -211,30 +134,17 @@ function module_entries($name, $types = array(), $rid = 0, $args = null) {
 			}
 
 			if(empty($bind['icon'])) {
-				$bind['icon'] = 'wi wi-appsetting';
+				$bind['icon'] = 'fa fa-puzzle-piece';
 			}
 			if (!defined('SYSTEM_WELCOME_MODULE') && $bind['entry'] == 'system_welcome') {
 				continue;
 			}
-			$entries[$bind['entry']][] = array(
-				'eid' => $bind['eid'],
-				'title' => $bind['title'],
-				'do' => $bind['do'],
-				'url' => !$bind['multilevel'] ? $url : '',
-				'from' => 'define',
-				'icon' => $bind['icon'],
-				'displayorder' => $bind['displayorder'],
-				'direct' => $bind['direct'],
-				'multilevel' => $bind['multilevel'],
-				'parent' => $bind['parent'],
-			);
+			$entries[$bind['entry']][] = array('eid' => $bind['eid'], 'title' => $bind['title'], 'do' => $bind['do'], 'url' => $url, 'from' => 'define', 'icon' => $bind['icon'], 'displayorder' => $bind['displayorder'], 'direct' => $bind['direct']);
 		}
 	}
 	return $entries;
 }
-/**
- * 专属生成APP端的入口地址
- */
+
 function module_app_entries($name, $types = array(), $args = null) {
 	global $_W;
 	$ts = array('rule', 'cover', 'menu', 'home', 'profile', 'shortcut', 'function');
@@ -257,7 +167,7 @@ function module_app_entries($name, $types = array(), $args = null) {
 				continue;
 			}
 			$response = json_decode($response['content'], true);
-			$ret = $response['message']['message'];
+			$ret = $response['message'];
 			if(is_array($ret)) {
 				foreach($ret as $et) {
 					$et['url'] = $et['url'] . '&__title=' . urlencode($et['title']);
@@ -308,14 +218,7 @@ function module_entry($eid) {
 	return $entry;
 }
 
-/**
- * 显示模块设置表单
- *
- * @param string $name
- * @param number $rid
- * @param array $option 模块显示隐藏设置
- * @return string
- */
+
 function module_build_form($name, $rid, $option = array()) {
 	$rid = intval($rid);
 	$m = WeUtility::createModule($name);
@@ -327,11 +230,7 @@ function module_build_form($name, $rid, $option = array()) {
 
 }
 
-/**
- * 添加应用权限组
- * @param $package
- * @return bool
- */
+
 function module_save_group_package($package) {
 	global $_W;
 	load()->model('user');
@@ -341,6 +240,9 @@ function module_save_group_package($package) {
 		return error(-1, '请输入套餐名');
 	}
 
+	if (user_is_vice_founder()) {
+		$package['owner_uid'] = $_W['uid'];
+	}
 	if (!empty($package['modules'])) {
 		$package['modules'] = iserializer($package['modules']);
 	}
@@ -368,21 +270,12 @@ function module_save_group_package($package) {
 		cache_build_account_modules();
 	} else {
 		pdo_insert('uni_group', $package);
-		$uni_group_id = pdo_insertid();
-		if (user_is_vice_founder()) {
-			$table = table('users_founder_own_uni_groups');
-			$table->addOwnUniGroup($_W['uid'], $uni_group_id);
-		}
 	}
+
 	cache_build_uni_group();
 	return error(0, '添加成功');
 }
-/**
- * 获取指定模块及模块信息
- *
- * @param string $name 模块名称
- * @return array 模块信息
- */
+
 function module_fetch($name, $enabled = true) {
 	global $_W;
 	$cachekey = cache_system_key('module_info', array('module_name' => $name));
@@ -400,30 +293,35 @@ function module_fetch($name, $enabled = true) {
 		}
 		$module_info['isdisplay'] = 1;
 
-		$module_info['logo'] = tomedia($module_info['logo']);
-		if (file_exists(IA_ROOT . '/addons/' . $module_info['name'] . '/preview-custom.jpg')) {
-			$module_info['preview'] = tomedia(IA_ROOT . '/addons/' . $module_info['name'] . '/preview-custom.jpg', '', true);
+		if (file_exists (IA_ROOT . '/addons/' . $module_info['name'] . '/icon-custom.jpg')) {
+			$module_info['logo'] = tomedia (IA_ROOT . '/addons/' . $module_info['name'] . '/icon-custom.jpg') . "?v=" . time ();
 		} else {
-			$module_info['preview'] = tomedia(IA_ROOT . '/addons/' . $module_info['name'] . '/preview.jpg', '', true);
+			$module_info['logo'] = tomedia (IA_ROOT . '/addons/' . $module_info['name'] . '/icon.jpg') . "?v=" . time ();
+		}
+		if (file_exists(IA_ROOT . '/addons/' . $module_info['name'] . '/preview-custom.jpg')) {
+			$module_info['preview'] = tomedia(IA_ROOT . '/addons/' . $module_info['name'] . '/preview-custom.jpg');
+		} else {
+			$module_info['preview'] = tomedia(IA_ROOT . '/addons/' . $module_info['name'] . '/preview.jpg');
 		}
 		$module_info['main_module'] = pdo_getcolumn ('modules_plugin', array ('name' => $module_info['name']), 'main_module');
 		if (!empty($module_info['main_module'])) {
 			$main_module_info = module_fetch ($module_info['main_module']);
 			$module_info['main_module_logo'] = $main_module_info['logo'];
-			$module_info['main_module_title'] = $main_module_info['title'];
 		} else {
 			$module_info['plugin_list'] = pdo_getall ('modules_plugin', array ('main_module' => $module_info['name']), array (), 'name');
 			if (!empty($module_info['plugin_list'])) {
 				$module_info['plugin_list'] = array_keys ($module_info['plugin_list']);
 			}
 		}
+		if ($module_info[MODULE_SUPPORT_ACCOUNT_NAME] != MODULE_SUPPORT_ACCOUNT && $module_info[MODULE_SUPPORT_PHONEAPP_NAME] != MODULE_SUPPORT_PHONEAPP && $module_info[MODULE_SUPPORT_XZAPP_NAME] != MODULE_SUPPORT_XZAPP && $module_info['wxapp_support'] != MODULE_SUPPORT_WXAPP && $module_info['webapp_support'] != MODULE_SUPPORT_WEBAPP && $module_info['welcome_support'] != MODULE_SUPPORT_SYSTEMWELCOME) {
+			$module_info[MODULE_SUPPORT_ACCOUNT_NAME] = MODULE_SUPPORT_ACCOUNT;
+		}
 
 		$module_receive_ban = (array)setting_load('module_receive_ban');
 		if (is_array($module_receive_ban['module_receive_ban']) && in_array($name, $module_receive_ban['module_receive_ban'])) {
 			$module_info['is_receive_ban'] = true;
 		}
-		//盗版模块
-		$module_ban = (array)setting_load('module_ban');
+				$module_ban = (array)setting_load('module_ban');
 		if (is_array($module_ban['module_ban']) && in_array($name, $module_ban['module_ban'])) {
 			$module_info['is_ban'] = true;
 		}
@@ -433,37 +331,22 @@ function module_fetch($name, $enabled = true) {
 			$module_info['is_upgrade'] = true;
 		}
 
-		//回收详情
-		$module_info['recycle_info'] = array();
-		$recycle_info = table('modules_recycle')->getByName($name);
-		if (!empty($recycle_info)) {
-			$is_delete = true;
-			foreach (module_support_type() as $support => $value) {
-				if (!empty($recycle_info[MODULE_RECYCLE_UNINSTALL_IGNORE][$support])) {
-					$module_info['recycle_info'][$support] = MODULE_RECYCLE_UNINSTALL_IGNORE; //0 无操作, 1 已停用, 2 已删除
-				} else {
-					$module_info['recycle_info'][$support] = empty($recycle_info[MODULE_RECYCLE_INSTALL_DISABLED][$support]) ? 0 : MODULE_RECYCLE_INSTALL_DISABLED;
-				}
-				if ($module_info[$support] == $value['support'] && empty($module_info['recycle_info'][$support])) {
-					$is_delete = false;
-				}
-			}
-			$module_info['is_delete'] = $is_delete; //全部支持被停用或删除
+				$module_is_delete = table('modules_recycle')->getByName($name);
+		if (!empty($module_is_delete)) {
+			$module_info['is_delete'] = true;
 		}
 
 		$module = $module_info;
 		cache_write($cachekey, $module_info);
 	}
 
-	//增加开启参数，可以获取放入回收站的模块
-	if (!empty($enabled)) {
-		if (!empty($module['is_delete'])) {
+		if (!empty($enabled)) {
+		if (!empty($module_info['is_delete'])) {
 			return array();
 		}
 	}
 
-	//有公众号时，附加模块配置信息
-	if (!empty($module) && !empty($_W['uniacid'])) {
+		if (!empty($module) && !empty($_W['uniacid'])) {
 		$setting_cachekey = cache_system_key('module_setting', array('module_name' => $name, 'uniacid' => $_W['uniacid']));
 		$setting = cache_load($setting_cachekey);
 		if (empty($setting)) {
@@ -475,15 +358,11 @@ function module_fetch($name, $enabled = true) {
 		$module['enabled'] = $module['issystem'] || !isset($setting['enabled']) ? 1 : $setting['enabled'];
 		$module['displayorder'] = $setting['displayorder'];
 		$module['shortcut'] = $setting['shortcut'];
-		$module['module_shortcut'] = $setting['module_shortcut'];
 	}
 	return $module;
 }
 
-/**
- * 获取某个模块的权限列表
- * @param string $name 模块标识
- */
+
 function module_permission_fetch($name) {
 	$module = module_fetch($name);
 	$data = array();
@@ -510,24 +389,13 @@ function module_permission_fetch($name) {
 	}
 	if(!empty($entries['menu'])) {
 		foreach($entries['menu'] as $menu) {
-			$data[$menu['do']] = array('title' => $menu['title'], 'permission' => $name.'_menu_'.$menu['do']);
+			$data[] = array('title' => $menu['title'], 'permission' => $name.'_menu_'.$menu['do']);
 		}
 	}
 	unset($entries);
 	if(!empty($module['permissions'])) {
 		$module['permissions'] = (array)iunserializer($module['permissions']);
 		foreach ($module['permissions'] as $permission) {
-			if (!empty($permission['parent']) && !empty($data[$permission['parent']])) {
-				$sub_permission = array(
-					'title' => $permission['title'],
-					'permission' => $name . '_menu_' . $permission['parent'] . '_' . $permission['permission'],
-				);
-				if (empty($data[$permission['parent']]['sub_permission'])) {
-					$data[$permission['parent']]['sub_permission'] = array($sub_permission);
-				} else {
-					array_push($data[$permission['parent']]['sub_permission'], $sub_permission);
-				}
-			}
 			$data[] = array('title' => $permission['title'], 'permission' => $name . '_permission_' . $permission['permission']);
 		}
 	}
@@ -535,11 +403,7 @@ function module_permission_fetch($name) {
 }
 
 
-/**
- *  获取指定模块在当前公众号安装的插件
- * @param string $module_name 模块标识
- * @param array() $plugin_list 插件列表
- */
+
 function module_get_plugin_list($module_name) {
 	$module_info = module_fetch($module_name);
 	if (!empty($module_info['plugin_list']) && is_array($module_info['plugin_list'])) {
@@ -556,11 +420,7 @@ function module_get_plugin_list($module_name) {
 	}
 }
 
-/**
- *  返回模块的盗版信息与升级信息
- * @param string $module 模块标识
- * @return array
- */
+
 function module_status($module) {
 	load()->model('cloud');
 	$result = array(
@@ -584,12 +444,7 @@ function module_status($module) {
 	return $result;
 }
 
-/**
- * 判断某一模块是否在公众号模块权限内
- * @param string $module_name
- * @param int $uniacid
- * @return boolean
- */
+
 function module_exist_in_account($module_name, $uniacid) {
 	global $_W;
 	$result = false;
@@ -602,12 +457,7 @@ function module_exist_in_account($module_name, $uniacid) {
 	$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
 	if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
 		if (IMS_FAMILY == 'x') {
-			$account_info = uni_fetch($uniacid);
-			if (in_array($account_info['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
-				$site_store_buy_goods = uni_site_store_buy_goods($uniacid, STORE_TYPE_WXAPP_MODULE);
-			} else {
-				$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
-			}
+			$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
 		} else {
 			$site_store_buy_goods = array();
 		}
@@ -623,12 +473,7 @@ function module_exist_in_account($module_name, $uniacid) {
 }
 
 
-/**
- * 获取操作员有某一模块权限的所有公众号和小程序
- * @param int $uid 用户UID
- * @param string $module_name 模块name
- * @return array()
- */
+
 function module_get_user_account_list($uid, $module_name) {
 	$accounts_list = array();
 	$uid = intval($uid);
@@ -640,6 +485,7 @@ function module_get_user_account_list($uid, $module_name) {
 	if (empty($module_info)) {
 		return $accounts_list;
 	}
+
 	$account_users_info = table('account')->userOwnedAccount($uid);
 	if (empty($account_users_info)) {
 		return $accounts_list;
@@ -660,8 +506,6 @@ function module_get_user_account_list($uid, $module_name) {
 			$uniacid = $account['uniacid'];
 		} elseif (($account['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL && $module_info[MODULE_SUPPORT_PHONEAPP_NAME] == MODULE_SUPPORT_PHONEAPP)) {
 			$uniacid = $account['uniacid'];
-		} elseif (($account['type'] == ACCOUNT_TYPE_ALIAPP_NORMAL && $module_info[MODULE_SUPPORT_ALIAPP_NAME] == MODULE_SUPPORT_ALIAPP)) {
-			$uniacid = $account['uniacid'];
 		}
 		if (!empty($uniacid)) {
 			if (module_exist_in_account($module_name, $uniacid)) {
@@ -673,11 +517,8 @@ function module_get_user_account_list($uid, $module_name) {
 	return $accounts_list;
 }
 
-/**
- * 获取操作员对某一模块，公众号与小程序关联信息
- */
+
 function module_link_uniacid_fetch($uid, $module_name) {
-	load()->model('phoneapp');
 	$result = array();
 	$uid = intval($uid);
 	$module_name = trim($module_name);
@@ -691,13 +532,8 @@ function module_link_uniacid_fetch($uid, $module_name) {
 
 	$accounts_link_result = array();
 	foreach ($accounts_list as $key => $account_value) {
-		$account_info = uni_fetch($account_value['uniacid']);
-		if ($account_info->supportVersion) {
-			if ($account_value['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
-				$account_value['versions'] = phoneapp_version_all($account_value['uniacid']);
-			} else {
-				$account_value['versions'] = miniapp_version_all($account_value['uniacid']);
-			}
+		if ($account_value['type'] == ACCOUNT_TYPE_APP_NORMAL) {
+			$account_value['versions'] = wxapp_version_all($account_value['uniacid']);
 			if (empty($account_value['versions'])) {
 				$accounts_link_result[$key] = $account_value;
 				continue;
@@ -706,8 +542,7 @@ function module_link_uniacid_fetch($uid, $module_name) {
 				if (empty($version_value['modules'])) {
 					continue;
 				}
-				$version_module_names = array_column($version_value['modules'], 'name');
-				if (!in_array($module_name, $version_module_names)) {
+				if ($version_value['modules'][0]['name'] != $module_name) {
 					continue;
 				}
 				if (empty($version_value['modules'][0]['account']) || !is_array($version_value['modules'][0]['account'])) {
@@ -741,21 +576,6 @@ function module_link_uniacid_fetch($uid, $module_name) {
 	}
 	if (!empty($accounts_link_result)) {
 		foreach ($accounts_link_result as $link_key => $link_value) {
-
-			if (in_array($link_value['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
-				$link_value['type_name'] = ACCOUNT_TYPE_SIGN;
-			} elseif (in_array($link_value['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
-				$link_value['type_name'] = WXAPP_TYPE_SIGN;
-			} elseif ($link_value['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
-				$link_value['type_name'] = WEBAPP_TYPE_SIGN;
-			}elseif ($link_value['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
-				$link_value['type_name'] = PHONEAPP_TYPE_SIGN;
-			}elseif ($link_value['type'] == ACCOUNT_TYPE_XZAPP_NORMAL) {
-				$link_value['type_name'] = XZAPP_TYPE_SIGN;
-			}elseif ($link_value['type'] == ACCOUNT_TYPE_ALIAPP_NORMAL) {
-				$link_value['type_name'] = ALIAPP_TYPE_SIGN;
-			}
-
 			if (in_array($link_value['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)) && !empty($link_value['link_wxapp']) && is_array($link_value['link_wxapp'])) {
 				foreach ($link_value['link_wxapp'] as $value) {
 					$result[] = array(
@@ -763,10 +583,6 @@ function module_link_uniacid_fetch($uid, $module_name) {
 						'wxapp_name' => $value['name'] . ' ' . $value['version'],
 						'uniacid' => $link_value['uniacid'],
 						'version_id' => $value['version_id'],
-						'type_name' => $link_value['type_name'],
-						'account_name' => $link_value['name'],
-						'type' => $link_value['type'],
-						'logo' =>  to_global_media('headimg_' . $link_value['acid'] . '.jpg') . '?time=' . time(),
 					);
 				}
 			} elseif ($link_value['type'] == ACCOUNT_TYPE_APP_NORMAL && !empty($link_value['versions']) && is_array($link_value['versions'])) {
@@ -776,10 +592,6 @@ function module_link_uniacid_fetch($uid, $module_name) {
 						'wxapp_name' => $link_value['name'] . ' ' . $value['version'],
 						'uniacid' => $link_value['uniacid'],
 						'version_id' => $value['id'],
-						'type_name' => $link_value['type_name'],
-						'account_name' => $link_value['name'],
-						'type' => $link_value['type'],
-						'logo' =>  to_global_media('headimg_' . $link_value['acid'] . '.jpg') . '?time=' . time(),
 					);
 				}
 			} else {
@@ -788,10 +600,6 @@ function module_link_uniacid_fetch($uid, $module_name) {
 					'wxapp_name' => '',
 					'uniacid' => $link_value['uniacid'],
 					'version_id' => '',
-					'type_name' => $link_value['type_name'],
-					'account_name' => $link_value['name'],
-					'type' => $link_value['type'],
-					'logo' =>  to_global_media('headimg_' . $link_value['acid'] . '.jpg') . '?time=' . time(),
 				);
 			}
 		}
@@ -800,16 +608,74 @@ function module_link_uniacid_fetch($uid, $module_name) {
 	return $result;
 }
 
-/**
- * 获取模块店员信息
- */
+
+function module_link_uniacid_info($module_name) {
+	if (empty($module_name)) {
+		return array();
+	}
+	$result = table('uni_account_modules')->where('module', $module_name)->getall();
+	if (!empty($result)) {
+		foreach ($result as $key => $value) {
+			$result[$key]['settings'] = iunserializer($value['settings']);
+			if (empty($result[$key]['settings']) || (empty($result[$key]['settings']['link_uniacid']) && empty($result[$key]['settings']['passive_link_uniacid']))) {
+				unset($result[$key]);
+			}
+		}
+		return $result;
+	}
+	return array();
+}
+
+
+function module_save_switch($module_name, $uniacid = 0, $version_id = 0) {
+	global $_W, $_GPC;
+	load()->model('visit');
+	if (empty($_GPC['__switch'])) {
+		$_GPC['__switch'] = random(5);
+	}
+	$cache_key = cache_system_key('last_account', array('switch' => $_GPC['__switch']));
+	$cache_lastaccount = (array)cache_load($cache_key);
+	if (empty($cache_lastaccount)) {
+		$cache_lastaccount = array(
+			$module_name => array(
+				'module_name' => $module_name,
+				'uniacid' => $uniacid,
+				'version_id' => $version_id
+			)
+		);
+	} else {
+		$cache_lastaccount[$module_name] = array(
+			'module_name' => $module_name,
+			'uniacid' => $uniacid,
+			'version_id' => $version_id
+		);
+	}
+	visit_system_update(array('modulename' => $module_name, 'uid' => $_W['uid']));
+	cache_write($cache_key, $cache_lastaccount);
+	isetcookie('__switch', $_GPC['__switch'], 7 * 86400);
+	return true;
+}
+
+
+function module_last_switch($module_name) {
+	global $_GPC;
+	$module_name = trim($module_name);
+	if (empty($module_name)) {
+		return array();
+	}
+	$cache_key = cache_system_key('last_account', array('switch' => $_GPC['__switch']));
+	$cache_lastaccount = (array)cache_load($cache_key);
+	return $cache_lastaccount[$module_name];
+}
+
+
 function module_clerk_info($module_name) {
 	$user_permissions = array();
 	$module_name = trim($module_name);
 	if (empty($module_name)) {
 		return $user_permissions;
 	}
-	$user_permissions = table('users_permission')->getClerkPermission($module_name);
+	$user_permissions = table('userspermission')->moduleClerkPermission($module_name);
 	if (!empty($user_permissions)) {
 		foreach ($user_permissions as $key => $value) {
 			$user_permissions[$key]['user_info'] = user_single($value['uid']);
@@ -818,15 +684,13 @@ function module_clerk_info($module_name) {
 	return $user_permissions;
 }
 
-/**
- * 将应用列表页的模块置顶
- */
-function module_rank_top($module_name, $uniacid) {
+
+function module_rank_top($module_name) {
 	global $_W;
 	if (empty($module_name)) {
 		return false;
 	}
-	$result = table('modules_rank')->setTop($module_name, $uniacid);
+	$result = table('modules_rank')->setTop($module_name);
 	return empty($result) ? true : false;
 }
 
@@ -837,93 +701,61 @@ function module_installed_list($type = '') {
 	if (empty($user_has_module)) {
 		return $module_list;
 	}
-
-	if ($type == 'all') {
-		return $user_has_module;
-	}
+		$module_support_type = module_support_type();
 
 	foreach ($user_has_module as $modulename => $module) {
 		if ((!empty($module['issystem']) && $module['name'] != 'we7_coupon')) {
 			continue;
 		}
-		foreach (module_support_type() as $support_name => $support) {
-			if ($module[$support_name] == $support['support'] && (empty($module['recycle_info']) || empty($module['recycle_info'][$support_name]))) {
+		foreach ($module_support_type as $support_name => $support) {
+
+			if ($module[$support_name] == $support['support']) {
 				$module_list[$support['type']][$modulename] = $module;
 			}
 		}
 	}
 
 	if (!empty($type)) {
-		return (array)$module_list[$type];
+		return $module_list[$type];
 	} else {
 		return $module_list;
 	}
 }
 
-/**
- * 获取所有未安装的模块
- * @param string $module_type 模块类型;
- */
+
 function module_uninstall_list()  {
 	$uninstall_modules = table('modules_cloud')->getUninstallModule();
-	$recycle = table('modules_recycle')->where('type', 2)->where('name', array_keys($uninstall_modules))->getall('name');
 	if (!empty($uninstall_modules)) {
-		foreach ($uninstall_modules as $name => &$module) {
-			if (!empty($recycle[$name])) {
-				foreach (module_support_type() as $support => $value) {
-					if ($module[$support] == $value['support'] && $recycle[$name][$support] == 1) {
-						$module[$support] = $value['not_support'];
-					}
-				}
+		array_walk($uninstall_modules, function(&$row, $key) {
+			if ($row[MODULE_SUPPORT_WXAPP_NAME] == MODULE_SUPPORT_WXAPP) {
+				$support = MODULE_SUPPORT_WXAPP_NAME;
+			} else {
+				$support = MODULE_SUPPORT_ACCOUNT_NAME;
 			}
-			$need_install = false;
-			foreach (module_support_type() as $support => $value) {
-				if ($module[$support] == MODULE_SUPPORT_ACCOUNT) {
-					$need_install = true;
-					$module['link'] = url('module/manage-system/install', array('module_name' => $module['name'], 'support' => $support));
-					break;
-				}
-			}
-			if (!$need_install) {
-				unset($module);
-			}
-		}
+			$row['link'] = url('module/manage-system/install', array('module_name' => $row['name'], 'support' => $support));
+		});
 	}
 	return $uninstall_modules;
 }
 
-/**
- * 获取未安装模块数量
- */
+
 function module_uninstall_total($type) {
 	$type_list = module_support_type();
-	if (!isset($type_list["{$type}_support"]) && $type != 'all') {
+	if (!isset($type_list["{$type}_support"])) {
 		return 0;
 	}
-	if ($type == 'all') {
-		$total = table('modules_cloud')->searchUninstallWithOutWelcome()->getcolumn('count(*)');
-	} else {
-		$total = table('modules_cloud')->searchUninstallSupport("{$type}_support")->getcolumn('count(*)');
-	}
-	return intval($total);
+	$total = table('modules_cloud')->getUninstallTotalBySupportType($type);
+	return $total;
 }
-/**
- * 得到最新可升级应用
- * @param type account/wxapp
- * @return array 升级的模块列表
- */
+
 function module_upgrade_list() {
-	global $_W;
 	$result = array();
 	$module_list = user_modules($_W['uid']);
 	if (empty($module_list)) {
 		return $result;
 	}
 
-	$modules_cloud_table = table('modules_cloud');
-	$modules_cloud_table->orderby('buytime', 'desc');
-	$modules_cloud_table->orderby('lastupdatetime', 'asc');
-	$upgrade_modules = $modules_cloud_table->getUpgradeByModuleNameList(array_keys($module_list));
+	$upgrade_modules = table('modules_cloud')->getUpgradeByModuleNameList(array_keys($module_list));
 	if (empty($upgrade_modules)) {
 		return $result;
 	}
@@ -947,41 +779,26 @@ function module_upgrade_total($type) {
 	if (!isset($type_list["{$type}_support"])) {
 		return 0;
 	}
-	$modules = table('modules_cloud')->getUpgradeModulesBySupportType($type);
-	return count($modules);
+	$total = table('modules_cloud')->getUpgradeTotalBySupportType($type);
+	return $total;
 }
 
-/**
- * 检查传入的模块是否有更新
- * 优先检查本地是否包含Manifest.xml
- * 否则通过modules_cloud表先查询模块云端缓存信息
- * 如果记录过期则通过接口更新modules_cloud表中的数据
- * @param array $modulelist
- */
+
 function module_upgrade_info($modulelist = array()) {
 	load()->model('cloud');
 	load()->model('extension');
 
 	$result = array();
-	$module_support_type = module_support_type();
-	//按照本地manifest整理接口数据
-	$manifest_cloud_list = array();
 
 	cloud_prepare();
-	$cloud_m_query_module_pageinfo = cloud_m_query(array(), 1);
-	if (is_error($cloud_m_query_module_pageinfo)) {
-		return $cloud_m_query_module_pageinfo;
+	$cloud_m_query_module = cloud_m_query();
+	if (is_error($cloud_m_query_module)) {
+		return array();
 	}
-	$cloud_m_query_module = $cloud_m_query_module_pageinfo['data'];
-	if ($cloud_m_query_module_pageinfo['page'] > 1) {
-		for($i = 2;$i <= $cloud_m_query_module_pageinfo['page']; $i++) {
-			$cloud_m_query_module_i = cloud_m_query(array(), $i);
-			$cloud_m_query_module = array_merge($cloud_m_query_module, $cloud_m_query_module_i['data']);
-		}
-	}
-	$pirate_apps = $cloud_m_query_module['pirate_apps'];
+		$pirate_apps = $cloud_m_query_module['pirate_apps'];
 	unset($cloud_m_query_module['pirate_apps']);
 
+		$manifest_cloud_list = array();
 	foreach ($cloud_m_query_module as $modulename => $manifest_cloud) {
 		$manifest = array(
 			'application' => array(
@@ -989,42 +806,40 @@ function module_upgrade_info($modulelist = array()) {
 				'title' => $manifest_cloud['title'],
 				'version' => $manifest_cloud['version'],
 				'logo' => $manifest_cloud['thumb'],
+				'version' => $manifest_cloud['version'],
 				'last_upgrade_time' => $manifest_cloud['last_upgrade_time'],
 			),
 			'platform' => array(
 				'supports' => array()
 			),
 		);
-		foreach ($module_support_type as $support_key => $support_value) {
-			if ($support_key == 'account_support' && $manifest_cloud['site_branch']['app_support'] == $support_value['support']) {
-				$manifest['platform']['supports'][] = $support_value['type'];
-				continue;
-			}
-			if ($support_key == 'phoneapp_support' && ($manifest_cloud['site_branch']['android_support'] == $support_value['support'] || $manifest_cloud['site_branch']['ios_support'] == $support_value['support'])) {
-				$manifest['platform']['supports'][] = $support_value['type'];
-				continue;
-			}
-			if ($support_key == 'welcome_support' && $manifest_cloud['site_branch']['system_welcome_support'] == $support_value['support']) {
-				$manifest['platform']['supports'][] = $support_value['type'];
-				continue;
-			}
-			if ($manifest_cloud['site_branch'][$support_key] == $support_value['support']) {
-				$manifest['platform']['supports'][] = $support_value['type'];
-			}
-		}
 
+		if ($manifest_cloud['site_branch']['app_support'] == MODULE_SUPPORT_ACCOUNT) {
+			$manifest['platform']['supports'][] = 'account';
+		}
+		if ($manifest_cloud['site_branch']['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
+			$manifest['platform']['supports'][] = 'wxapp';
+		}
+		if ($manifest_cloud['site_branch']['webapp_support'] == MODULE_SUPPORT_WEBAPP) {
+			$manifest['platform']['supports'][] = 'webapp';
+		}
+		if ($manifest_cloud['site_branch']['android_support'] == MODULE_SUPPORT_PHONEAPP ||
+			$manifest_cloud['site_branch']['ios_aupport'] == MODULE_SUPPORT_PHONEAPP) {
+			$manifest['platform']['supports'][] = 'phoneapp';
+		}
+		if ($manifest_cloud['site_branch']['system_welcome_support'] == MODULE_SUPPORT_SYSTEMWELCOME) {
+			$manifest['platform']['supports'][] = 'welcome';
+		}
 		if (empty($manifest['platform']['supports'])) {
 			continue;
 		}
 		$manifest['branches'] = $manifest_cloud['branches'];
 		$manifest['site_branch'] = $manifest_cloud['site_branch'];
 		$manifest['cloud_id'] = $manifest_cloud['id'];
-		$manifest['buytime'] = $manifest_cloud['buytime'];
 		$manifest_cloud_list[$modulename] = $manifest;
 	}
 
-	//没有指定查询模块列表，则获取全部模块查询
-	if (empty($modulelist)) {
+		if (empty($modulelist)) {
 		$modulelist = table('modules')->searchWithType('system', '<>')->getall('name');
 	}
 	foreach ($modulelist as $modulename => $module) {
@@ -1050,19 +865,15 @@ function module_upgrade_info($modulelist = array()) {
 			$module_upgrade_data['install_status'] = MODULE_CLOUD_INSTALL;
 			$manifest = $manifest_cloud_list[$modulename];
 		} else {
-			//本地已安装没有manifest也没有cloud信息，默认为本地安装
-			$module_upgrade_data['install_status'] = MODULE_LOCAL_INSTALL;
+						$module_upgrade_data['install_status'] = MODULE_LOCAL_INSTALL;
 		}
 
 		$module_upgrade_data['logo'] = $manifest['application']['logo'];
 		$module_upgrade_data['version'] = $manifest['application']['version'];
 		$module_upgrade_data['title'] = $manifest['application']['title'];
 		$module_upgrade_data['title_initial'] = get_first_pinyin($manifest['application']['title']);
-		$module_upgrade_data['buytime'] = $manifest_cloud_list[$modulename]['buytime'];
 
-		//云服务模块已在本地安装，unset后方便后面排查未安装模块
-		//云上模块，如果在本地有manifest.xml，以本地模块为主
-		unset($manifest_cloud_list[$modulename]);
+						unset($manifest_cloud_list[$modulename]);
 
 		if (version_compare($module['version'], $manifest['application']['version']) == '-1') {
 			$module_upgrade_data['has_new_version'] = 1;
@@ -1074,8 +885,7 @@ function module_upgrade_info($modulelist = array()) {
 			);
 		}
 
-		//本地已安装，没有更新的模块不入表，防止无用数据太多
-		if ($module_upgrade_data['install_status'] == MODULE_LOCAL_INSTALL && empty($module_upgrade_data['has_new_version'])) {
+				if ($module_upgrade_data['install_status'] == MODULE_LOCAL_INSTALL && empty($module_upgrade_data['has_new_version'])) {
 			continue;
 		}
 
@@ -1089,11 +899,11 @@ function module_upgrade_info($modulelist = array()) {
 		}
 
 		if (!empty($manifest['platform']['supports'])) {
-			foreach ($module_support_type as $support_key => $support_value) {
-				if (in_array($support_value['type'], $manifest['platform']['supports'])) {
-					$module_upgrade_data[$support_key] = $support_value['support'];
+			foreach (array('account', 'wxapp', 'webapp', 'phoneapp', 'welcome') as $support) {
+				if (in_array($support, $manifest['platform']['supports'])) {
+					$module_upgrade_data["{$support}_support"] = MODULE_SUPPORT_ACCOUNT;
 				} else {
-					$module_upgrade_data[$support_key] = $support_value['not_support'];
+					$module_upgrade_data["{$support}_support"] = MODULE_NONSUPPORT_ACCOUNT;
 				}
 			}
 		}
@@ -1119,24 +929,14 @@ function module_upgrade_info($modulelist = array()) {
 				'title' => $manifest['application']['title'],
 				'title_initial' => get_first_pinyin($manifest['application']['title']),
 				'lastupdatetime' => $manifest['application']['last_upgrade_time'],
-				'buytime' => $manifest['buytime'],
 				'cloud_id' => $manifest['cloud_id'],
 			);
 			if (!empty($manifest['platform']['supports'])) {
-				foreach ($module_support_type as $support_key => $support_value) {
-					if (in_array($support_value['type'], $manifest['platform']['supports'])) {
-						$module_upgrade_data[$support_key] = $support_value['support'];
+				foreach (array('account', 'wxapp', 'webapp', 'phoneapp', 'welcome') as $support) {
+					if (in_array($support, $manifest['platform']['supports'])) {
+						$module_upgrade_data["{$support}_support"] = MODULE_SUPPORT_ACCOUNT;
 					} else {
-						$module_upgrade_data[$support_key] = $support_value['not_support'];
-					}
-				}
-			}
-
-			$module_recycle_info = table('modules_recycle')->searchWithNameType($modulename, MODULE_RECYCLE_UNINSTALL_IGNORE)->get();
-			if (!empty($module_recycle_info)) {
-				foreach ($module_support_type as $support => $value) {
-					if ($module_recycle_info[$support] == 1) {
-						$module_upgrade_data[$support] = $value['not_support'];
+						$module_upgrade_data["{$support}_support"] = MODULE_NONSUPPORT_ACCOUNT;
 					}
 				}
 			}
@@ -1152,196 +952,6 @@ function module_upgrade_info($modulelist = array()) {
 	return $result;
 }
 
-function module_check_notinstalled_support($module, $manifest_support) {
-	if (empty($manifest_support)) {
-		return array();
-	}
-	$has_notinstalled_support = false;
-	$notinstalled_support = array();
-	$module_support_type = module_support_type();
-
-	foreach ($manifest_support as $support) {
-		if ($support == 'app') {
-			$support = 'account';
-		} elseif ($support == 'system_welcome') {
-			$support = 'welcome';
-		} elseif ($support == 'android' || $support == 'ios') {
-			$support = 'phoneapp';
-		}
-		$support .= '_support';
-		if (!in_array($support, array_keys($module_support_type))) {
-			continue;
-		}
-
-		if ($module[$support] != $module_support_type[$support]['support']) {
-			$has_notinstalled_support = true;
-			$notinstalled_support[$support] = $module_support_type[$support]['support'];
-		} else {
-			$notinstalled_support[$support] = $module_support_type[$support]['not_support'];
-		}
-	}
-	if ($has_notinstalled_support) {
-		return $notinstalled_support;
-	} else {
-		return array();
-	}
-}
-
-/**
- * 将模块加入到应用权限组中
- * @param $module 必须包含模块的name和支持
- */
-function module_add_to_uni_group($module, $uni_group_id, $support) {
-	if (!in_array($support, array_keys(module_support_type()))) {
-		return error(1, '支持类型不存在');
-	}
-	if (empty($module[$support]) || $module[$support] != MODULE_SUPPORT_ACCOUNT) {
-		return error(1, '模块支持不存在');
-	}
-	$unigroup_table = table('uni_group');
-	$uni_group = $unigroup_table->getById($uni_group_id);
-	if (empty($uni_group)) {
-		return error(1, '应用权限组不存在');
-	}
-	$update_data = $uni_group['modules'];
-
-	$key = str_replace('_support', '', $support);
-	$key = $key == 'account' ? 'modules' : $key;
-	if (!in_array($module['name'], $update_data[$key])) {
-		$update_data[$key][] = $module['name'];
-	}
-	return $unigroup_table->fill('modules', iserializer($update_data))->where('id', $uni_group_id)->save();
-}
-
-/**
- * 停用或删除模块
- */
-function module_recycle($modulename, $type, $support) {
-	global $_W;
-	$module_support_types = module_support_type();
-	$module_support_type = $module_support_types[$support]['type'];
-	$all_support = array_keys($module_support_types);
-
-	# 停用模块时,删除相关权限和记录
-	if ($type == MODULE_RECYCLE_INSTALL_DISABLED) {
-		$uni_modules_table = table('uni_modules');
-		$uni_accounts = $uni_modules_table->where('module_name', $modulename)->getall('uniacid');
-		if (!empty($uni_accounts)) {
-			foreach ($uni_accounts as $uni_account_val) {
-				$account_info = uni_fetch($uni_account_val['uniacid']);
-				if ($account_info['type_sign'] == $module_support_type) {
-					$uni_modules_table->deleteUniModules($modulename,  $uni_account_val['uniacid']);
-				}
-			}
-		}
-
-		$lastuse_table = table('users_lastuse');
-		$lastuse_accounts = switch_getall_lastuse_by_module($modulename);
-		if (!empty($lastuse_accounts)) {
-			foreach ($lastuse_accounts as $lastuse_account_val) {
-				$lastuse_account_info = uni_fetch($lastuse_account_val['uniacid']);
-				if ($lastuse_account_info['type_sign'] == $module_support_type) {
-					$lastuse_table->searchWithUid($_W['uid']);
-					$lastuse_table->searchWithUniacid($lastuse_account_val['uniacid']);
-					$lastuse_table->searchWithModule($modulename);
-					$lastuse_table->delete();
-				}
-			}
-		}
-	}
-
-	if (!in_array($support, $all_support)) {
-		return false;
-	}
-	if ($type == MODULE_RECYCLE_UNINSTALL_IGNORE) {
-		table('modules_cloud')->fill(array($support => 1))->where('name', $modulename)->save();
-	}
-	$module_recycle = table('modules_recycle');
-	$record = $module_recycle->searchWithNameType($modulename, $type)->get();
-	if (empty($record)) {
-		return $module_recycle->fill(array('name' => $modulename, 'type' => $type, $support => 1))->save();
-	} else {
-		$record[$support] = 1;
-		return $module_recycle->where('id', $record['id'])->fill($record)->save();
-	}
-}
-
-/**
- * 恢复停用或删除的模块
- */
-function module_cancel_recycle($modulename, $type, $support) {
-	$all_support = array_keys(module_support_type());
-	if (!in_array($support, $all_support)) {
-		return false;
-	}
-	$module_recycle = table('modules_recycle');
-	$record = $module_recycle->searchWithNameType($modulename, $type)->get();
-	if (empty($record)) {
-		return true;
-	}
-	$record[$support] = 0;
-	$is_update = false;
-	foreach ($all_support as $s) {
-		if ($record[$s] == 1) {
-			$is_update = true;
-		}
-	}
-	if ($type == MODULE_RECYCLE_UNINSTALL_IGNORE) {
-		table('modules_cloud')->fill(array($support => 2))->where('name', $modulename)->save();
-	}
-	if ($is_update) {
-		return $module_recycle->where('id', $record['id'])->fill($record)->save();
-	} else {
-		return $module_recycle->where('id', $record['id'])->delete();
-	}
-}
-
-/**
- * @param $module_name
- * @return int
- */
-function module_get_direct_enter_status($module_name) {
-	global $_W;
-	if (empty($module_name)) {
-		return STATUS_OFF;
-	}
-	$module_setting = table('uni_account_modules')->getByUniacidAndModule($module_name, $_W['uniacid']);
-	$status = !empty($module_setting['settings']) && $module_setting['settings']['direct_enter'] == STATUS_ON ? STATUS_ON : STATUS_OFF;
-	return $status;
-}
-/**
- * @param $module_name
- * @return bool
- */
-function module_change_direct_enter_status($module_name) {
-	global $_W;
-	if (empty($module_name)) {
-		return false;
-	}
-	$module_setting = table('uni_account_modules')->getByUniacidAndModule($module_name, $_W['uniacid']);
-	$direct_enter_status = !empty($module_setting['settings']) && $module_setting['settings']['direct_enter'] == STATUS_ON ? STATUS_OFF : STATUS_ON;
-	if (empty($module_setting)) {
-		$data = array('direct_enter' => $direct_enter_status);
-		$result = table('uni_account_modules')->fill(array('settings' => iserializer($data), 'uniacid' => $_W['uniacid'], 'module' => $module_name))->save();
-	} else {
-		$module_setting['settings']['direct_enter'] = $direct_enter_status;
-		$data = $module_setting['settings'];
-		$result = table('uni_account_modules')->fill(array('settings' => iserializer($data)))->where('module', $module_name)->where('uniacid', $_W['uniacid'])->save();
-	}
-	return $result ? true : false;
-}
-
-function module_delete_store_wish_goods($module_name, $support_name) {
-	load()->model('store');
-	$all_type = store_goods_type_info();
-	foreach ($all_type as $info) {
-		if ($info['group'] == 'module' && $support_name == $info['sign'] . '_support') {
-			$type = $info['type'];
-			break;
-		}
-	}
-	if (!empty($type)) {
-		pdo_update('site_store_goods', array('status' => 2), array('module' => $module_name, 'type' => $type));
-	}
-	return true;
+function module_recycle_fetch($modulename) {
+	return table('modules_recycle')->getByName($modulename);
 }

@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -91,11 +91,7 @@ function article_notice_all($filter = array(), $pindex = 1, $psize = 10) {
 	return array('total' => $total, 'notice' => $notice);
 }
 
-/**
- * 删除文章分类
- * @param $id
- * @return bool
- */
+
 function article_category_delete($id) {
 	$id = intval($id);
 	if (empty($id)) {
@@ -127,10 +123,7 @@ function article_category_delete($id) {
 	return true;
 }
 
-/**
- * 评论回复
- * @param $data
- */
+
 function article_comment_add($comment) {
 	if (empty($comment['content'])) {
 		return error(-1, '回复内容不能为空');
@@ -139,8 +132,8 @@ function article_comment_add($comment) {
 		return error(-1, '用户信息不能为空');
 	}
 
-	$article_comment_table = table('site_article_comment');
-	$article_comment_table->addComment($comment);
+	$article_comment_table = table('sitearticlecomment');
+	$article_comment_table->articleCommentAdd($comment);
 	return true;
 }
 
@@ -148,14 +141,14 @@ function article_comment_detail($article_lists) {
 	global $_W;
 	load()->model('mc');
 	if (empty($article_lists)) {
-		return array();
+		return true;
 	}
 
 	foreach ($article_lists as $list) {
 		$parent_article_comment_ids[] = $list['id'];
 	}
 
-	$comment_table = table('site_article_comment');
+	$comment_table = table('sitearticlecomment');
 	$comment_table->fill('is_read', ARTICLE_COMMENT_READ)->whereId($parent_article_comment_ids)->save();
 	$son_comment_lists = $comment_table->searchWithUniacid($_W['uniacid'])->searchWithParentid($parent_article_comment_ids)->articleCommentList();
 
@@ -166,7 +159,7 @@ function article_comment_detail($article_lists) {
 	}
 
 	$user_table = table('users');
-	$users = $user_table->searchWithUid($uids)->getUsersList();
+	$users = $user_table->searchWithUid($uids)->searchUsersList();
 
 	foreach ($article_lists as &$list) {
 		$list['createtime'] = date('Y-m-d H:i:s', $list['createtime']);

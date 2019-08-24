@@ -6,19 +6,19 @@
 		<li>编辑字段</li>
 	</ol>
 	<div class="we7-form" id="js-field-post" ng-controller="FieldsPost" ng-cloak>
-		<form method="post">
+		<form action="" method="post">
 			<input type="hidden" name="id" value="{$item['id']}">
 			<div class="form-group">
 				<label for="" class="control-label col-sm-2">字段</label>
 				<div class="form-controls col-sm-8">
-<!--					<input type="text" id="" name="field" class="form-control" ng-blur="verifyField()" ng-model="item.field" readonly ng-if="!item" placeholder="请使用字母或数字或下划线组合字段名">-->
-					<input type="text" id="" name="field" class="form-control" ng-blur="verifyField()" ng-model="item.field" placeholder="请使用字母或数字或下划线组合字段名">
+					<input type="text" id="" name="field" class="form-control" ng-blur="verifyField()" ng-model="item.field" readonly ng-if="!item" placeholder="请使用字母或数字或下划线组合字段名">
+					<input type="text" id="" name="field" class="form-control" ng-blur="verifyField()" ng-model="item.field" ng-if="item" placeholder="请使用字母或数字或下划线组合字段名">
 				</div>
 			</div>
 			<div class="form-group">
 				<label for="" class="control-label col-sm-2">字段长度</label>
 				<div class="form-controls col-sm-8">
-					<select name="length" ng-model="item.field_length">
+					<select name="length" class="we7-select">
 						<option value="64">64</option>
 						<option value="128" ng-selected="item.field_length == 128">128</option>
 						<option value="255" ng-selected="item.field_length == 255">255</option>
@@ -48,9 +48,9 @@
 			<div class="form-group">
 				<label for="" class="control-label col-sm-2">是否启用</label>
 				<div class="form-controls col-sm-8">
-					<input type="radio" name="available" ng-model="item.available" id="radio-1" value="1">
+					<input type="radio" name="available" id="radio-1" value="1" ng-checked="available">
 				    <label for="radio-1">是</label>
-				    <input type="radio" name="available" ng-model="item.available" id="radio-2" value="0">
+				    <input type="radio" name="available" id="radio-2" value="0" ng-checked="!available">
 				    <label for="radio-2">否</label>
 					<span class="help-block"></span>
 				</div>
@@ -58,9 +58,9 @@
 			<div class="form-group">
 				<label for="" class="control-label col-sm-2">是否必填</label>
 				<div class="form-controls col-sm-8">
-					<input id='radio-3' type="radio" ng-model="item.required" name="required" value="1">
+					<input id='radio-3' type="radio" name="required" value="1" ng-checked="required">
 				    <label for="radio-3">是</label>
-				    <input id='radio-4' type="radio" ng-model="item.required" name="required"  value="0">
+				    <input id='radio-4' type="radio" name="required"  value="0" ng-checked="!required">
 				    <label for="radio-4">否</label>
 					<span class="help-block"></span>
 				</div>
@@ -68,9 +68,9 @@
 			<div class="form-group">
 				<label for="" class="control-label col-sm-2">提交后不可修改</label>
 				<div class="form-controls col-sm-8">
-					<input id='radio-5' type="radio" ng-model="item.unchangeable" name="unchangeable" value="1">
+					<input id='radio-5' type="radio" name="unchangeable" value="1" ng-checked="unchangeable">
 				    <label for="radio-5">是</label>
-				    <input id='radio-6' type="radio" ng-model="item.unchangeable" name="unchangeable" value="0">
+				    <input id='radio-6' type="radio" name="unchangeable" value="0" ng-checked="!unchangeable">
 				    <label for="radio-6">否</label>
 					<span class="help-block"></span>
 				</div>
@@ -78,27 +78,21 @@
 			<div class="form-group">
 				<label for="" class="control-label col-sm-2">在注册页面显示</label>
 				<div class="form-controls col-sm-8">
-					<input id='radio-7' type="radio" ng-model="item.showinregister" name="showinregister"  value="1" >
+					<input id='radio-7' type="radio" name="showinregister"  value="1" ng-checked="showinregister">
 				    <label for="radio-7">是</label>
-				    <input id='radio-8' type="radio" ng-model="item.showinregister"  name="showinregister" value="0" >
+				    <input id='radio-8' type="radio" name="showinregister" value="0" ng-checked="!showinregister">
 				    <label for="radio-8">否</label>
 					<span class="help-block"></span>
 				</div>
 			</div>
-			<div class="col-sm-offset-2">
-				<button type="button" class="btn btn-primary" ng-click="saveInfo(item)">保存</button>
-				<input type="hidden" name="token" value="{$_W['token']}" />
-			</div>
+			<input type="submit" name="submit" value="保存" class="btn btn-primary" ng-style="{'padding': '6px 50px'}"/>
+			<input type="hidden" name="token" value="{$_W['token']}" />
 	</form>
 	</div>
 </div>
 <script>
 	angular.module('userManageApp').value('config', {
-		fields: {php echo !empty($fields) ? json_encode($fields) : 'null'},
-		links: {
-			fieldPost: "{php echo url('user/fields/post')}",
-			fieldDisplay: "{php echo url('user/fields/display')}",
-		},
+		item: {php echo json_encode((array)$item)},
 	});
 	angular.bootstrap($('#js-field-post'), ['userManageApp']);
 </script>

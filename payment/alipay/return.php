@@ -32,13 +32,8 @@ $string .= $alipay['secret'];
 $sign = md5($string);
 if($sign == $_GET['sign']){
 	$_GET['query_type'] = 'return';
-	// 同步验证通过，就记录状态(用户可能手动点击提前关闭页面，导致同步请求未发送成功)
-	// 如果return请求来时，未接到notify通知，则模拟notify通知先请求
-	WeUtility::logging('pay-alipay', var_export($_GET, true));
+			WeUtility::logging('pay-alipay', var_export($_GET, true));
 	if($_GET['is_success'] == 'T' && ($_GET['trade_status'] == 'TRADE_FINISHED' || $_GET['trade_status'] == 'TRADE_SUCCESS')) {
-		if ($_GET['subject'] == '测试支付接口' && $_GET['total_fee'] == 0.01) {
-			message('支付回调成功！', $_W['siteroot'] . 'web/index.php?c=profile&a=payment', 'success');
-		}
 		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `uniontid`=:uniontid';
 		$params = array();
 		$params[':uniontid'] = $_GET['out_trade_no'];
@@ -51,8 +46,7 @@ if($sign == $_GET['sign']){
 				$record = array();
 				$record['status'] = '1';
 				pdo_update('core_paylog', $record, array('plid' => $log['plid']));
-				// 卡券处理
-				if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
+								if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
 					$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
 					$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
 					load()->model('activity');
@@ -82,8 +76,7 @@ if($sign == $_GET['sign']){
 					}
 				}
 			}
-			// 状态已为支付成功
-			if(!is_error($site)){
+						if(!is_error($site)){
 				$ret['tid'] = $log['tid'];
 				$ret['result'] = 'success';
 				$ret['from'] = 'return';
@@ -98,7 +91,6 @@ if($sign == $_GET['sign']){
 				}
 				cache_build_account_modules($order['uniacid']);
 				header('Location: ./index.php?c=site&a=entry&direct=1&m=store&do=orders');
-				exit;
 			}
 		}
 	}

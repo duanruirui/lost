@@ -1,7 +1,7 @@
 <?php
 /**
- * [WeEngine System] Copyright (c) 2013 WE7.CC
- * $sn$
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 
 defined('IN_IA') or exit('Access Denied');
@@ -10,8 +10,7 @@ $dos = array('keyword', 'rule', 'history', 'trend', 'del', 'setting', 'browser')
 $do = !empty($_GPC['do']) && in_array($do, $dos) ? $do : 'keyword';
 
 if ($do == 'history') {
-	// permission_check_account_user('platform_stat_history');
-	$_W['page']['title'] = '聊天记录 - 数据统计';
+		$_W['page']['title'] = '聊天记录 - 数据统计';
 	$where = '';
 	$starttime = empty($_GPC['time']['start']) ? TIMESTAMP - 86400 * 60 : strtotime($_GPC['time']['start']);
 	$endtime = empty($_GPC['time']['end']) ? TIMESTAMP : strtotime($_GPC['time']['end']) + 86399;
@@ -157,7 +156,7 @@ if ($do == 'history') {
 				$html .= date('Y-m-d H:i:s', $row['createtime']). "\t , \n";
 			}
 		}
-		/* 输出CSV文件 */
+		
 		header("Content-type:text/csv");
 		header("Content-Disposition:attachment; filename=聊天记录.csv");
 		echo $html;
@@ -175,8 +174,7 @@ if ($do == 'del') {
 	}
 }
 if ($do == 'rule') {
-	// permission_check_account_user('platform_stat_rule');
-	$_W['page']['title'] = '回复规则使用情况 - 数据统计';
+		$_W['page']['title'] = '回复规则使用情况 - 数据统计';
 	$foo = !empty($_GPC['foo']) ? $_GPC['foo'] : 'hit';
 	
 	$where = '';
@@ -235,8 +233,7 @@ if ($do == 'rule') {
 	
 }
 if ($do == 'keyword') {
-	// permission_check_account_user('platform_stat_keyword');
-	$_W['page']['title'] = '关键字命中情况 - 数据统计';
+		$_W['page']['title'] = '关键字命中情况 - 数据统计';
 	$foo = !empty($_GPC['foo']) ? $_GPC['foo'] : 'hit';
 	
 	$where = '';
@@ -314,8 +311,7 @@ if ($do == 'keyword') {
 }
 
 if ($do == 'setting') {
-	// permission_check_account_user('platform_stat_setting');
-	$_W['page']['title'] = '参数 - 数据统计';
+		$_W['page']['title'] = '参数 - 数据统计';
 	$settings = uni_setting($_W['uniacid'], array('stat'));
 	$settings = $settings['stat'];
 	$default  = array('msg_history' => '1','msg_maxday' => '30','use_ratio' => '1');
@@ -346,7 +342,7 @@ if ($do == 'trend') {
 			$hit[] = intval($row['hit']);
 		}
 	}
-	/*添加规则默认数据*/
+	
 	for ($i = 0; $i = count($hit) < 2; $i++) {
 		$day[] = date('m-d', $endtime);
 		$hit[] = $day[$i] == date('m-d', $endtime) ? $hit[0] : '0';
@@ -358,7 +354,7 @@ if ($do == 'trend') {
 			$keywords[$row['kid']]['day'][] = date('m-d', $row['createtime']);
 		}
 		foreach ($keywords as &$value) {
-			/*添加所属关键字默认数据*/
+			
 			if (count($value['hit']) < 2) {
 				$value['hit'][] = $value['day'][0] == date('m-d', $endtime) ? $value['hit'][0] : '0';
 				$value['day'][] = date('m-d', $endtime);

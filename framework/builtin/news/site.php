@@ -1,7 +1,7 @@
 <?php
 /**
- * 图文模块详细页面
- * @author WeEngine Team
+ * [WeEngine System] Copyright (c) 2014 WE7.CC
+ * WeEngine is NOT a free software, it under the license terms, visited http://www.we7.cc/ for more details.
  */
 defined('IN_IA') or exit('Access Denied');
 
@@ -17,7 +17,7 @@ class NewsModuleSite extends WeModuleSite {
 		}
 		$row = istripslashes($row);
 		$title = $row['title'];
-		/*获取引导素材*/
+		
 		if($_W['os'] == 'android' && $_W['container'] == 'wechat' && $_W['account']['account']) {
 			$subscribeurl = "weixin://profile/{$_W['account']['account']}";
 		} else {
